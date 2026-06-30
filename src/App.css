@@ -1124,3 +1124,46 @@ body {
     background:white;
     color:#EF4444;
 }
+
+/* MoodSelector */
+.mood-selector{
+
+display:flex;
+
+justify-content:center;
+
+gap:20px;
+
+margin-top:25px;
+
+flex-wrap:wrap;
+
+}
+
+.mood-selector button{
+
+width:70px;
+
+height:70px;
+
+border:none;
+
+border-radius:50%;
+
+font-size:2rem;
+
+cursor:pointer;
+
+background:white;
+
+box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+transition:.3s;
+
+}
+
+.mood-selector button:hover{
+
+transform:scale(1.15);
+
+}
