@@ -1,0 +1,14 @@
+:root {
+  --primary-dark: #571a57;   /* Morado oscuro */
+  --primary: #504297;        /* Morado medio */
+  --secondary: #A78BFA;      /* Lila claro */
+  --accent: #A5D8FF;         /* Azul pastel */
+  --background: #F3F0FF;     /* Lila muy claro */
+  --white: #FFFFFF;
+
+  --text-primary: #2D2A4A;
+  --text-secondary: #6B7280;
+
+  --shadow: 0 8px 30px rgba(123,97,255,.15);
+  --radius: 20px;
+}

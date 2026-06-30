@@ -1,0 +1,39 @@
+:root {
+
+  /* Colores FeelSafe */
+
+  --primary-dark: #5B3CC4;
+  --primary: #7B61FF;
+  --primary-light: #A78BFA;
+
+  --pastel-blue: #A5D8FF;
+
+  --background: #F3F0FF;
+
+  --white: #FFFFFF;
+
+  /* Texto */
+
+  --text-primary: #2D2A4A;
+  --text-secondary: #6B7280;
+
+  /* Estados */
+
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+
+  /* Sombras */
+
+  --shadow-sm: 0 4px 12px rgba(0,0,0,.08);
+
+  --shadow-md: 0 8px 30px rgba(123,97,255,.15);
+
+  --shadow-lg: 0 20px 60px rgba(0,0,0,.15);
+
+  /* Bordes */
+
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 30px;
+}
