@@ -1,0 +1,65 @@
+.mood-page {
+  max-width: 1000px;
+  margin: auto;
+  padding: 40px;
+}
+
+.mood-page h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #5B3CC4;
+}
+
+.emotion-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.emotion-card {
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
+  transition: 0.3s;
+}
+
+.emotion-card:hover {
+  transform: translateY(-5px);
+}
+
+.emotion-card span {
+  font-size: 3rem;
+}
+
+.emotion-card.active {
+  background: #7B61FF;
+  color: white;
+}
+
+.mood-page textarea {
+  width: 100%;
+  margin-top: 30px;
+  min-height: 150px;
+  border: none;
+  border-radius: 20px;
+  padding: 20px;
+  resize: none;
+  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
+  font-size: 1rem;
+}
+
+.mood-page button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 18px;
+  border: none;
+  border-radius: 15px;
+  background: #5B3CC4;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
