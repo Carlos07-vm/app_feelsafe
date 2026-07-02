@@ -1,3 +1,4 @@
+import "../styles/Goals.css";
 import MainLayout from "../layouts/MainLayout";
 import {
   FaTrophy,

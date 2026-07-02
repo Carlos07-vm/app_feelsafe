@@ -17,7 +17,21 @@
 .sidebar-logo {
   font-size: 1.8rem;
   font-weight: 700;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
+}
+
+.sidebar-logo img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(45, 30, 78, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sidebar-logo img:hover {
+  transform: scale(1.04);
+  box-shadow: 0 6px 20px rgba(160, 132, 220, 0.3);
 }
 
 .sidebar-menu {

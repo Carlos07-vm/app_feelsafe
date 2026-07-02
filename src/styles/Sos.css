@@ -1,0 +1,76 @@
+.page-description {
+  color: #6B7280;
+  margin-bottom: 30px;
+}
+
+.sos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.sos-card {
+  background: white;
+  border-radius: 25px;
+  padding: 30px;
+  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
+}
+
+.sos-icon {
+  font-size: 3rem;
+  color: #7B61FF;
+  margin-bottom: 20px;
+}
+
+.sos-card h2 {
+  color: #5B3CC4;
+  margin-bottom: 15px;
+}
+
+.sos-card p {
+  color: #6B7280;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.sos-card button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 15px;
+  background: #7B61FF;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .3s;
+}
+
+.sos-card button:hover {
+  transform: translateY(-2px);
+}
+
+.sos-card ul {
+  margin-top: 10px;
+  padding-left: 20px;
+  color: #6B7280;
+  line-height: 1.8;
+}
+
+.emergency {
+  background: linear-gradient(135deg, #EF4444, #F87171);
+  color: white;
+}
+
+.emergency h2,
+.emergency p {
+  color: white;
+}
+
+.emergency .sos-icon {
+  color: white;
+}
+
+.emergency button {
+  background: white;
+  color: #EF4444;
+}

@@ -1,3 +1,4 @@
+import "../styles/Reports.css";
 import MainLayout from "../layouts/MainLayout";
 
 import {

@@ -1,3 +1,4 @@
+import "../styles/Alerts.css";
 import MainLayout from "../layouts/MainLayout";
 import {
   FaCheckCircle,

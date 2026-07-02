@@ -1,4 +1,5 @@
-﻿import MainLayout from "../layouts/MainLayout";
+﻿import "../styles/Analysis.css";
+import MainLayout from "../layouts/MainLayout";
 
 function Analysis() {
   return (
