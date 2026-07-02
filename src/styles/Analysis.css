@@ -1,0 +1,39 @@
+.analysis-page {
+  max-width: 1100px;
+  margin: auto;
+  padding: 40px;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.analysis-card {
+  padding: 30px;
+  border-radius: 25px;
+  color: white;
+  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
+}
+
+.analysis-card h2 {
+  margin-bottom: 15px;
+}
+
+.analysis-card h3 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.analysis-card.green {
+  background: linear-gradient(135deg, #22C55E, #4ADE80);
+}
+
+.analysis-card.purple {
+  background: linear-gradient(135deg, #5B3CC4, #7B61FF);
+}
+
+.analysis-card.blue {
+  background: linear-gradient(135deg, #60A5FA, #A5D8FF);
+}

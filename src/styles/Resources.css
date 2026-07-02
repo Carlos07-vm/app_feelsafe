@@ -1,0 +1,56 @@
+.wellness-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+}
+
+.wellness-card {
+  background: white;
+  border-radius: 25px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
+  transition: .3s;
+}
+
+.wellness-card:hover {
+  transform: translateY(-8px);
+}
+
+.wellness-icon {
+  font-size: 3rem;
+  color: #7B61FF;
+  margin-bottom: 15px;
+}
+
+.wellness-card h3 {
+  margin-bottom: 10px;
+  color: #5B3CC4;
+}
+
+.wellness-card p {
+  color: #6B7280;
+  margin-bottom: 20px;
+}
+
+.wellness-card button {
+  border: none;
+  background: #7B61FF;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.challenge-card {
+  margin-top: 30px;
+  background: linear-gradient(135deg, #5B3CC4, #7B61FF);
+  color: white;
+  padding: 35px;
+  border-radius: 25px;
+  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
+}
+
+.challenge-card h2 {
+  margin-bottom: 10px;
+}

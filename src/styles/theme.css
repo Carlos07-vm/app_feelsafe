@@ -1,39 +1,55 @@
-:root {
+:root{
 
-  /* Colores FeelSafe */
+/* ========= Colores FeelSafe ========= */
 
-  --primary-dark: #5B3CC4;
-  --primary: #7B61FF;
-  --primary-light: #A78BFA;
+--primary:#6D4C8F;
+--primary-dark:#563874;
+--primary-light:#CDB4DB;
 
-  --pastel-blue: #A5D8FF;
+--secondary:#BFD7FF;
 
-  --background: #F3F0FF;
+--background:#FAF8FB;
 
-  --white: #FFFFFF;
+--surface:#FFFFFF;
 
-  /* Texto */
+--surface-light:#FFFFFF;
 
-  --text-primary: #2D2A4A;
-  --text-secondary: #6B7280;
+--success:#34C759;
 
-  /* Estados */
+--warning:#FFB020;
 
-  --success: #22C55E;
-  --warning: #F59E0B;
-  --danger: #EF4444;
+--danger:#FF4D6D;
 
-  /* Sombras */
+--text:#2D1B46;
 
-  --shadow-sm: 0 4px 12px rgba(0,0,0,.08);
+--text-light:#7A6A91;
 
-  --shadow-md: 0 8px 30px rgba(123,97,255,.15);
+--border:#E5E7EB;
 
-  --shadow-lg: 0 20px 60px rgba(0,0,0,.15);
 
-  /* Bordes */
+/* ========= Bordes ========= */
 
-  --radius-sm: 12px;
-  --radius-md: 20px;
-  --radius-lg: 30px;
+--radius-sm:12px;
+--radius-md:18px;
+--radius-lg:28px;
+
+
+/* ========= Sombras ========= */
+--shadow-sm:
+0 5px 20px rgba(45,27,70,.05);
+
+--shadow-md:
+0 15px 40px rgba(109,76,143,.12);
+
+--shadow-lg:
+0 25px 70px rgba(109,76,143,.18);
+
+/* ========= Transiciones ========= */
+
+--transition:.3s ease;
+
+/* ========= Tipografias ========= */
+--font-title:"Poppins", sans-serif;
+--font-body:"Inter", sans-serif;
+
 }

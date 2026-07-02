@@ -1,0 +1,47 @@
+.alerts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.alert-card {
+  padding: 30px;
+  border-radius: 25px;
+  color: white;
+  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
+}
+
+.alert-card h2 {
+  margin-top: 15px;
+  font-size: 1.2rem;
+}
+
+.alert-card h3 {
+  margin: 10px 0;
+  font-size: 2rem;
+}
+
+.alert-card p {
+  opacity: 0.95;
+  line-height: 1.6;
+}
+
+.alert-icon {
+  font-size: 2.8rem;
+}
+
+.alert-card.success {
+  background: linear-gradient(135deg, #22C55E, #4ADE80);
+}
+
+.alert-card.warning {
+  background: linear-gradient(135deg, #F59E0B, #FBBF24);
+}
+
+.alert-card.purple {
+  background: linear-gradient(135deg, #5B3CC4, #7B61FF);
+}
+
+.alert-card.blue {
+  background: linear-gradient(135deg, #60A5FA, #A5D8FF);
+}
