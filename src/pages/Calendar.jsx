@@ -1,14 +1,10 @@
-import Sidebar from "../components/Sidebar";
+import MainLayout from "../layouts/MainLayout";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
 function CalendarPage() {
   return (
-    <div className="app-layout">
-
-      <Sidebar />
-
-      <main className="main-content">
+    <MainLayout>
 
         <h1 className="page-title">
           📅 Calendario Emocional
@@ -40,9 +36,7 @@ function CalendarPage() {
 
         </div>
 
-      </main>
-
-    </div>
+      </MainLayout>
   );
 }
 

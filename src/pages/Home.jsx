@@ -1,6 +1,6 @@
-import Sidebar from "../components/Sidebar";
+﻿import MainLayout from "../layouts/MainLayout";
 import StatCard from "../components/StatCard";
-
+import { useApp } from "../context/AppContext";
 import {
   FaSmile,
   FaBrain,
@@ -9,58 +9,34 @@ import {
 } from "react-icons/fa";
 
 function Home() {
+  const { user } = useApp();
+  const moodLabel = user.currentMood || "Bienvenido";
+
   return (
-    <div className="app-layout">
+    <MainLayout>
+      <div className="welcome-card">
+        <h1>Hola 👋 {user.profile.name}</h1>
 
-      <Sidebar />
+        <p>
+          Bienvenido a FeelSafe. Estamos aquí para ayudarte a cuidar tu bienestar emocional.
+        </p>
+      </div>
 
-      <main className="main-content">
+      <div className="stats-grid">
+        <StatCard title="Estado Actual" value={moodLabel} icon={<FaSmile />} />
+        <StatCard title="Bienestar" value={`${user.wellbeing}%`} icon={<FaHeartbeat />} />
+        <StatCard title="IA" value={user.aiStatus} icon={<FaBrain />} />
+        <StatCard title="Racha" value={`${user.streak} días`} icon={<FaChartLine />} />
+      </div>
 
-        <div className="welcome-card">
-          <h1>Hola 👋 Carlos</h1>
+      <div className="motivation-card">
+        <h2>💜 Frase del día</h2>
 
-          <p>
-            Bienvenido a FeelSafe. Estamos aquí para ayudarte a cuidar tu bienestar emocional.
-          </p>
-        </div>
-
-        <div className="stats-grid">
-
-          <StatCard
-            title="Estado Actual"
-            value="😊 Feliz"
-            icon={<FaSmile />}
-          />
-          <StatCard
-            title="Bienestar"
-            value="85%"
-            icon={<FaHeartbeat />}
-          />
-          <StatCard
-            title="IA"
-            value="Activa"
-            icon={<FaBrain />}
-          />
-
-          <StatCard
-            title="Registros"
-            value="12"
-            icon={<FaChartLine />}
-          />
-
-        </div>
-
-        <div className="motivation-card">
-          <h2>💜 Frase del día</h2>
-
-          <p>
-            Tu salud mental es tan importante como tu salud física.
-          </p>
-        </div>
-
-      </main>
-
-    </div>
+        <p>
+          Tu salud mental es tan importante como tu salud física.
+        </p>
+      </div>
+    </MainLayout>
   );
 }
 
