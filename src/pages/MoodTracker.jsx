@@ -1,4 +1,5 @@
-﻿import MainLayout from "../layouts/MainLayout";
+﻿import "../styles/MoodTracker.css";
+import MainLayout from "../layouts/MainLayout";
 import { useState } from "react";
 import { useApp } from "../context/AppContext";
 import emotions from "../constants/emotions";

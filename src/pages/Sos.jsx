@@ -1,3 +1,4 @@
+import "../styles/Sos.css";
 import MainLayout from "../layouts/MainLayout";
 import {
   FaPhoneAlt,

@@ -1,4 +1,5 @@
-﻿import MainLayout from "../layouts/MainLayout";
+﻿import "../styles/Chatbot.css";
+import MainLayout from "../layouts/MainLayout";
 import { FaPaperPlane } from "react-icons/fa";
 import { useState } from "react";
 import { queryGemini } from "../services/geminiService";
