@@ -32,8 +32,8 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/alerts" element={<Alerts />} />
         <Route path="/goals" element={<Goals />} />
-        <Route path="/sos" element={<Sos />} />
-        
+        <Route path="/sos" element={<SOS />} />
+        <Route path="*" element={<Landing />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,4 +1,4 @@
-import Sidebar from "../components/Sidebar";
+import MainLayout from "../layouts/MainLayout";
 
 import {
   LineChart,
@@ -22,10 +22,7 @@ const data = [
 
 function Reports() {
   return (
-    <div className="app-layout">
-      <Sidebar />
-
-      <main className="main-content">
+    <MainLayout>
 
         <h1 className="page-title">
           📊 Reportes Emocionales
@@ -72,8 +69,7 @@ function Reports() {
 
         </div>
 
-      </main>
-    </div>
+      </MainLayout>
   );
 }
 

@@ -1,19 +1,11 @@
-import Sidebar from "../components/Sidebar"
+﻿import MainLayout from "../layouts/MainLayout";
 import { useState } from "react";
-
-
-const emotions = [
-  { emoji: "😊", name: "Feliz" },
-  { emoji: "😐", name: "Neutral" },
-  { emoji: "😔", name: "Triste" },
-  { emoji: "😰", name: "Ansioso" },
-  { emoji: "😡", name: "Enojado" },
-  { emoji: "😴", name: "Cansado" },
-  { emoji: "😭", name: "Abrumado" }
-];
+import { useApp } from "../context/AppContext";
+import emotions from "../constants/emotions";
 
 function MoodTracker() {
-  const [selectedMood, setSelectedMood] = useState("");
+  const { user, setUser } = useApp();
+  const [selectedMood, setSelectedMood] = useState(user.currentMood || "");
   const [note, setNote] = useState("");
 
   const handleSave = () => {
@@ -22,38 +14,55 @@ function MoodTracker() {
       return;
     }
 
+    const selected = emotions.find((emotion) => emotion.name === selectedMood);
+
+    setUser({
+      ...user,
+      currentMood: selectedMood,
+      wellbeing: Math.min(100, user.wellbeing + 1),
+      streak: user.streak + 1,
+      emotions: [...(user.emotions || []), selected?.emoji || selectedMood],
+      notes: [
+        ...(user.notes || []),
+        {
+          mood: selectedMood,
+          text: note || `Registré que estoy ${selectedMood.toLowerCase()}`,
+          timestamp: new Date().toISOString(),
+        },
+      ],
+    });
+
     alert(`Emoción guardada: ${selectedMood}`);
+    setNote("");
   };
 
   return (
-    <div className="mood-page">
-      <h1>¿Cómo te sientes hoy?</h1>
+    <MainLayout>
+      <div className="mood-page">
+        <h1>¿Cómo te sientes hoy?</h1>
 
-      <div className="emotion-grid">
-        {emotions.map((emotion) => (
-          <div
-            key={emotion.name}
-            className={`emotion-card ${
-              selectedMood === emotion.name ? "active" : ""
-            }`}
-            onClick={() => setSelectedMood(emotion.name)}
-          >
-            <span>{emotion.emoji}</span>
-            <p>{emotion.name}</p>
-          </div>
-        ))}
+        <div className="emotion-grid">
+          {emotions.map((emotion) => (
+            <div
+              key={emotion.name}
+              className={`emotion-card ${selectedMood === emotion.name ? "active" : ""}`}
+              onClick={() => setSelectedMood(emotion.name)}
+            >
+              <span>{emotion.emoji}</span>
+              <p>{emotion.name}</p>
+            </div>
+          ))}
+        </div>
+
+        <textarea
+          placeholder="Cuéntanos cómo estuvo tu día..."
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+
+        <button onClick={handleSave}>Guardar Emoción</button>
       </div>
-
-      <textarea
-        placeholder="Cuéntanos cómo estuvo tu día..."
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      />
-
-      <button onClick={handleSave}>
-        Guardar Emoción
-      </button>
-    </div>
+    </MainLayout>
   );
 }
 

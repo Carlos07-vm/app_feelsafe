@@ -1,4 +1,4 @@
-import Sidebar from "../components/Sidebar";
+import MainLayout from "../layouts/MainLayout";
 import {
   FaSpa,
   FaMusic,
@@ -8,10 +8,7 @@ import {
 
 function Resources() {
   return (
-    <div className="app-layout">
-      <Sidebar />
-
-      <main className="main-content">
+    <MainLayout>
 
         <h1 className="page-title">
           🌿 Centro de Bienestar
@@ -67,8 +64,7 @@ function Resources() {
 
         </div>
 
-      </main>
-    </div>
+      </MainLayout>
   );
 }
 

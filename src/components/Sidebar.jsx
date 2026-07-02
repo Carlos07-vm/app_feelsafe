@@ -12,18 +12,19 @@ import {
   FaBullseye,
   FaLifeRing
 } from "react-icons/fa";
+import logo from "../assets/logo.jpeg";
 
 function Sidebar() {
   return (
     <aside className="sidebar">
 
       <div className="sidebar-logo">
-       <img src="/src/assets/logo.jpeg" alt="" />
+        <img src={logo} alt="FeelSafe logo" />
       </div>
 
       <nav className="sidebar-menu">
 
-        <Link to="/">
+        <Link to="/dashboard">
           <FaHome />
           <span>Inicio</span>
         </Link>

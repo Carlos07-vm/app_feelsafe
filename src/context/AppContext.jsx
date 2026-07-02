@@ -1,25 +1,28 @@
 import { createContext, useContext, useState } from "react";
 
-const AppContext = createContext();
+import mockUser from "../data/mockUser";
 
-export function AppProvider({ children }) {
+const AppContext=createContext();
 
-  const [user, setUser] = useState({
-    name: "Carlos",
-    wellbeing: 85,
-    mood: "Feliz",
-  });
+export function AppProvider({children}){
 
-  return (
-    <AppContext.Provider
-      value={{
-        user,
-        setUser,
-      }}
-    >
-      {children}
-    </AppContext.Provider>
-  );
+const[user,setUser]=useState(mockUser);
+
+return(
+
+<AppContext.Provider
+value={{
+user,
+setUser
+}}
+>
+
+{children}
+
+</AppContext.Provider>
+
+);
+
 }
 
-export const useApp = () => useContext(AppContext);
+export const useApp=()=>useContext(AppContext);
