@@ -2,17 +2,17 @@
 
 /* ========= Colores FeelSafe ========= */
 
---primary:#6C63FF;
---primary-dark:#4B3CC4;
---primary-light:#B8B3FF;
+--primary:#6D4C8F;
+--primary-dark:#563874;
+--primary-light:#CDB4DB;
 
---secondary:#A7C7FF;
+--secondary:#BFD7FF;
 
---background:#F6F7FB;
+--background:#FAF8FB;
 
 --surface:#FFFFFF;
 
---surface-light:#FAFBFF;
+--surface-light:#FFFFFF;
 
 --success:#34C759;
 
@@ -20,9 +20,9 @@
 
 --danger:#FF4D6D;
 
---text:#1F2937;
+--text:#2D1B46;
 
---text-light:#6B7280;
+--text-light:#7A6A91;
 
 --border:#E5E7EB;
 
@@ -30,26 +30,26 @@
 /* ========= Bordes ========= */
 
 --radius-sm:12px;
-
 --radius-md:18px;
-
 --radius-lg:28px;
 
 
 /* ========= Sombras ========= */
-
 --shadow-sm:
-0 5px 20px rgba(0,0,0,.05);
+0 5px 20px rgba(45,27,70,.05);
 
 --shadow-md:
-0 15px 40px rgba(108,99,255,.12);
+0 15px 40px rgba(109,76,143,.12);
 
 --shadow-lg:
-0 25px 70px rgba(108,99,255,.18);
-
+0 25px 70px rgba(109,76,143,.18);
 
 /* ========= Transiciones ========= */
 
 --transition:.3s ease;
+
+/* ========= Tipografias ========= */
+--font-title:"Poppins", sans-serif;
+--font-body:"Inter", sans-serif;
 
 }
