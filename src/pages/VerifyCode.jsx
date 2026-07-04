@@ -1,20 +1,26 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { verifyCode } from "../services/otpService";
+import { verifyCodeByEmail } from "../services/otpService";
 
 function VerifyCode() {
   const [code, setCode] = useState("");
+
   const navigate = useNavigate();
   const location = useLocation();
 
-  const uid = location.state?.uid;
+  const email = location.state?.email;
 
   const handleVerify = async () => {
-    const ok = await verifyCode(uid, code);
+    if (!email) {
+      alert("No se encontró el correo.");
+      return;
+    }
+
+    const ok = await verifyCodeByEmail(email, code);
 
     if (ok) {
-      alert("Cuenta verificada correctamente 💜");
-      navigate("/home");
+      alert("Cuenta verificada");
+      navigate("/dashboard");
     } else {
       alert("Código incorrecto");
     }
@@ -25,12 +31,13 @@ function VerifyCode() {
       <h2>Verifica tu correo</h2>
 
       <input
-        placeholder="Ingresa código"
         value={code}
         onChange={(e) => setCode(e.target.value)}
+        placeholder="Código"
       />
 
-      <br /><br />
+      <br />
+      <br />
 
       <button onClick={handleVerify}>
         Verificar
