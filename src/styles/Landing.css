@@ -1,6 +1,6 @@
 .landing {
   min-height: 100vh;
-  background: #F3F0FF;
+  background: var(--background);
 }
 
 .landing-nav {
@@ -11,17 +11,31 @@
 }
 
 .landing-logo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+
   font-size: 2rem;
   font-weight: 700;
-  color: #5B3CC4;
+  color: var(--primary);
+}
+
+.logo-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
 }
 
 .nav-btn {
   text-decoration: none;
-  color: white;
-  background: #5B3CC4;
+  color: var(--surface);
+  background: var(--primary);
+
   padding: 12px 20px;
   border-radius: 12px;
+
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .landing-hero {
@@ -39,14 +53,20 @@
 
 .hero-text h1 {
   font-size: 4rem;
-  color: #5B3CC4;
+  font-weight: 700;
+  letter-spacing: -1px;
+
+  color: var(--primary);
+
   margin-bottom: 20px;
 }
 
 .hero-text p {
   font-size: 1.2rem;
-  color: #6B7280;
+  font-weight: 400;
   line-height: 1.8;
+
+  color: var(--text-light);
 }
 
 .hero-buttons {
@@ -61,16 +81,28 @@
   text-decoration: none;
   padding: 15px 30px;
   border-radius: 15px;
+
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .primary-btn {
-  background: #5B3CC4;
-  color: white;
+  background: var(--primary);
+  color: var(--surface);
 }
 
 .secondary-btn {
-  background: white;
-  color: #5B3CC4;
+  background: var(--surface);
+  color: var(--primary);
+}
+
+.hero-image {
+  margin-top: 40px;
+}
+
+.hero-img {
+  width: 100%;
+  max-width: 380px;
 }
 
 .features-section {
@@ -81,15 +113,32 @@
 }
 
 .landing-feature {
-  background: white;
+  background: var(--surface);
   padding: 30px;
   border-radius: 25px;
   text-align: center;
-  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
+
+  box-shadow: var(--shadow-sm);
 }
 
-.landing-feature svg {
+.feature-icon {
   font-size: 3rem;
-  color: #7B61FF;
+  color: var(--primary);
   margin-bottom: 15px;
+}
+
+.landing-feature h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+
+  color: var(--text);
+
+  margin-bottom: 12px;
+}
+
+.landing-feature p {
+  font-size: 1rem;
+  line-height: 1.7;
+
+  color: var(--text-light);
 }
