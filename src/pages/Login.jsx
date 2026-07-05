@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../services/firebase";
+import logo from "../assets/logo.jpeg";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -14,19 +15,20 @@ function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     setLoading(true);
     setError("");
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
+      await signInWithEmailAndPassword(
         auth,
         email,
         password
       );
 
-      alert("Bienvenido a FeelSafe 💜");
       navigate("/dashboard");
-    } catch (err) {
+
+    } catch {
       setError("Correo o contraseña incorrectos.");
     }
 
@@ -35,14 +37,36 @@ function Login() {
 
   return (
     <div className="auth-container">
+
       <div className="auth-card">
-        <div className="auth-logo">💜</div>
 
-        <h1>Bienvenido a FeelSafe</h1>
+        {/* Botón para regresar */}
+        <Link to="/" className="back-link">
+          ← Volver al inicio
+        </Link>
 
-        <p>Inicia sesión para continuar cuidando tu bienestar emocional.</p>
+        {/* Logo */}
+        <div className="auth-logo">
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+          <img
+            src={logo}
+            alt="Logo FeelSafe"
+            className="auth-logo-image"
+          />
+
+        </div>
+
+        <h1>Bienvenido de nuevo</h1>
+
+        <p>
+          Inicia sesión para continuar cuidando tu bienestar emocional.
+        </p>
+
+        <form
+          className="auth-form"
+          onSubmit={handleSubmit}
+        >
+
           <input
             type="email"
             placeholder="Correo electrónico"
@@ -59,18 +83,30 @@ function Login() {
             required
           />
 
-          <button type="submit" disabled={loading}>
-            {loading ? "Ingresando..." : "Iniciar Sesión"}
+          <button
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? "Ingresando..." : "Iniciar sesión"}
           </button>
+
         </form>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && (
+          <p className="auth-error">
+            {error}
+          </p>
+        )}
 
         <p className="auth-link">
-          ¿No tienes cuenta?
-          <Link to="/register"> Crear cuenta</Link>
+          ¿Aún no tienes una cuenta?
+          <Link to="/register">
+            {" "}Crear cuenta
+          </Link>
         </p>
+
       </div>
+
     </div>
   );
 }
