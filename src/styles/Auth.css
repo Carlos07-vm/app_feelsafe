@@ -131,6 +131,16 @@
 
 }
 
+.auth-info {
+
+  margin-top: 15px;
+
+  color: var(--success);
+
+  font-size: .95rem;
+
+}
+
 /* ================= Links ================= */
 
 .auth-link {
