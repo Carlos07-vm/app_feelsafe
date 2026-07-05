@@ -3,71 +3,168 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #5B3CC4, #7B61FF, #A78BFA);
+
+  background: var(--background);
 }
 
 .auth-card {
   width: 420px;
-  background: white;
+
+  background: var(--surface);
+
   padding: 40px;
+
   border-radius: 30px;
+
   text-align: center;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+
+  box-shadow: var(--shadow-md);
 }
 
+/* ================= Logo ================= */
+
 .auth-logo {
-  width: 90px;
-  height: 90px;
-  margin: auto;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 50%;
-  background: #F3F0FF;
-  font-size: 2rem;
+
   margin-bottom: 20px;
+
 }
 
+.auth-logo-image {
+
+  width: 80px;
+  height: 80px;
+
+  object-fit: contain;
+
+}
+
+/* ================= Textos ================= */
+
 .auth-card h1 {
-  color: #5B3CC4;
+
+  color: var(--primary);
+
+  font-size: 2rem;
+
+  font-weight: 700;
+
 }
 
 .auth-card p {
-  color: #6B7280;
+
+  color: var(--text-light);
+
   margin-top: 10px;
+
+  line-height: 1.6;
+
 }
 
+/* ================= Formulario ================= */
+
 .auth-form {
+
   margin-top: 25px;
+
   display: flex;
   flex-direction: column;
+
   gap: 15px;
+
 }
 
 .auth-form input {
+
   border: none;
-  background: #F3F0FF;
+
+  background: var(--background);
+
   padding: 15px;
+
   border-radius: 15px;
+
   outline: none;
+
+  color: var(--text);
+
 }
+
+.auth-form input::placeholder {
+
+  color: var(--text-light);
+
+}
+
+/* ================= Botón ================= */
 
 .auth-form button {
-  background: #5B3CC4;
-  color: white;
+
+  background: var(--primary);
+
+  color: var(--surface);
+
   border: none;
+
   padding: 15px;
+
   border-radius: 15px;
-  cursor: pointer;
+
   font-weight: 600;
+
+  cursor: pointer;
+
 }
 
+/* ================= Error ================= */
+
+.auth-error {
+
+  margin-top: 15px;
+
+  color: var(--danger);
+
+  font-size: .95rem;
+
+}
+
+/* ================= Links ================= */
+
 .auth-link {
+
   margin-top: 20px;
+
+  color: var(--text-light);
+
 }
 
 .auth-link a {
-  color: #3cc45e;
+
+  color: var(--primary);
+
   text-decoration: none;
+
   font-weight: 600;
+
+}
+
+/* ================= Volver ================= */
+
+.back-link {
+
+  display: inline-block;
+
+  margin-bottom: 20px;
+
+  color: var(--primary);
+
+  text-decoration: none;
+
+  font-size: .95rem;
+
+  font-weight: 500;
+
 }
