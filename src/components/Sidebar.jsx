@@ -1,5 +1,6 @@
 import "../styles/Sidebar.css";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+
 import {
   FaHome,
   FaSmile,
@@ -11,76 +12,79 @@ import {
   FaUserCircle,
   FaBell,
   FaBullseye,
-  FaLifeRing
+  FaLifeRing,
 } from "react-icons/fa";
+
 import logo from "../assets/logo.jpeg";
 
 function Sidebar() {
   return (
     <aside className="sidebar">
 
+      {/* Logo */}
+
       <div className="sidebar-logo">
-        <img src={logo} alt="FeelSafe logo" />
+        <img src={logo} alt="FeelSafe Logo" />
       </div>
+
+      {/* Menú */}
 
       <nav className="sidebar-menu">
 
-        <Link to="/dashboard">
+        <NavLink to="/dashboard">
           <FaHome />
           <span>Inicio</span>
-        </Link>
+        </NavLink>
 
-        <Link to="/mood">
+        <NavLink to="/mood">
           <FaSmile />
           <span>Emociones</span>
-        </Link>
+        </NavLink>
 
-        <Link to="/chat">
+        <NavLink to="/chat">
           <FaRobot />
           <span>Chat IA</span>
-        </Link>
+        </NavLink>
 
-        <Link to="/reports">
+        <NavLink to="/reports">
           <FaChartBar />
           <span>Reportes</span>
-        </Link>
+        </NavLink>
 
-        <Link to="/resources">
+        <NavLink to="/resources">
           <FaBook />
           <span>Recursos</span>
-        </Link>
+        </NavLink>
 
-         <Link to="/calendar">
-        <FaCalendarAlt />
-        <span>Calendario</span>
-        </Link>
+        <NavLink to="/calendar">
+          <FaCalendarAlt />
+          <span>Calendario</span>
+        </NavLink>
 
-        <Link to="/analysis">
-        <FaBrain />
-        <span>Análisis IA</span>
-        </Link>
+        <NavLink to="/analysis">
+          <FaBrain />
+          <span>Análisis IA</span>
+        </NavLink>
 
-        <Link to="/profile">
-        <FaUserCircle />
-        <span>Perfil</span>
-        </Link>
+        <NavLink to="/profile">
+          <FaUserCircle />
+          <span>Perfil</span>
+        </NavLink>
 
-        <Link to="/alerts">
-        <FaBell />
-        <span>Alertas</span>
-        </Link>
+        <NavLink to="/alerts">
+          <FaBell />
+          <span>Alertas</span>
+        </NavLink>
 
-        <Link to="/goals">
-        <FaBullseye />
-        <span>Objetivos</span>
-         </Link>
+        <NavLink to="/goals">
+          <FaBullseye />
+          <span>Objetivos</span>
+        </NavLink>
 
-         <Link to="/sos">
-        <FaLifeRing />
-        <span>Centro SOS</span>
-         </Link>
-            
-
+        <NavLink to="/sos">
+          <FaLifeRing />
+          <span>Centro SOS</span>
+        </NavLink>
 
       </nav>
 
