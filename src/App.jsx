@@ -1,34 +1,44 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Home from "./pages/Home";
+// ================= Páginas públicas =================
+import Landing from "./pages/Landing";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import VerifyCode from "./pages/VerifyCode";
+
+// ================= Páginas protegidas =================
+import Dashboard from "./pages/Dashboard";
 import MoodTracker from "./pages/MoodTracker";
 import Chatbot from "./pages/Chatbot";
 import Reports from "./pages/Reports";
 import Resources from "./pages/Resources";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
 import CalendarPage from "./pages/Calendar";
 import Analysis from "./pages/Analysis";
-import Landing from "./pages/Landing";
 import Profile from "./pages/Profile";
 import Alerts from "./pages/Alerts";
 import Goals from "./pages/Goals";
 import SOS from "./pages/Sos";
-import VerifyCode from "./pages/VerifyCode";
+
+// ================= Componentes =================
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/verify" element={<VerifyCode />} />
+
+        {/* ================= Rutas públicas ================= */}
+
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={<Landing />} />
+        <Route path="/verify" element={<VerifyCode />} />
+
+        {/* ================= Rutas protegidas ================= */}
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Home />} />
-          <Route path="/home" element={<Home />} />
+
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/mood" element={<MoodTracker />} />
           <Route path="/chat" element={<Chatbot />} />
           <Route path="/reports" element={<Reports />} />
@@ -39,9 +49,13 @@ function App() {
           <Route path="/alerts" element={<Alerts />} />
           <Route path="/goals" element={<Goals />} />
           <Route path="/sos" element={<SOS />} />
+
         </Route>
 
+        {/* ================= Ruta por defecto ================= */}
+
         <Route path="*" element={<Landing />} />
+
       </Routes>
     </BrowserRouter>
   );
