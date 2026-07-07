@@ -1,0 +1,171 @@
+.verify-container {
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: var(--background);
+}
+
+.verify-card {
+  width: 420px;
+
+  background: var(--surface);
+
+  padding: 40px;
+
+  border-radius: 30px;
+
+  text-align: center;
+
+  box-shadow: var(--shadow-md);
+}
+
+/* ================= Volver ================= */
+
+.back-link {
+  display: inline-block;
+
+  margin-bottom: 20px;
+
+  color: var(--primary);
+
+  text-decoration: none;
+
+  font-size: .95rem;
+
+  font-weight: 500;
+}
+
+/* ================= Logo ================= */
+
+.verify-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin-bottom: 20px;
+}
+
+.verify-logo-image {
+  width: 80px;
+  height: 80px;
+
+  object-fit: contain;
+}
+
+/* ================= Textos ================= */
+
+.verify-card h1 {
+  color: var(--primary);
+
+  font-size: 2rem;
+
+  font-weight: 700;
+
+  margin-bottom: 10px;
+}
+
+.verify-card p {
+  color: var(--text-light);
+
+  line-height: 1.6;
+
+  margin-bottom: 25px;
+}
+
+/* ================= Formulario ================= */
+
+.verify-form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 15px;
+}
+
+.verify-form input {
+  border: none;
+
+  background: var(--background);
+
+  padding: 15px;
+
+  border-radius: 15px;
+
+  outline: none;
+
+  color: var(--text);
+
+  text-align: center;
+
+  font-size: 1rem;
+
+  letter-spacing: 2px;
+}
+
+.verify-form input::placeholder {
+  color: var(--text-light);
+}
+
+.verify-form button {
+  background: var(--primary);
+
+  color: var(--surface);
+
+  border: none;
+
+  padding: 15px;
+
+  border-radius: 15px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: var(--transition);
+}
+
+.verify-form button:disabled {
+  opacity: .7;
+
+  cursor: not-allowed;
+}
+
+/* ================= Información ================= */
+
+.verify-info {
+  margin-top: 15px;
+
+  color: var(--success);
+
+  font-size: .95rem;
+}
+
+/* ================= Error ================= */
+
+.verify-error {
+  margin-top: 15px;
+
+  color: var(--danger);
+
+  font-size: .95rem;
+}
+
+/* ================= Reenviar ================= */
+
+.resend-link {
+  margin-top: 20px;
+
+  background: none;
+
+  border: none;
+
+  color: var(--primary);
+
+  cursor: pointer;
+
+  font-size: .95rem;
+
+  font-weight: 600;
+}
