@@ -1,0 +1,202 @@
+/* ================= Bienvenida ================= */
+
+.welcome-card {
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--primary-dark)
+  );
+
+  color: var(--surface);
+
+  padding: 32px;
+
+  border-radius: var(--radius-lg);
+
+  box-shadow: var(--shadow-md);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.welcome-card h1 {
+  margin: 0 0 10px;
+
+  font-size: 2rem;
+
+  font-family: var(--font-title);
+
+  font-weight: 700;
+}
+
+.welcome-card p {
+  margin: 0;
+
+  color: rgba(255, 255, 255, .90);
+
+  line-height: 1.6;
+
+  font-size: 1rem;
+
+  max-width: 600px;
+}
+
+.welcome-content {
+  display: flex;
+
+  flex-direction: column;
+}
+
+.welcome-subtitle {
+  margin-top: 10px;
+
+  color: rgba(255, 255, 255, .75);
+
+  font-size: .95rem;
+
+  font-weight: 500;
+}
+
+/* ================= Estadísticas ================= */
+
+.stats-grid {
+  margin-top: 30px;
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+
+  gap: 22px;
+}
+
+/* ================= Frase del día ================= */
+
+.motivation-card {
+  margin-top: 30px;
+
+  background: var(--surface);
+
+  border-radius: var(--radius-md);
+
+  padding: 28px;
+
+  box-shadow: var(--shadow-sm);
+}
+
+.motivation-card h2 {
+  margin-bottom: 12px;
+
+  color: var(--primary);
+
+  font-family: var(--font-title);
+}
+
+.motivation-card p {
+  color: var(--text-light);
+
+  line-height: 1.7;
+
+  font-size: 1rem;
+}
+
+/* ================= Loading ================= */
+
+.loading-text {
+  margin-top: 60px;
+
+  text-align: center;
+
+  color: var(--text-light);
+
+  font-size: 1rem;
+}
+
+/* ================= Sin usuario ================= */
+
+.dashboard-login {
+  margin-top: 60px;
+
+  text-align: center;
+}
+
+.dashboard-login h2 {
+  margin-bottom: 20px;
+
+  color: var(--text);
+}
+
+/* ================= Botón Login ================= */
+
+.login-btn {
+  background: var(--primary);
+
+  color: var(--surface);
+
+  border: none;
+
+  padding: 12px 24px;
+
+  border-radius: 14px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+
+  transition: var(--transition);
+}
+
+.login-btn:hover {
+  background: var(--primary-dark);
+
+  transform: translateY(-2px);
+}
+
+/* ================= Botón Logout ================= */
+
+.logout-btn {
+  background: var(--danger);
+
+  color: var(--surface);
+
+  border: none;
+
+  padding: 12px 20px;
+
+  border-radius: 14px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  transition: var(--transition);
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+
+  opacity: .9;
+}
+
+/* ================= Responsive ================= */
+
+@media (max-width: 768px) {
+
+  .welcome-card {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .logout-btn {
+    width: 100%;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
