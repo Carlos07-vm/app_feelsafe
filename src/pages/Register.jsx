@@ -46,9 +46,10 @@ function Register() {
 
       setCodeSent(true);
 
-      setInfoMessage(
-        "Se ha generado un código de verificación. (Durante el desarrollo aún no se envía por correo)."
-      );
+     setInfoMessage(
+     `Código generado correctamente.\n\nCódigo de desarrollo: ${code}`
+     );
+
 
     } catch {
 
