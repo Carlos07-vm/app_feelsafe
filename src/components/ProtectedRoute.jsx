@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { auth } from "../services/firebase";
+import { Navigate, Outlet } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { Navigate } from "react-router-dom";
+import { auth } from "../services/firebase";
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -13,16 +13,18 @@ function ProtectedRoute({ children }) {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
-  if (loading) return <p>Cargando...</p>;
-
-  if (!user) {
-    return <Navigate to="/login" />;
+  if (loading) {
+    return <p>Cargando...</p>;
   }
 
-  return children;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
 }
 
 export default ProtectedRoute;
