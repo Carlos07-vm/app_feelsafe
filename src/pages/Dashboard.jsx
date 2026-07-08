@@ -1,6 +1,8 @@
 ﻿import "../styles/Dashboard.css";
 import MainLayout from "../layouts/MainLayout";
 import StatCard from "../components/StatCard";
+import MoodSelector from "../components/MoodSelector";
+import QuickActions from "../components/QuickActions";
 import { useApp } from "../context/AppContext";
 
 import {
@@ -102,9 +104,9 @@ function Dashboard() {
 
       </section>
 
-      {/* ================= Próxima fase ================= */}
-
       {/* Aquí irá el selector de emociones */}
+
+      <MoodSelector />
 
       {/* ================= Estadísticas ================= */}
 
@@ -136,9 +138,9 @@ function Dashboard() {
 
       </section>
 
-      {/* ================= Próxima fase ================= */}
-
       {/* Aquí irán los accesos rápidos */}
+
+      <QuickActions />
 
       {/* ================= Frase del día ================= */}
 
