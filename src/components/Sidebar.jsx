@@ -24,12 +24,22 @@ function Sidebar() {
       {/* Logo */}
 
       <div className="sidebar-logo">
+
         <img src={logo} alt="FeelSafe Logo" />
+
+        <h2>FeelSafe</h2>
+
+        <p>Tu bienestar importa</p>
+
       </div>
 
-      {/* Menú */}
-
       <nav className="sidebar-menu">
+
+        {/* PRINCIPAL */}
+
+        <p className="sidebar-title">
+          Principal
+        </p>
 
         <NavLink to="/dashboard">
           <FaHome />
@@ -51,6 +61,14 @@ function Sidebar() {
           <span>Reportes</span>
         </NavLink>
 
+        <hr />
+
+        {/* HERRAMIENTAS */}
+
+        <p className="sidebar-title">
+          Herramientas
+        </p>
+
         <NavLink to="/resources">
           <FaBook />
           <span>Recursos</span>
@@ -65,6 +83,14 @@ function Sidebar() {
           <FaBrain />
           <span>Análisis IA</span>
         </NavLink>
+
+        <hr />
+
+        {/* CUENTA */}
+
+        <p className="sidebar-title">
+          Cuenta
+        </p>
 
         <NavLink to="/profile">
           <FaUserCircle />
