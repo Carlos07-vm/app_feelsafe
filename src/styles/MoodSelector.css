@@ -1,0 +1,69 @@
+/* ================= Contenedor ================= */
+
+.mood-selector {
+
+  margin-top: 32px;
+
+  background: var(--surface);
+
+  border-radius: var(--radius-lg);
+
+  padding: 32px;
+
+  box-shadow: var(--shadow-sm);
+
+}
+
+/* ================= Encabezado ================= */
+
+.mood-header {
+
+  margin-bottom: 28px;
+
+}
+
+.mood-header h2 {
+
+  margin: 0 0 10px;
+
+  font-family: var(--font-title);
+
+  font-size: 1.8rem;
+
+  color: var(--text);
+
+}
+
+.mood-header p {
+
+  margin: 0;
+
+  color: var(--text-light);
+
+  line-height: 1.6;
+
+}
+
+/* ================= Grid ================= */
+
+.mood-grid {
+
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+
+  gap: 18px;
+
+}
+
+/* ================= Tarjeta ================= */
+
+.mood-card {
+
+  background: #ffffff;
+
+  border: 2px solid transparent;
+
+  border-radius: 22px;
+
+  padding: 24px 16
