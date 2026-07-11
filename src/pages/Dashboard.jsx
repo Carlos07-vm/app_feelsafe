@@ -2,7 +2,6 @@
 import MainLayout from "../layouts/MainLayout";
 import StatCard from "../components/StatCard";
 import MoodSelector from "../components/MoodSelector";
-import QuickActions from "../components/QuickActions";
 import { useApp } from "../context/AppContext";
 
 import {
@@ -137,10 +136,6 @@ function Dashboard() {
         />
 
       </section>
-
-      {/* Aquí irán los accesos rápidos */}
-
-      <QuickActions />
 
       {/* ================= Frase del día ================= */}
 
