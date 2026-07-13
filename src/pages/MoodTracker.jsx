@@ -39,14 +39,25 @@ function MoodTracker() {
 
   return (
     <MainLayout>
+
       <div className="mood-page">
+      <div className="mood-header">
+
         <h1>¿Cómo te sientes hoy?</h1>
 
+       <p>
+        Registra tu estado emocional para comprender mejor
+        tu bienestar y recibir un seguimiento personalizado.
+       </p>
+ </div> 
+ 
         <div className="emotion-grid">
           {emotions.map((emotion) => (
             <div
               key={emotion.name}
-              className={`emotion-card ${selectedMood === emotion.name ? "active" : ""}`}
+              className={`emotion-card ${
+                selectedMood === emotion.name ? "active" : ""
+              }`}
               onClick={() => setSelectedMood(emotion.name)}
             >
               <span>{emotion.emoji}</span>
@@ -55,14 +66,28 @@ function MoodTracker() {
           ))}
         </div>
 
+        <section className="mood-note">
+
+           <h2>
+    Cuéntanos cómo estuvo tu día
+  </h2>
+
         <textarea
-          placeholder="Cuéntanos cómo estuvo tu día..."
+          placeholder="Escribe aquí cómo te sentiste hoy..."
           value={note}
           onChange={(e) => setNote(e.target.value)}
         />
+</section>
 
-        <button onClick={handleSave}>Guardar Emoción</button>
-      </div>
+        <button
+  className="save-btn"
+  onClick={handleSave}
+>
+  Registrar emoción
+</button>
+
+</div>
+     
     </MainLayout>
   );
 }
