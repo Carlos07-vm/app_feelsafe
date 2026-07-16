@@ -63,15 +63,7 @@ function Landing() {
 
         </div>
 
-        <div className="hero-image">
-
-          <img
-            src={hero}
-            alt="Bienestar emocional"
-            className="hero-img"
-          />
-
-        </div>
+        
 
       </section>
 
