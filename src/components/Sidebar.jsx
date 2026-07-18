@@ -1,5 +1,6 @@
 import "../styles/Sidebar.css";
 import { NavLink } from "react-router-dom";
+import { useApp } from "../context/AppContext";
 
 import {
   FaHome,
@@ -18,19 +19,35 @@ import {
 import logo from "../assets/logo.jpeg";
 
 function Sidebar() {
+  const { user } = useApp();
+
   return (
     <aside className="sidebar">
 
       {/* Logo */}
-
       <div className="sidebar-logo">
-
         <img src={logo} alt="FeelSafe Logo" />
 
         <h2>FeelSafe</h2>
 
         <p>Tu bienestar importa</p>
+      </div>
 
+      {/* Información del usuario */}
+      <div className="sidebar-user">
+        {user?.foto ? (
+          <img
+            src={user.foto}
+            alt="Foto de perfil"
+            className="sidebar-user-image"
+          />
+        ) : (
+          <FaUserCircle className="sidebar-user-icon" />
+        )}
+
+        <h3>{user?.nombre || "Usuario"}</h3>
+
+        <p>{user?.correo || ""}</p>
       </div>
 
       <nav className="sidebar-menu">
