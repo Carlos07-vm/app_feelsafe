@@ -103,6 +103,7 @@
 
 .auth-form button {
 
+  
   background: var(--primary);
 
   color: var(--surface);
@@ -119,6 +120,7 @@
 
 }
 
+
 /* ================= Error ================= */
 
 .auth-error {
@@ -131,6 +133,9 @@
 
 }
 
+.icon{
+ margin-right: 10px;
+}
 .auth-info {
 
   margin-top: 15px;
