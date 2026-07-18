@@ -12,13 +12,13 @@ function SOS() {
     <MainLayout>
 
       <h1 className="page-title">
-        🚨 Centro SOS
+         🆘  Centro SOS
       </h1>
 
       <p className="page-description">
         Si estás pasando por un momento difícil, no estás solo.
         FeelSafe está aquí para ayudarte.
-      </p>
+    </p>
 
       <div className="sos-grid">
 

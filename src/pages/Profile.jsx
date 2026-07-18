@@ -44,10 +44,10 @@ function Profile() {
         <div className="profile-card">
 
           <div className="avatar">
-            {user?.profile?.avatar || "👤"}
+            {user?.foto || "👤"}
           </div>
 
-          <h2>{user?.profile?.name}</h2>
+          <h2>{user?.nombre}</h2>
 
           <p>🎂 Edad: {user?.profile?.age} años</p>
 
