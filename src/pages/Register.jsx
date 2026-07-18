@@ -5,7 +5,12 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
 } from "firebase/auth";
-import { auth } from "../services/firebase";
+import { auth, db } from "../services/firebase";
+import {
+   doc,
+   setDoc,
+   serverTimestamp,
+   } from "firebase/firestore";
 import logo from "../assets/logo.jpeg";
 
 import {
@@ -107,6 +112,23 @@ function Register() {
           displayName: name,
         }
       );
+      await setDoc(
+         doc(db, "users", userCredential.user.uid),
+         {
+           uid: userCredential.user.uid,
+           nombre: name,
+           correo: email,
+           foto: "",
+          proveedor: "Correo",
+          telefono: "",
+          fechaNacimiento: "",
+          genero: "",
+          estado: "Activo",
+          fechaRegistro: serverTimestamp(),
+
+            }
+          );
+
 
       navigate("/dashboard");
 
@@ -178,34 +200,6 @@ function Register() {
             required
           />
 
-          <button
-            type="button"
-            onClick={handleSendCode}
-          >
-            Enviar código
-          </button>
-
-          {codeSent && (
-
-            <p className="auth-info">
-
-              {infoMessage}
-
-            </p>
-
-          )}
-
-          <input
-            type="text"
-            placeholder="Código de verificación"
-            value={verificationCode}
-            onChange={(e) =>
-              setVerificationCode(
-                e.target.value
-              )
-            }
-            required
-          />
 
           <input
             type="password"
@@ -216,6 +210,8 @@ function Register() {
             }
             required
           />
+         
+
 
           <button
             type="submit"
