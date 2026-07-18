@@ -81,7 +81,7 @@ function Dashboard() {
         <div className="welcome-content">
 
           <h1>
-            {greeting}, {user.displayName || user.name || "Usuario"} 👋
+            {greeting}, {user.displayName || user.name || user?.nombre} 👋
           </h1>
 
           <p>
