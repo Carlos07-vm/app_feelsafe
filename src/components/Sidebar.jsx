@@ -35,9 +35,9 @@ function Sidebar() {
 
       {/* Información del usuario */}
       <div className="sidebar-user">
-        {user?.foto ? (
+        {user?.photoURL || user?.foto ? (
           <img
-            src={user.foto}
+            src={user.photoURL}
             alt="Foto de perfil"
             className="sidebar-user-image"
           />
@@ -45,9 +45,9 @@ function Sidebar() {
           <FaUserCircle className="sidebar-user-icon" />
         )}
 
-        <h3>{user?.nombre || "Usuario"}</h3>
+        <h3>{user?.displayName || user?.nombre || "Usuario"}</h3>
 
-        <p>{user?.correo || ""}</p>
+        <p> {user?.email || user?.correo || ""}</p>
       </div>
 
       <nav className="sidebar-menu">
