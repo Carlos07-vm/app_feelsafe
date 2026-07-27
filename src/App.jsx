@@ -4,8 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import VerifyCode from "./pages/VerifyCode";
-
+import VerifyEmail from "./pages/verifyEmail";
 // ================= Páginas protegidas =================
 import Dashboard from "./pages/Dashboard";
 import MoodTracker from "./pages/MoodTracker";
@@ -32,8 +31,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/verify" element={<VerifyCode />} />
-
+       <Route path="/verify-email" element={<VerifyEmail />} />
         {/* ================= Rutas protegidas ================= */}
 
         <Route element={<ProtectedRoute />}>
