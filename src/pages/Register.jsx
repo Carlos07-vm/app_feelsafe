@@ -4,7 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
-} from "firebase/auth";
+   sendEmailVerification,
+   signOut,
+  
+        } from "firebase/auth";
 import { auth, db } from "../services/firebase";
 import {
    doc,
@@ -13,135 +16,130 @@ import {
    } from "firebase/firestore";
 import logo from "../assets/logo.jpeg";
 
-import {
-  generateCode,
-  saveCodeByEmail,
-  verifyCodeByEmail,
-} from "../services/otpService";
 
 function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-
+  const [confirmPassword, setConfirmPassword] = useState("");
+  
   const [loading, setLoading] = useState(false);
 
   const [error, setError] = useState("");
-  const [infoMessage, setInfoMessage] = useState("");
 
-  const [codeSent, setCodeSent] = useState(false);
+
+  
 
   const navigate = useNavigate();
 
-  const handleSendCode = async () => {
-
-    if (!email) {
-      setError("Ingresa un correo electrónico para recibir el código.");
-      return;
-    }
-
-    setError("");
-
-    try {
-
-      const code = generateCode();
-
-      await saveCodeByEmail(email, code);
-
-      setCodeSent(true);
-
-     setInfoMessage(
-     `Código generado correctamente.\n\nCódigo de desarrollo: ${code}`
-     );
-
-
-    } catch {
-
-      setError("No se pudo generar el código. Intenta nuevamente.");
-
-    }
-
-  };
-
   const handleSubmit = async (event) => {
-
     event.preventDefault();
-
     setLoading(true);
-
+    
     setError("");
 
-    if (!verificationCode) {
+     const cleanName = name.trim();
+    const cleanEmail = email.trim().toLowerCase();
 
-      setError("Ingresa el código de verificación.");
-
+    if (!cleanName) {
+      setError("Ingresa tu nombre completo.");
       setLoading(false);
-
       return;
-
     }
 
-    try {
-
-      const isValid = await verifyCodeByEmail(
-        email,
-        verificationCode
-      );
-
-      if (!isValid) {
-
-        setError("Código de verificación incorrecto.");
-
-        setLoading(false);
-
-        return;
-
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
+      setLoading(false);
+      return;
       }
 
+
+     if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden.");
+      setLoading(false);
+      return;
+    }
+
+    try{
       const userCredential =
         await createUserWithEmailAndPassword(
           auth,
-          email,
+          cleanEmail,
           password
         );
 
       await updateProfile(
         userCredential.user,
         {
-          displayName: name,
+          displayName: cleanName,
         }
       );
+      
+      await sendEmailVerification(userCredential.user);
+
+      
+   
       await setDoc(
          doc(db, "users", userCredential.user.uid),
          {
            uid: userCredential.user.uid,
-           nombre: name,
-           correo: email,
+           nombre: cleanName,
+           correo: cleanEmail,
            foto: "",
           proveedor: "Correo",
           telefono: "",
           fechaNacimiento: "",
           genero: "",
-          estado: "Activo",
+          estado: "Pendiente",
+          emailVerificado: false,
           fechaRegistro: serverTimestamp(),
 
             }
           );
 
+          await signOut(auth);
 
-      navigate("/dashboard");
+      navigate("/verify-email",{
+          state:{
+            email: cleanEmail,
+          },
+        });
+        
 
-    } catch (err) {
+        }catch (err) {
+       switch (err.code) {
 
-      setError(err.message || "No se pudo crear la cuenta.");
+        case "auth/email-already-in-use":
+          setError(
+            "El correo electrónico ya está en uso."
+          );
+          break;
 
+           case "auth/invalid-email":
+          setError(
+           "El correo electrónico no es válido."
+          );
+          break;
+
+           case "auth/weak-password":
+          setError(
+            "La contraseña es muy débil."
+          );
+          break;
+
+          default:
+                 setError("Ocurrió un error inesperado. Inténtalo nuevamente.");
+
+
+       }
     }
 
-    setLoading(false);
+     finally {
+       setLoading(false);
+  }
+};
 
-  };
-
+ 
   return (
 
     <div className="auth-container">
@@ -207,6 +205,16 @@ function Register() {
             value={password}
             onChange={(e) =>
               setPassword(e.target.value)
+            }
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Repetir la contraseña"
+            value={confirmPassword}
+            onChange={(e) =>
+              setConfirmPassword(e.target.value)
             }
             required
           />
