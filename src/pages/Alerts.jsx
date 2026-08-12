@@ -6,8 +6,11 @@ import {
   FaHeart,
   FaBrain,
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 function Alerts() {
+  const navigate = useNavigate();
+
   return (
     <MainLayout>
 
@@ -73,6 +76,11 @@ function Alerts() {
 
         </div>
 
+      </div>
+
+      <div className="alerts-footer">
+        <p>¿Quieres apoyo adicional?</p>
+        <button type="button" onClick={() => navigate("/chat")}>Hablar con la IA</button>
       </div>
 
     </MainLayout>

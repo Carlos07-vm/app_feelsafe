@@ -1,202 +1,306 @@
-/* ================= Bienvenida ================= */
-
-.welcome-card {
-  background: linear-gradient(
-    135deg,
-    var(--primary),
-    var(--primary-dark)
-  );
-
-  color: var(--surface);
-
+﻿.dashboard-hero {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 24px;
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.95), rgba(54, 209, 220, 0.95));
+  color: white;
+  border-radius: 28px;
   padding: 32px;
-
-  border-radius: var(--radius-lg);
-
-  box-shadow: var(--shadow-md);
-
-  display: flex;
-  justify-content: space-between;
+  box-shadow: 0 20px 50px rgba(24, 27, 63, 0.18);
   align-items: center;
-  gap: 20px;
 }
 
-.welcome-card h1 {
-  margin: 0 0 10px;
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-  font-size: 2rem;
-
-  font-family: var(--font-title);
-
+.hero-label {
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 700;
 }
 
-.welcome-card p {
+.dashboard-hero h1 {
   margin: 0;
-
-  color: rgba(255, 255, 255, .90);
-
-  line-height: 1.6;
-
-  font-size: 1rem;
-
-  max-width: 600px;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  line-height: 1.05;
 }
 
-.welcome-content {
-  display: flex;
-
-  flex-direction: column;
+.dashboard-hero p {
+  margin: 0;
+  max-width: 560px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.7;
 }
 
-.welcome-subtitle {
-  margin-top: 10px;
-
-  color: rgba(255, 255, 255, .75);
-
-  font-size: .95rem;
-
-  font-weight: 500;
-}
-
-/* ================= Estadísticas ================= */
-
-.stats-grid {
-  margin-top: 30px;
-
+.hero-summary {
   display: grid;
-
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-
-  gap: 22px;
+  gap: 18px;
 }
 
-/* ================= Frase del día ================= */
+.hero-summary-card {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-.motivation-card {
-  margin-top: 30px;
+.hero-summary-card small {
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+}
 
+.hero-summary-card strong {
+  font-size: 1.8rem;
+  color: white;
+}
+
+.hero-action {
+  border: none;
+  background: white;
+  color: #3a1058;
+  font-weight: 700;
+  border-radius: 18px;
+  padding: 16px 20px;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.hero-action:hover {
+  transform: translateY(-2px);
+  background: #f5f5ff;
+}
+
+.dashboard-summary-grid {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.dashboard-actions {
+  margin-top: 32px;
+}
+
+.dashboard-actions-header {
+  margin-bottom: 18px;
+}
+
+.dashboard-actions-header h2 {
+  margin: 0 0 8px;
+  font-size: 1.55rem;
+}
+
+.dashboard-actions-header p {
+  margin: 0;
+  color: var(--text-light);
+  max-width: 540px;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.action-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(108, 99, 255, 0.12);
   background: var(--surface);
+  box-shadow: 0 15px 35px rgba(108, 99, 255, 0.08);
+  cursor: pointer;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
 
-  border-radius: var(--radius-md);
+.action-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(108, 99, 255, 0.2);
+}
 
+.action-card h3 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+
+.action-card p {
+  margin: 0;
+  color: var(--text-light);
+  font-size: 0.945rem;
+}
+
+.action-card span {
+  color: var(--primary);
+  font-size: 1.65rem;
+}
+
+.dashboard-bottom-grid {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: 1.35fr 0.9fr;
+  gap: 20px;
+}
+
+.activity-card,
+.motivation-card {
+  border-radius: 26px;
   padding: 28px;
+  box-shadow: 0 20px 40px rgba(31, 36, 70, 0.08);
+  background: var(--surface);
+}
 
-  box-shadow: var(--shadow-sm);
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.activity-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.card-subtitle {
+  margin: 6px 0 0;
+  color: var(--text-light);
+}
+
+.activity-header span {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.activity-text {
+  margin: 0 0 24px;
+  color: var(--text-light);
+  line-height: 1.8;
+}
+
+.activity-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.activity-details div {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 18px 20px;
+}
+
+.activity-details strong {
+  display: block;
+  font-size: 1.5rem;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.activity-details span {
+  color: var(--text-light);
 }
 
 .motivation-card h2 {
-  margin-bottom: 12px;
-
+  margin: 0 0 16px;
+  font-size: 1.5rem;
   color: var(--primary);
-
-  font-family: var(--font-title);
 }
 
 .motivation-card p {
+  margin: 0 0 20px;
   color: var(--text-light);
-
-  line-height: 1.7;
-
-  font-size: 1rem;
+  line-height: 1.8;
 }
 
-/* ================= Loading ================= */
+.motivation-footer {
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: rgba(108, 99, 255, 0.08);
+  color: var(--text);
+  font-weight: 600;
+}
 
 .loading-text {
   margin-top: 60px;
-
   text-align: center;
-
   color: var(--text-light);
-
   font-size: 1rem;
 }
 
-/* ================= Sin usuario ================= */
-
 .dashboard-login {
   margin-top: 60px;
-
   text-align: center;
 }
 
 .dashboard-login h2 {
   margin-bottom: 20px;
-
   color: var(--text);
 }
 
-/* ================= Botón Login ================= */
+.login-btn,
+.logout-btn {
+  border: none;
+  border-radius: 14px;
+  padding: 14px 26px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
 
 .login-btn {
   background: var(--primary);
-
   color: var(--surface);
-
-  border: none;
-
-  padding: 12px 24px;
-
-  border-radius: 14px;
-
-  cursor: pointer;
-
-  font-weight: 600;
-
-  transition: var(--transition);
 }
 
-.login-btn:hover {
-  background: var(--primary-dark);
-
+.login-btn:hover,
+.logout-btn:hover {
   transform: translateY(-2px);
 }
-
-/* ================= Botón Logout ================= */
 
 .logout-btn {
   background: var(--danger);
-
   color: var(--surface);
-
-  border: none;
-
-  padding: 12px 20px;
-
-  border-radius: 14px;
-
-  cursor: pointer;
-
-  font-weight: 600;
-
-  white-space: nowrap;
-
-  transition: var(--transition);
 }
 
-.logout-btn:hover {
-  transform: translateY(-2px);
-
-  opacity: .9;
-}
-
-/* ================= Responsive ================= */
-
-@media (max-width: 768px) {
-
-  .welcome-card {
-    flex-direction: column;
-
-    align-items: flex-start;
-  }
-
-  .logout-btn {
-    width: 100%;
-  }
-
-  .stats-grid {
+@media (max-width: 980px) {
+  .dashboard-hero {
     grid-template-columns: 1fr;
   }
 
+  .dashboard-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-hero,
+  .activity-card,
+  .motivation-card,
+  .action-card,
+  .hero-summary-card {
+    padding: 22px;
+  }
+
+  .hero-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-action {
+    width: 100%;
+  }
 }

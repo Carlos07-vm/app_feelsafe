@@ -1,89 +1,114 @@
-import { 
-    createContext,
-    useContext,
-    useState,
-    useEffect,
- } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { auth, db } from "../services/firebase";
 
- import { onAuthStateChanged } from "firebase/auth";
- import { doc, getDoc } from "firebase/firestore";
- import { auth, db } from "../services/firebase";
+const AppContext = createContext();
 
+const defaultUserData = {
+  currentMood: "Neutral",
+  wellbeing: 72,
+  streak: 0,
+  notes: [],
+  emotions: [],
+  description: "Comparte algo sobre ti y personaliza tu perfil.",
+  profile: {},
+};
 
+const mergeUserData = (firebaseUser, userData) => ({
+  uid: firebaseUser.uid,
+  displayName: firebaseUser.displayName || userData?.nombre || "Usuario",
+  email: firebaseUser.email || userData?.correo || "",
+  photoURL: userData?.photoURL || userData?.foto || firebaseUser.photoURL || "",
+  foto: userData?.foto || userData?.photoURL || firebaseUser.photoURL || "",
+  provider: firebaseUser.providerData?.[0]?.providerId || userData?.proveedor || "",
+  currentMood: userData?.currentMood || defaultUserData.currentMood,
+  wellbeing: userData?.wellbeing ?? defaultUserData.wellbeing,
+  streak: userData?.streak ?? defaultUserData.streak,
+  notes: userData?.notes || defaultUserData.notes,
+  emotions: userData?.emotions || defaultUserData.emotions,
+  description: userData?.description || defaultUserData.description,
+  profile: userData?.profile || defaultUserData.profile,
+  ...userData,
+});
 
-const AppContext=createContext();
-
-export function AppProvider({children}){
- const [user, setUser] = useState(null);
+export function AppProvider({ children }) {
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-         if (firebaseUser) {
-            try {
-                const userRef = doc(db, "users", firebaseUser.uid);
-                const userSnap = await getDoc(userRef);
-
-                   if (userSnap.exists()) {
-
-                        setUser({
-                           uid: firebaseUser.uid,
-                           ...userSnap.data(),
-                           
-
-                           photoURL:
-                           userSnap.data().photoURL ||
-                           firebaseUser.photoURL || "",
-
-                           foto:
-                              userSnap.data().foto ||
-                              firebaseUser.photoURL ||
-                              "",
-
-                           displayName: firebaseUser.displayName || "",
-                           email: firebaseUser.email,
-                        });
-
-                     
-                } else {
-                     setUser({
-                        uid: firebaseUser.uid,
-                        nombre: firebaseUser.displayName || "",
-                        correo: firebaseUser.email,
-                        foto: firebaseUser.photoURL || "",
-                         photoURL: firebaseUser.photoURL || "",
-                         displayName: firebaseUser.displayName || "",
-                        proveedor: firebaseUser.providerData[0]?.providerId || "",
-                        });
-                 }
-                 } catch (error) {
-                    console.error("Error al obtener usuario:", error);
-                 }
-                 } else {
-                    setUser(null);
-                 }
-                 setLoading(false);
+  const syncUser = (firebaseUser) => {
+    const userRef = doc(db, "usuarios", firebaseUser.uid);
+    const unsubscribe = onSnapshot(
+      userRef,
+      async (userSnap) => {
+        try {
+          if (userSnap.exists()) {
+            setUser(mergeUserData(firebaseUser, userSnap.data()));
+          } else {
+            const newUser = mergeUserData(firebaseUser, {});
+            await setDoc(userRef, {
+              uid: firebaseUser.uid,
+              nombre: firebaseUser.displayName || "",
+              correo: firebaseUser.email || "",
+              photoURL: firebaseUser.photoURL || "",
+              foto: firebaseUser.photoURL || "",
+              proveedor: firebaseUser.providerData?.[0]?.providerId || "",
+              createdAt: new Date().toISOString(),
+              ...defaultUserData,
             });
+            setUser(newUser);
+          }
+        } catch (error) {
+          console.error("Error al sincronizar usuario:", error);
+          setUser(null);
+        }
+      },
+      (error) => {
+        console.error("Error en la escucha del usuario:", error);
+      }
+    );
 
-              return () => unsubscribe();
-         }, []);
+    return unsubscribe;
+  };
 
-return(
+  const updateUserProfile = async (updates) => {
+    if (!user?.uid) return;
+    const userRef = doc(db, "usuarios", user.uid);
+    const nextUser = {
+      ...user,
+      ...updates,
+    };
+    setUser(nextUser);
+    try {
+      await setDoc(userRef, updates, { merge: true });
+    } catch (error) {
+      console.error("Error al actualizar perfil:", error);
+    }
+  };
 
-<AppContext.Provider
-value={{
-user,
-setUser,
-loading,
-}}
->
+  useEffect(() => {
+    let unsubscribeUser = () => {};
 
-{children}
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        unsubscribeUser = syncUser(firebaseUser);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
 
-</AppContext.Provider>
+    return () => {
+      unsubscribeAuth();
+      unsubscribeUser();
+    };
+  }, []);
 
-);
-
+  return (
+    <AppContext.Provider value={{ user, setUser, loading, updateUserProfile }}>
+      {children}
+    </AppContext.Provider>
+  );
 }
 
-export const useApp=()=>useContext(AppContext);
+export const useApp = () => useContext(AppContext);

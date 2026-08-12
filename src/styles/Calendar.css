@@ -6,9 +6,46 @@
   margin-top: 20px;
 }
 
+.selected-date-card {
+  margin-top: 25px;
+  border-radius: 20px;
+  padding: 22px;
+  background: #F8F7FF;
+  border: 1px solid #E9E5F8;
+}
+
+.selected-date-card h3 {
+  margin: 0 0 10px;
+  color: #5B3CC4;
+}
+
+.selected-date-card p {
+  margin: 0;
+  color: #5B548F;
+  line-height: 1.7;
+}
+
+.calendar-note {
+  margin-top: 12px;
+  color: #6B7280;
+}
+
 .legend {
   display: flex;
   gap: 20px;
   margin-top: 20px;
   flex-wrap: wrap;
+}
+
+.legend div {
+  background: white;
+  padding: 16px 18px;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(123, 97, 255, 0.08);
+}
+
+@media (max-width: 760px) {
+  .calendar-card {
+    padding: 20px;
+  }
 }

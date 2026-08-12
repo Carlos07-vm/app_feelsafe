@@ -1,55 +1,40 @@
-:root{
-
-/* ========= Colores FeelSafe ========= */
-
---primary:#6D4C8F;
---primary-dark:#563874;
---primary-light:#CDB4DB;
-
---secondary:#BFD7FF;
-
---background:#FAF8FB;
-
---surface:#FFFFFF;
-
---surface-light:#FFFFFF;
-
---success:#34C759;
-
---warning:#FFB020;
-
---danger:#FF4D6D;
-
---text:#2D1B46;
-
---text-light:#7A6A91;
-
---border:#E5E7EB;
-
-
-/* ========= Bordes ========= */
-
---radius-sm:12px;
---radius-md:18px;
---radius-lg:28px;
-
-
-/* ========= Sombras ========= */
---shadow-sm:
-0 5px 20px rgba(45,27,70,.05);
-
---shadow-md:
-0 15px 40px rgba(109,76,143,.12);
-
---shadow-lg:
-0 25px 70px rgba(109,76,143,.18);
-
-/* ========= Transiciones ========= */
-
---transition:.3s ease;
-
-/* ========= Tipografias ========= */
---font-title:"Poppins", sans-serif;
---font-body:"Inter", sans-serif;
-
+:root {
+  --primary: #6D4C8F;
+  --primary-dark: #4B2F77;
+  --primary-light: #D9C3F2;
+  --secondary: #8A92FF;
+  --accent: #35C2A6;
+  --background: #F7F4FB;
+  --surface: #FFFFFF;
+  --surface-soft: #F3EEFC;
+  --text: #2D1B46;
+  --text-light: #79688E;
+  --text-muted: #6B7280;
+  --border: #E7E2F0;
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 32px;
+  --shadow-sm: 0 10px 25px rgba(109, 76, 143, 0.10);
+  --shadow-md: 0 18px 45px rgba(109, 76, 143, 0.14);
+  --shadow-lg: 0 25px 70px rgba(109, 76, 143, 0.18);
+  --transition: 0.3s ease;
+  --font-title: "Poppins", sans-serif;
+  --font-body: "Inter", sans-serif;
 }
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  transition: var(--transition);
+}
+

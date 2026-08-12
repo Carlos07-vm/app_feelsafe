@@ -382,6 +382,16 @@
 
 }
 
+.profile-status {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: rgba(108, 99, 255, 0.08);
+  border: 1px solid rgba(108, 99, 255, 0.18);
+  border-radius: 18px;
+  color: var(--text);
+  font-weight: 500;
+}
+
 /*==================================
         TITULO
 ==================================*/

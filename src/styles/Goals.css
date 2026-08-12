@@ -30,6 +30,9 @@
 
 .progress-card {
   margin-top: 20px;
+  background: #F8F7FF;
+  border-radius: 24px;
+  padding: 22px;
 }
 
 .progress-title {
@@ -37,6 +40,22 @@
   justify-content: space-between;
   margin-bottom: 10px;
   font-weight: 600;
+}
+
+.goal-action {
+  margin-top: 18px;
+  width: 100%;
+  border: none;
+  padding: 14px;
+  border-radius: 15px;
+  background: #7B61FF;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.goal-action:hover {
+  background: #5B3CC4;
 }
 
 .progress-bar {

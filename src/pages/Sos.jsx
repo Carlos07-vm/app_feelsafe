@@ -6,8 +6,28 @@ import {
   FaUserFriends,
   FaHandsHelping,
 } from "react-icons/fa";
+import { useState } from "react";
 
 function SOS() {
+  const [status, setStatus] = useState("Selecciona una opción para recibir ayuda inmediata.");
+
+  const handleAction = (type) => {
+    switch (type) {
+      case "contact":
+        setStatus("Abriendo lista de contactos de confianza... si no tienes, pulsa en hablar con alguien.");
+        break;
+      case "breath":
+        setStatus("Inicia una respiración profunda: inhala 4s, mantén 4s, exhala 4s.");
+        break;
+      case "talk":
+        setStatus("Buscar recursos y líneas de apoyo para conversar con alguien de confianza.");
+        break;
+      default:
+        setStatus("Sigue los consejos y cuida tu ritmo.");
+        break;
+    }
+  };
+
   return (
     <MainLayout>
 
@@ -32,7 +52,7 @@ function SOS() {
             Contacta rápidamente a un familiar o persona de confianza.
           </p>
 
-          <button>Contactar</button>
+          <button type="button" onClick={() => handleAction("contact")}>Contactar</button>
 
         </div>
 
@@ -46,7 +66,7 @@ function SOS() {
             Inicia un ejercicio guiado para disminuir la ansiedad.
           </p>
 
-          <button>Comenzar</button>
+          <button type="button" onClick={() => handleAction("breath")}>Comenzar</button>
 
         </div>
 
@@ -60,7 +80,7 @@ function SOS() {
             Compartir cómo te sientes puede ayudarte mucho.
           </p>
 
-          <button>Ver recomendaciones</button>
+          <button type="button" onClick={() => handleAction("talk")}>Ver recomendaciones</button>
 
         </div>
 
@@ -79,6 +99,10 @@ function SOS() {
 
         </div>
 
+      </div>
+
+      <div className="sos-status">
+        <p>{status}</p>
       </div>
 
     </MainLayout>

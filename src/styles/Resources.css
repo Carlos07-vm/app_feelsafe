@@ -1,56 +1,132 @@
+.resources-page {
+  display: grid;
+  gap: 28px;
+}
+
 .wellness-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 25px;
+  gap: 24px;
 }
 
 .wellness-card {
-  background: white;
-  border-radius: 25px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 30px;
   text-align: center;
-  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
-  transition: .3s;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
 }
 
 .wellness-card:hover {
   transform: translateY(-8px);
+  border-color: rgba(109, 76, 143, 0.18);
+  box-shadow: var(--shadow-md);
 }
 
 .wellness-icon {
-  font-size: 3rem;
-  color: #7B61FF;
-  margin-bottom: 15px;
+  font-size: 3.2rem;
+  color: var(--primary);
+  margin-bottom: 18px;
 }
 
 .wellness-card h3 {
-  margin-bottom: 10px;
-  color: #5B3CC4;
+  margin-bottom: 12px;
+  color: var(--text);
+  font-size: 1.2rem;
 }
 
 .wellness-card p {
-  color: #6B7280;
-  margin-bottom: 20px;
+  color: var(--text-light);
+  margin-bottom: 22px;
+  line-height: 1.85;
 }
 
 .wellness-card button {
-  border: none;
-  background: #7B61FF;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 12px;
-  cursor: pointer;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--surface);
+  padding: 14px 24px;
+  border-radius: 16px;
+  min-width: 140px;
+  font-weight: 700;
+}
+
+.quote-text {
+  min-height: 80px;
+}
+
+.resource-panel {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 24px;
+}
+
+.resource-info-card,
+.challenge-card {
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-sm);
+}
+
+.resource-info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.resource-info-card h3 {
+  margin-bottom: 16px;
+  color: var(--primary-dark);
+  font-size: 1.25rem;
+}
+
+.resource-info-card p {
+  margin: 0;
+  color: var(--text-light);
+  line-height: 1.8;
 }
 
 .challenge-card {
-  margin-top: 30px;
-  background: linear-gradient(135deg, #5B3CC4, #7B61FF);
+  background: linear-gradient(135deg, rgba(109, 76, 143, 0.95), rgba(123, 97, 255, 0.95));
   color: white;
-  padding: 35px;
-  border-radius: 25px;
-  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
 }
 
 .challenge-card h2 {
-  margin-bottom: 10px;
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.challenge-card p {
+  margin: 0;
+  line-height: 1.8;
+}
+
+.challenge-card button {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  padding: 14px 24px;
+  border-radius: 16px;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .resource-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .wellness-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .challenge-card,
+  .resource-info-card {
+    padding: 24px;
+  }
 }

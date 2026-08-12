@@ -6,9 +6,10 @@ import {
   FaCheckCircle,
   FaStar,
 } from "react-icons/fa";
+import { useState } from "react";
 
 function Goals() {
-  const goals = [
+  const [goals, setGoals] = useState([
     {
       title: "Registrar emociones",
       progress: 6,
@@ -27,7 +28,7 @@ function Goals() {
       total: 7,
       color: "#A78BFA",
     },
-  ];
+  ]);
 
   const badges = [
     "🌟 Primera emoción registrada",
@@ -35,6 +36,16 @@ function Goals() {
     "💜 Semana saludable",
     "🧠 IA Consultada",
   ];
+
+  const handleComplete = (index) => {
+    setGoals((current) =>
+      current.map((goal, idx) => {
+        if (idx !== index) return goal;
+        const progress = Math.min(goal.total, goal.progress + 1);
+        return { ...goal, progress };
+      })
+    );
+  };
 
   return (
     <MainLayout>
@@ -106,6 +117,14 @@ function Goals() {
                 />
 
               </div>
+
+              <button
+                type="button"
+                className="goal-action"
+                onClick={() => handleComplete(index)}
+              >
+                {goal.progress >= goal.total ? "Completado" : "Registrar avance"}
+              </button>
 
             </div>
 

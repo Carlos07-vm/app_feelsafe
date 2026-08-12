@@ -18,13 +18,17 @@ import {
 
 import logo from "../assets/logo.jpeg";
 
-function Sidebar() {
+function Sidebar({ sidebarOpen, onClose }) {
   const { user } = useApp();
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+      <div className="sidebar-close-mobile">
+        <button onClick={onClose} aria-label="Cerrar menú">
+          ✕
+        </button>
+      </div>
 
-      {/* Logo */}
       <div className="sidebar-logo">
         <img src={logo} alt="FeelSafe Logo" />
 
@@ -37,7 +41,7 @@ function Sidebar() {
       <div className="sidebar-user">
         {user?.photoURL || user?.foto ? (
           <img
-            src={user.photoURL}
+            src={user.photoURL || user.foto}
             alt="Foto de perfil"
             className="sidebar-user-image"
           />
@@ -47,7 +51,7 @@ function Sidebar() {
 
         <h3>{user?.displayName || user?.nombre || "Usuario"}</h3>
 
-        <p> {user?.email || user?.correo || ""}</p>
+        <p>{user?.email || user?.correo || ""}</p>
       </div>
 
       <nav className="sidebar-menu">
@@ -58,22 +62,22 @@ function Sidebar() {
           Principal
         </p>
 
-        <NavLink to="/dashboard">
+        <NavLink to="/dashboard" className={({ isActive }) => (isActive ? "active" : "") }>
           <FaHome />
           <span>Inicio</span>
         </NavLink>
 
-        <NavLink to="/mood">
+        <NavLink to="/mood" className={({ isActive }) => (isActive ? "active" : "") }>
           <FaSmile />
           <span>Emociones</span>
         </NavLink>
 
-        <NavLink to="/chat">
+        <NavLink to="/chat" className={({ isActive }) => (isActive ? "active" : "") }>
           <FaRobot />
           <span>Chat IA</span>
         </NavLink>
 
-        <NavLink to="/reports">
+        <NavLink to="/reports" className={({ isActive }) => (isActive ? "active" : "") }>
           <FaChartBar />
           <span>Reportes</span>
         </NavLink>
@@ -86,17 +90,17 @@ function Sidebar() {
           Herramientas
         </p>
 
-        <NavLink to="/resources">
+        <NavLink to="/resources" className={({ isActive }) => (isActive ? "active" : "") }>
           <FaBook />
           <span>Recursos</span>
         </NavLink>
 
-        <NavLink to="/calendar">
+        <NavLink to="/calendar" className={({ isActive }) => (isActive ? "active" : "") }>
           <FaCalendarAlt />
           <span>Calendario</span>
         </NavLink>
 
-        <NavLink to="/analysis">
+        <NavLink to="/analysis" className={({ isActive }) => (isActive ? "active" : "") }>
           <FaBrain />
           <span>Análisis IA</span>
         </NavLink>
@@ -109,22 +113,22 @@ function Sidebar() {
           Cuenta
         </p>
 
-        <NavLink to="/profile">
+        <NavLink to="/profile" className={({ isActive }) => (isActive ? "active" : "") }>
           <FaUserCircle />
           <span>Perfil</span>
         </NavLink>
 
-        <NavLink to="/alerts">
+        <NavLink to="/alerts" className={({ isActive }) => (isActive ? "active" : "") }>
           <FaBell />
           <span>Alertas</span>
         </NavLink>
 
-        <NavLink to="/goals">
+        <NavLink to="/goals" className={({ isActive }) => (isActive ? "active" : "") }>
           <FaBullseye />
           <span>Objetivos</span>
         </NavLink>
 
-        <NavLink to="/sos">
+        <NavLink to="/sos" className={({ isActive }) => (isActive ? "active" : "") }>
           <FaLifeRing />
           <span>Centro SOS</span>
         </NavLink>

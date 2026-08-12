@@ -1,6 +1,8 @@
 import "../styles/MoodSelector.css";
+import { useNavigate } from "react-router-dom";
 
 function MoodSelector() {
+  const navigate = useNavigate();
   const moods = [
     {
       emoji: "😀",
@@ -51,6 +53,8 @@ function MoodSelector() {
           <button
             key={mood.label}
             className="mood-card"
+            type="button"
+            onClick={() => navigate("/mood")}
           >
             <span className="mood-emoji">
               {mood.emoji}

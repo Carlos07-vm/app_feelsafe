@@ -9,7 +9,7 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
 } from "firebase/auth";
-import { auth } from "../services/firebase";
+import { auth, db } from "../services/firebase";
 import logo from "../assets/logo.jpeg";
 import {
   doc,
@@ -18,7 +18,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
-import { db } from "../services/firebase";
+
 
 // Providers
 const googleProvider = new GoogleAuthProvider();
@@ -44,7 +44,7 @@ function Login() {
       const result = await signInWithPopup(auth, googleProvider);
 
       const user = result.user;
-      const userRef = doc(db, "users", user.uid);
+      const userRef = doc(db, "usuarios", user.uid);
       const userSnap = await getDoc(userRef);
       if (!userSnap.exists()) {
          await setDoc(userRef, {
@@ -92,7 +92,7 @@ function Login() {
       const result = await signInWithPopup(auth, facebookProvider);
 
       const user = result.user;
-      const userRef = doc(db, "users", user.uid);
+      const userRef = doc(db, "usuarios", user.uid);
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {
@@ -131,44 +131,97 @@ function Login() {
   };
 
   // Iniciar sesión con correo
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+ const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
+  try {
 
-      navigate("/dashboard");
-    } catch (error) {
-      console.error(error);
+    const result = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
 
-      switch (error.code) {
-        case "auth/user-not-found":
-          setError("No existe una cuenta con ese correo.");
-          break;
+    const user = result.user;
 
-        case "auth/wrong-password":
-          setError("La contraseña es incorrecta.");
-          break;
 
-        case "auth/invalid-email":
-          setError("Correo electrónico inválido.");
-          break;
+    const userRef = doc(
+      db,
+      "usuarios",
+      user.uid
+    );
 
-        case "auth/invalid-credential":
-          setError("Correo o contraseña incorrectos.");
-          break;
 
-        default:
-          setError("No se pudo iniciar sesión.");
+    await setDoc(
+      userRef,
+      {
+        ultimoAcceso: serverTimestamp(),
+      },
+      {
+        merge: true,
       }
+    );
+
+
+    console.log(
+      "Inicio correcto:",
+      user.uid
+    );
+
+
+    navigate("/dashboard");
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    switch(error.code){
+
+      case "auth/user-not-found":
+        setError(
+          "No existe una cuenta con ese correo."
+        );
+        break;
+
+
+      case "auth/wrong-password":
+        setError(
+          "La contraseña es incorrecta."
+        );
+        break;
+
+
+      case "auth/invalid-email":
+        setError(
+          "Correo electrónico inválido."
+        );
+        break;
+
+
+      case "auth/invalid-credential":
+        setError(
+          "Correo o contraseña incorrectos."
+        );
+        break;
+
+
+      default:
+        setError(
+          "No se pudo iniciar sesión."
+        );
+
     }
 
-    setLoading(false);
-  };
+  } finally {
 
+    setLoading(false);
+
+  }
+};
   return (
     <div className="auth-container">
       <div className="auth-card">

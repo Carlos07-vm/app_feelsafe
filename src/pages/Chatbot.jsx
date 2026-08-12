@@ -42,12 +42,27 @@ function Chatbot() {
     }
   };
 
+  const handleClear = () => {
+    setMessages([
+      {
+        sender: "bot",
+        text: "Hola 👋 Soy FeelSafe AI. Estoy aquí para escucharte y apoyarte con empatía.",
+      },
+    ]);
+    setError(null);
+  };
+
   return (
     <MainLayout>
       <div className="chat-container">
         <div className="chat-header">
-          <h2>🤖 FeelSafe AI</h2>
-          <p>Tu asistente emocional inteligente</p>
+          <div>
+            <h2>🤖 FeelSafe AI</h2>
+            <p>Tu asistente emocional inteligente</p>
+          </div>
+          <button className="clear-chat-btn" type="button" onClick={handleClear}>
+            Limpiar chat
+          </button>
         </div>
 
         <div className="chat-messages">
@@ -75,7 +90,7 @@ function Chatbot() {
             disabled={loading}
           />
 
-          <button type="button" onClick={handleSend} disabled={loading}>
+          <button type="button" onClick={handleSend} disabled={loading || !message.trim()}>
             {loading ? "Enviando..." : <FaPaperPlane />}
           </button>
         </div>

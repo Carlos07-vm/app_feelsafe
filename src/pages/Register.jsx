@@ -5,7 +5,7 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
    sendEmailVerification,
-   signOut,
+   
   
         } from "firebase/auth";
 import { auth, db } from "../services/firebase";
@@ -67,6 +67,7 @@ function Register() {
           cleanEmail,
           password
         );
+        console.log("1. Usuario creado:", userCredential.user.uid);
 
       await updateProfile(
         userCredential.user,
@@ -74,30 +75,44 @@ function Register() {
           displayName: cleanName,
         }
       );
-      
+      console.log("2. Perfil actualizado");
+
       await sendEmailVerification(userCredential.user);
 
-      
+      console.log("3. Correo de verificación enviado");
    
       await setDoc(
-         doc(db, "users", userCredential.user.uid),
-         {
-           uid: userCredential.user.uid,
-           nombre: cleanName,
-           correo: cleanEmail,
-           foto: "",
-          proveedor: "Correo",
-          telefono: "",
-          fechaNacimiento: "",
-          genero: "",
-          estado: "Pendiente",
-          emailVerificado: false,
-          fechaRegistro: serverTimestamp(),
+         doc(db, "usuarios", userCredential.user.uid),
+          {
+              uid: userCredential.user.uid,
+              nombre: cleanName,
+              correo: cleanEmail,
+              fotoPerfil: "",
+              proveedor: "correo",
+              correoVerificado: false,
 
+              fechaRegistro: serverTimestamp(),
+              ultimoAcceso: serverTimestamp(),
+
+              edad: 0,
+              genero: "",
+              pais: "Nicaragua",
+              ciudad: "",
+              telefono: "",
+              biografia: "",
+
+              racha: 0,
+              puntos: 0,
+              nivel: 1,
+
+              esPremium: false,
+
+              estado: "activo",
+              rol: "usuario",
             }
           );
 
-          await signOut(auth);
+          console.log("4. Datos guardados en Firestore");
 
       navigate("/verify-email",{
           state:{
@@ -107,6 +122,7 @@ function Register() {
         
 
         }catch (err) {
+          console.error("ERROR FIREBASE:", err);
        switch (err.code) {
 
         case "auth/email-already-in-use":
@@ -128,7 +144,8 @@ function Register() {
           break;
 
           default:
-                 setError("Ocurrió un error inesperado. Inténtalo nuevamente.");
+                 console.error("ERROR COMPLETO:", err);
+ setError(err.message);
 
 
        }

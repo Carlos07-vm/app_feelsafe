@@ -9,6 +9,33 @@
   gap: 25px;
 }
 
+.sos-card button {
+  border: none;
+  background: #7B61FF;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 16px;
+  cursor: pointer;
+}
+
+.sos-card button:hover {
+  background: #5B3CC4;
+}
+
+.sos-status {
+  margin-top: 25px;
+  background: #F8F7FF;
+  padding: 22px;
+  border-radius: 22px;
+  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.12);
+}
+
+.sos-status p {
+  margin: 0;
+  color: #5B548F;
+  line-height: 1.7;
+}
+
 .sos-card {
   background: white;
   border-radius: 25px;
