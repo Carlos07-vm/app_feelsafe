@@ -45,9 +45,7 @@ function Landing() {
             <Link to="/register" className="primary-btn">
               Empieza ahora
             </Link>
-            <Link to="/resources" className="secondary-btn">
-              Ver recursos
-            </Link>
+        
           </div>
 
           <div className="hero-badges">
@@ -62,11 +60,7 @@ function Landing() {
           </div>
         </div>
 
-        <div className="hero-visual">
-          <div className="hero-card">
-            <img src={hero} alt="Bienestar emocional" className="hero-img" />
-          </div>
-        </div>
+       
       </section>
 
       <section className="features-section">
