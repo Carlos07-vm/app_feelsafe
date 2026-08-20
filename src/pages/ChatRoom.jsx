@@ -1,5 +1,19 @@
-import { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  onSnapshot,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+
+import { useLocation, useNavigate } from "react-router-dom";
 
 import MainLayout from "../layouts/MainLayout";
 
@@ -7,75 +21,630 @@ import ChatHeader from "../components/ChatHeader";
 import MessageList from "../components/MessageList";
 import ChatInput from "../components/ChatInput";
 
+import { db } from "../services/firebase";
+import { useApp } from "../context/AppContext";
+
 import "../styles/ChatRoom.css";
 
 function ChatRoom() {
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // Especialista seleccionado desde Specialists.jsx
+  const { user } = useApp();
+
   const specialist = location.state?.specialist;
 
-  // Mensaje que está escribiendo el usuario
+  const [conversationId, setConversationId] = useState(null);
+  const [conversationData, setConversationData] = useState(null);
+
+  const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
 
-  // Mensajes de la conversación
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: "Hola 👋 ¿Cómo te sientes hoy?",
-      sender: "specialist",
-    },
-    {
-      id: 2,
-      text: "Hola doctora.",
-      sender: "user",
-    },
-    {
-      id: 3,
-      text: "Me he sentido bastante ansioso.",
-      sender: "user",
-    },
-    {
-      id: 4,
-      text: "Gracias por compartirlo. ¿Quieres contarme qué ocurrió?",
-      sender: "specialist",
-    },
-  ]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
 
-  // Enviar mensaje
-  const handleSendMessage = () => {
-    if (!message.trim()) {
+  // =====================================================
+  // INFORMACIÓN
+  // =====================================================
+
+  useEffect(() => {
+    console.log("======================================");
+    console.log("💬 CHAT DEL USUARIO");
+    console.log("======================================");
+
+    console.log("Usuario autenticado:", user?.uid);
+    console.log("Especialista:", specialist);
+    console.log("Especialista UID:", specialist?.uid);
+    console.log("Conversation ID:", conversationId);
+
+    console.log("======================================");
+  }, [user?.uid, specialist, conversationId]);
+
+  // =====================================================
+  // VALIDAR
+  // =====================================================
+
+  useEffect(() => {
+    if (!user?.uid) {
       return;
     }
 
-    const newMessage = {
-      id: Date.now(),
-      text: message.trim(),
-      sender: "user",
+    if (!specialist?.uid) {
+      console.error("❌ No se recibió especialista.");
+
+      setLoading(false);
+
+      return;
+    }
+
+    // MUY IMPORTANTE
+    // Un especialista no debe entrar al ChatRoom del usuario.
+
+    if (user.uid === specialist.uid) {
+      console.error(
+        "❌ ERROR: el usuario autenticado y el especialista tienen el mismo UID."
+      );
+
+      console.error(
+        "Debes iniciar sesión con la cuenta del usuario."
+      );
+
+      setLoading(false);
+
+      return;
+    }
+  }, [user?.uid, specialist?.uid]);
+
+  // =====================================================
+  // BUSCAR / CREAR CONVERSACIÓN
+  // =====================================================
+
+  useEffect(() => {
+    const loadConversation = async () => {
+      if (!user?.uid || !specialist?.uid) {
+        return;
+      }
+
+      // Evitar conversación consigo mismo
+      if (user.uid === specialist.uid) {
+        console.error(
+          "❌ No se puede crear una conversación consigo mismo."
+        );
+
+        setLoading(false);
+
+        return;
+      }
+
+      try {
+        console.log("======================================");
+        console.log("🔎 BUSCANDO CONVERSACIÓN");
+        console.log("Usuario:", user.uid);
+        console.log("Especialista:", specialist.uid);
+        console.log("======================================");
+
+        const conversationsRef = collection(
+          db,
+          "conversaciones_especialistas"
+        );
+
+        const q = query(
+          conversationsRef,
+          where("usuarioId", "==", user.uid),
+          where("especialistaId", "==", specialist.uid)
+        );
+
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+          const existingDoc = snapshot.docs[0];
+
+          console.log(
+            "✅ CONVERSACIÓN EXISTENTE:",
+            existingDoc.id
+          );
+
+          const data = existingDoc.data();
+
+          setConversationId(existingDoc.id);
+          setConversationData({
+            id: existingDoc.id,
+            ...data,
+          });
+
+          setLoading(false);
+
+          return;
+        }
+
+        // =================================================
+        // CREAR NUEVA
+        // =================================================
+
+        const conversationRef = doc(
+          collection(
+            db,
+            "conversaciones_especialistas"
+          )
+        );
+
+        const newConversation = {
+          usuarioId: user.uid,
+
+          usuarioNombre:
+            user.displayName ||
+            user.email ||
+            "Usuario",
+
+          usuarioFoto:
+            user.photoURL || "",
+
+          especialistaId: specialist.uid,
+
+          especialistaNombre:
+            specialist.nombre ||
+            specialist.name ||
+            "Especialista",
+
+          especialistaFoto:
+            specialist.fotoPerfil ||
+            specialist.foto ||
+            specialist.photo ||
+            "",
+
+          ultimoMensaje: "",
+
+          fechaUltimoMensaje:
+            serverTimestamp(),
+
+          mensajesNoLeidos: 0,
+
+          mensajesNoLeidosUsuario: 0,
+
+          estado: "Activa",
+
+          fechaInicio:
+            serverTimestamp(),
+        };
+
+        await setDoc(
+          conversationRef,
+          newConversation
+        );
+
+        console.log(
+          "✅ NUEVA CONVERSACIÓN:",
+          conversationRef.id
+        );
+
+        setConversationId(
+          conversationRef.id
+        );
+
+        setConversationData({
+          id: conversationRef.id,
+          ...newConversation,
+        });
+
+        setLoading(false);
+      } catch (error) {
+        console.error(
+          "❌ ERROR BUSCANDO CONVERSACIÓN:",
+          error
+        );
+
+        setLoading(false);
+      }
     };
 
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      newMessage,
-    ]);
+    loadConversation();
+  }, [
+    user?.uid,
+    specialist?.uid,
+  ]);
 
-    setMessage("");
+  // =====================================================
+  // ESCUCHAR MENSAJES EN TIEMPO REAL
+  // =====================================================
+
+  useEffect(() => {
+    if (!conversationId) {
+      return;
+    }
+
+    if (!user?.uid) {
+      return;
+    }
+
+    console.log(
+      "======================================"
+    );
+
+    console.log(
+      "📡 ESCUCHANDO MENSAJES EN TIEMPO REAL"
+    );
+
+    console.log(
+      "Conversación:",
+      conversationId
+    );
+
+    console.log(
+      "Usuario:",
+      user.uid
+    );
+
+    console.log(
+      "Especialista:",
+      specialist?.uid
+    );
+
+    console.log(
+      "======================================"
+    );
+
+    const messagesRef = collection(
+      db,
+      "conversaciones_especialistas",
+      conversationId,
+      "mensajes"
+    );
+
+    const unsubscribe = onSnapshot(
+      messagesRef,
+      (snapshot) => {
+        console.log(
+          "📨 MENSAJES ACTUALIZADOS EN TIEMPO REAL:",
+          snapshot.size
+        );
+
+        const data = snapshot.docs.map(
+          (messageDoc) => {
+            const item = messageDoc.data();
+
+            let sender = "unknown";
+
+            // =========================================
+            // IDENTIFICAR POR UID
+            // =========================================
+
+            if (
+              item.remitenteId === user.uid
+            ) {
+              sender = "user";
+            } else if (
+              item.remitenteId ===
+              specialist?.uid
+            ) {
+              sender = "specialist";
+            }
+
+            // =========================================
+            // COMPATIBILIDAD
+            // =========================================
+
+            if (
+              sender === "unknown"
+            ) {
+              if (
+                item.remitenteTipo ===
+                "usuario"
+              ) {
+                sender = "user";
+              }
+
+              if (
+                item.remitenteTipo ===
+                "especialista"
+              ) {
+                sender = "specialist";
+              }
+            }
+
+            return {
+              id: messageDoc.id,
+
+              text:
+                item.texto ||
+                item.text ||
+                "",
+
+              sender,
+
+              remitenteId:
+                item.remitenteId || "",
+
+              remitenteTipo:
+                item.remitenteTipo || "",
+
+              destinatarioId:
+                item.destinatarioId || "",
+
+              fecha:
+                item.fecha || null,
+
+              time:
+                item.fecha?.toDate
+                  ? item.fecha
+                      .toDate()
+                      .toLocaleTimeString(
+                        "es-NI",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )
+                  : "Ahora",
+
+              leido:
+                item.leido ?? false,
+            };
+          }
+        );
+
+        // =========================================
+        // ORDENAR
+        // =========================================
+
+        data.sort((a, b) => {
+          const fechaA =
+            a.fecha?.toDate
+              ? a.fecha.toDate().getTime()
+              : 0;
+
+          const fechaB =
+            b.fecha?.toDate
+              ? b.fecha.toDate().getTime()
+              : 0;
+
+          return fechaA - fechaB;
+        });
+
+        setMessages(data);
+      },
+      (error) => {
+        console.error(
+          "❌ ERROR ESCUCHANDO MENSAJES:",
+          error
+        );
+      }
+    );
+
+    return () => {
+      console.log(
+        "🔌 Desconectando listener usuario..."
+      );
+
+      unsubscribe();
+    };
+  }, [
+    conversationId,
+    user?.uid,
+    specialist?.uid,
+  ]);
+
+  // =====================================================
+  // ENVIAR MENSAJE
+  // =====================================================
+
+  const handleSendMessage = async () => {
+    const text = message.trim();
+
+    if (!text) {
+      return;
+    }
+
+    if (!user?.uid) {
+      console.error(
+        "❌ No hay usuario autenticado."
+      );
+
+      return;
+    }
+
+    if (!conversationId) {
+      console.error(
+        "❌ No existe conversación."
+      );
+
+      return;
+    }
+
+    if (!specialist?.uid) {
+      console.error(
+        "❌ No existe especialista."
+      );
+
+      return;
+    }
+
+    // Evitar enviar si son el mismo UID
+
+    if (user.uid === specialist.uid) {
+      console.error(
+        "❌ El usuario y especialista son la misma cuenta."
+      );
+
+      return;
+    }
+
+    setSending(true);
+
+    try {
+      const messagesRef = collection(
+        db,
+        "conversaciones_especialistas",
+        conversationId,
+        "mensajes"
+      );
+
+      // ===============================================
+      // CREAR MENSAJE
+      // ===============================================
+
+      await addDoc(
+        messagesRef,
+        {
+          texto: text,
+
+          remitenteId: user.uid,
+
+          remitenteTipo: "usuario",
+
+          destinatarioId:
+            specialist.uid,
+
+          fecha:
+            serverTimestamp(),
+
+          leido: false,
+        }
+      );
+
+      // ===============================================
+      // ACTUALIZAR CONVERSACIÓN
+      // ===============================================
+
+      const conversationRef = doc(
+        db,
+        "conversaciones_especialistas",
+        conversationId
+      );
+
+      await updateDoc(
+        conversationRef,
+        {
+          ultimoMensaje: text,
+
+          fechaUltimoMensaje:
+            serverTimestamp(),
+
+          // Para el especialista
+          mensajesNoLeidos: 1,
+
+          // Para el usuario
+          mensajesNoLeidosUsuario: 0,
+        }
+      );
+
+      console.log(
+        "✅ MENSAJE ENVIADO"
+      );
+
+      setMessage("");
+    } catch (error) {
+      console.error(
+        "❌ ERROR ENVIANDO MENSAJE:",
+        error
+      );
+    } finally {
+      setSending(false);
+    }
   };
+
+  // =====================================================
+  // LOADING
+  // =====================================================
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="chat-loading">
+          <div className="loading-spinner">
+            ⏳
+          </div>
+
+          <p>
+            Cargando conversación...
+          </p>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // =====================================================
+  // ERROR
+  // =====================================================
+
+  if (!specialist) {
+    return (
+      <MainLayout>
+        <div className="chat-error">
+          <div>⚠️</div>
+
+          <h2>
+            Especialista no encontrado
+          </h2>
+
+          <p>
+            Regresa a la lista de especialistas.
+          </p>
+
+          <button
+            onClick={() =>
+              navigate("/specialists")
+            }
+          >
+            ← Volver
+          </button>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // =====================================================
+  // MISMO UID
+  // =====================================================
+
+  if (
+    user?.uid === specialist?.uid
+  ) {
+    return (
+      <MainLayout>
+        <div className="chat-error">
+          <div>⚠️</div>
+
+          <h2>
+            Sesión de especialista
+          </h2>
+
+          <p>
+            Esta cuenta está iniciada como especialista.
+          </p>
+
+          <p>
+            Para utilizar el chat como usuario,
+            cierra sesión e inicia sesión con la
+            cuenta del usuario.
+          </p>
+
+          <button
+            onClick={() =>
+              navigate("/specialist/dashboard")
+            }
+          >
+            ← Volver al panel
+          </button>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // =====================================================
+  // INTERFAZ
+  // =====================================================
 
   return (
     <MainLayout>
-
       <div className="chat-room">
 
-        {/* ================= Encabezado ================= */}
+        <ChatHeader
+          specialist={specialist}
+        />
 
-        <ChatHeader specialist={specialist} />
-
-        {/* ================= Mensajes ================= */}
-
-        <MessageList messages={messages} />
-
-        {/* ================= Entrada de mensaje ================= */}
+        <MessageList
+          messages={messages}
+        />
 
         <ChatInput
           message={message}
@@ -84,7 +653,6 @@ function ChatRoom() {
         />
 
       </div>
-
     </MainLayout>
   );
 }
