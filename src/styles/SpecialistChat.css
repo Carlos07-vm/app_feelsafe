@@ -1,0 +1,473 @@
+/* =====================================================
+   PÁGINA
+===================================================== */
+
+.specialist-chat-page {
+
+  max-width: 1000px;
+
+  height: calc(100vh - 100px);
+
+  margin: auto;
+
+  display: flex;
+
+  flex-direction: column;
+
+  background: #f8f7fc;
+
+  border-radius: 24px;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 15px 40px
+    rgba(91, 60, 196, .10);
+
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.specialist-chat-header {
+
+  min-height: 75px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 12px 20px;
+
+  background: white;
+
+  border-bottom: 1px solid #eeeaf7;
+
+}
+
+
+/* =====================================================
+   BOTÓN ATRÁS
+===================================================== */
+
+.specialist-back-button {
+
+  width: 40px;
+
+  height: 40px;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background: #f0ecff;
+
+  color: #6d4c8f;
+
+  font-size: 22px;
+
+  cursor: pointer;
+
+}
+
+
+.specialist-back-button:hover {
+
+  background: #e4ddff;
+
+}
+
+
+/* =====================================================
+   AVATAR
+===================================================== */
+
+.specialist-user-avatar {
+
+  width: 50px;
+
+  height: 50px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background: #eee9ff;
+
+  font-size: 22px;
+
+}
+
+
+.specialist-user-avatar img {
+
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: cover;
+
+}
+
+
+/* =====================================================
+   INFORMACIÓN
+===================================================== */
+
+.specialist-user-info h2 {
+
+  margin: 0 0 4px;
+
+  color: #2d1b46;
+
+  font-size: 1rem;
+
+}
+
+
+.specialist-user-info span {
+
+  color: #22a06b;
+
+  font-size: .8rem;
+
+}
+
+
+/* =====================================================
+   MENSAJES
+===================================================== */
+
+.specialist-messages {
+
+  flex: 1;
+
+  padding: 25px;
+
+  overflow-y: auto;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+
+}
+
+
+/* =====================================================
+   FILAS
+===================================================== */
+
+.specialist-message-row {
+
+  display: flex;
+
+  width: 100%;
+
+}
+
+
+.specialist-message-left {
+
+  justify-content: flex-start;
+
+}
+
+
+.specialist-message-right {
+
+  justify-content: flex-end;
+
+}
+
+
+/* =====================================================
+   BURBUJAS
+===================================================== */
+
+.specialist-message-bubble {
+
+  max-width: 70%;
+
+  padding: 11px 14px;
+
+  border-radius: 18px;
+
+}
+
+
+/* USUARIO → IZQUIERDA */
+
+.user-bubble {
+
+  background: white;
+
+  color: #2d1b46;
+
+  border:
+    1px solid #e7e2f2;
+
+  border-bottom-left-radius: 5px;
+
+}
+
+
+/* ESPECIALISTA → DERECHA */
+
+.specialist-bubble {
+
+  background:
+    linear-gradient(
+      135deg,
+      #6d4c8f,
+      #7b61ff
+    );
+
+  color: white;
+
+  border-bottom-right-radius: 5px;
+
+}
+
+
+/* =====================================================
+   TEXTO
+===================================================== */
+
+.specialist-message-text {
+
+  line-height: 1.5;
+
+  white-space: pre-wrap;
+
+  word-break: break-word;
+
+}
+
+
+/* =====================================================
+   HORA
+===================================================== */
+
+.specialist-message-time {
+
+  margin-top: 5px;
+
+  text-align: right;
+
+  font-size: .68rem;
+
+  opacity: .65;
+
+}
+
+
+/* =====================================================
+   INPUT
+===================================================== */
+
+.specialist-chat-input {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 15px;
+
+  background: white;
+
+  border-top: 1px solid #eeeaf7;
+
+}
+
+
+.specialist-chat-input textarea {
+
+  flex: 1;
+
+  min-height: 22px;
+
+  max-height: 100px;
+
+  resize: none;
+
+  padding: 13px 16px;
+
+  border:
+    1px solid #e2deed;
+
+  border-radius: 16px;
+
+  outline: none;
+
+  font-family: inherit;
+
+  font-size: .95rem;
+
+}
+
+
+.specialist-chat-input textarea:focus {
+
+  border-color: #7b61ff;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(123, 97, 255, .10);
+
+}
+
+
+.specialist-chat-input button {
+
+  width: 48px;
+
+  height: 48px;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      #6d4c8f,
+      #7b61ff
+    );
+
+  color: white;
+
+  font-size: 20px;
+
+  cursor: pointer;
+
+}
+
+
+.specialist-chat-input button:disabled {
+
+  opacity: .45;
+
+  cursor: not-allowed;
+
+}
+
+
+/* =====================================================
+   ESTADOS
+===================================================== */
+
+.specialist-chat-loading,
+.specialist-chat-error {
+
+  min-height: 60vh;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+
+}
+
+
+.specialist-chat-error button {
+
+  margin-top: 15px;
+
+  padding: 12px 20px;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #7b61ff;
+
+  color: white;
+
+  cursor: pointer;
+
+}
+
+
+/* =====================================================
+   CHAT VACÍO
+===================================================== */
+
+.specialist-empty-chat {
+
+  margin: auto;
+
+  text-align: center;
+
+  color: #6b7280;
+
+}
+
+
+.specialist-empty-chat div {
+
+  font-size: 45px;
+
+  margin-bottom: 15px;
+
+}
+
+
+.specialist-empty-chat h3 {
+
+  margin-bottom: 8px;
+
+  color: #2d1b46;
+
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 700px) {
+
+  .specialist-chat-page {
+
+    height: calc(100vh - 70px);
+
+    border-radius: 0;
+
+  }
+
+
+  .specialist-messages {
+
+    padding: 15px;
+
+  }
+
+
+  .specialist-message-bubble {
+
+    max-width: 82%;
+
+  }
+
+}

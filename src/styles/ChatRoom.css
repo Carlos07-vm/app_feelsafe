@@ -1,148 +1,335 @@
-.chat-room {
-  max-width: 900px;
-  margin: 0 auto;
-  background: #ffffff;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(91, 60, 196, 0.1);
-}
+/* =====================================================
+   LISTA DE MENSAJES
+===================================================== */
 
+.message-list {
 
-/* ================= Encabezado ================= */
+  flex: 1;
 
-.chat-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  padding: 20px;
-  background: linear-gradient(135deg, #6d4c8f, #7b61ff);
-  color: white;
-}
+  overflow-y: auto;
 
-.chat-header img {
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.chat-header h2 {
-  margin: 0 0 5px;
-}
-
-.chat-header span {
-  font-size: 0.9rem;
-}
-
-
-/* ================= Mensajes ================= */
-
-.messages {
-  min-height: 500px;
   padding: 25px;
-  background: #faf8fb;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #faf9ff,
+      #f5f3fc
+    );
+
 }
+
+
+/* =====================================================
+   MENSAJE
+===================================================== */
 
 .message {
-  max-width: 70%;
-  padding: 12px 16px;
-  margin-bottom: 15px;
-  border-radius: 15px;
-  line-height: 1.5;
-}
 
-.message.received {
-  background: white;
-  margin-right: auto;
-}
-
-.message.sent {
-  background: #6d4c8f;
-  color: white;
-  margin-left: auto;
-}
-
-
-/* ================= Caja de mensaje ================= */
-
-.chat-input {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 20px;
-  background: white;
+
+  width: 100%;
+
 }
 
-.chat-input input {
-  flex: 1;
-  min-width: 0;
-  padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  outline: none;
-  font-size: 14px;
+
+.message-user {
+
+  justify-content: flex-end;
+
 }
 
-.chat-input input:focus {
-  border-color: #7b61ff;
+
+.message-specialist {
+
+  justify-content: flex-start;
+
 }
 
-.chat-input button {
-  flex: 0 0 90px;
-  width: 90px;
-  height: 50px;
 
-  border: none;
-  border-radius: 12px;
+/* =====================================================
+   CONTENIDO
+===================================================== */
 
-  background: #6d4c8f;
+.message-content {
+
+  max-width: 70%;
+
+  padding: 11px 15px;
+
+  border-radius: 18px;
+
+  box-shadow:
+    0 3px 10px
+    rgba(0, 0, 0, .05);
+
+}
+
+
+.message-user .message-content {
+
+  background:
+    linear-gradient(
+      135deg,
+      #6d4c8f,
+      #7b61ff
+    );
+
   color: white;
 
-  cursor: pointer;
-  font-size: 15px;
+  border-bottom-right-radius: 5px;
+
+}
+
+
+.message-specialist .message-content {
+
+  background: white;
+
+  color: #2d1b46;
+
+  border-bottom-left-radius: 5px;
+
+}
+
+
+/* =====================================================
+   TEXTO
+===================================================== */
+
+.message-content p {
+
+  margin: 0;
+
+  line-height: 1.5;
+
+  font-size: .95rem;
+
+  word-break: break-word;
+
+}
+
+
+/* =====================================================
+   HORA
+===================================================== */
+
+.message-time {
+
+  display: block;
+
+  margin-top: 5px;
+
+  font-size: .68rem;
+
+  opacity: .7;
+
+  text-align: right;
+
+}
+
+
+/* =====================================================
+   CHAT VACÍO
+===================================================== */
+
+.empty-chat {
+
+  margin: auto;
+
+  text-align: center;
+
+  color: #6b7280;
+
+}
+
+
+.empty-chat-icon {
+
+  font-size: 3rem;
+
+  margin-bottom: 10px;
+
+}
+
+
+.empty-chat p {
+
+  margin: 0 0 5px;
+
+  color: #2d1b46;
+
   font-weight: 600;
 
-  transition: 0.2s ease;
-}
-
-.chat-input button:hover {
-  background: #5b3cc4;
-  transform: translateY(-1px);
 }
 
 
-/* ================= Responsive ================= */
+.empty-chat span {
+
+  font-size: .9rem;
+
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
 
 @media (max-width: 768px) {
 
-  .chat-room {
-    width: 100%;
-    border-radius: 15px;
-  }
+  .message-list {
 
-  .messages {
-    min-height: 400px;
     padding: 15px;
+
   }
 
-  .message {
-    max-width: 85%;
+  .message-content {
+
+    max-width: 82%;
+
   }
 
-  .chat-input {
-    padding: 12px;
-    gap: 8px;
-  }
+}
 
-  .chat-input input {
-    padding: 13px;
-  }
+/* =========================================
+   MENSAJES DEL CHAT
+========================================= */
 
-  .chat-input button {
-    flex: 0 0 75px;
-    width: 75px;
-    height: 48px;
-    padding: 0;
-    font-size: 14px;
-  }
+.message-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 25px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+/* MENSAJE GENERAL */
+
+.message {
+  display: flex;
+  width: 100%;
+}
+
+
+/* =========================================
+   MENSAJE DEL USUARIO
+========================================= */
+
+
+.message-user .message-content {
+  background: linear-gradient(
+    135deg,
+    #6d4c8f,
+    #7b61ff
+  );
+
+  color: white;
+
+  border-radius: 18px 18px 5px 18px;
+
+  margin-left: auto;
+}
+.message-bubble-user {
+
+  background:
+    linear-gradient(
+      135deg,
+      #6d4c8f,
+      #7b61ff
+    );
+
+  color: white;
+
+  border-radius: 18px;
+
+  border-bottom-right-radius: 5px;
+}
+
+
+
+/* =========================================
+   MENSAJE DEL ESPECIALISTA
+========================================= */
+
+.message-bubble-specialist {
+
+  background: white;
+
+  color: #2d1b46;
+
+  border:
+    1px solid #ece8f5;
+
+  border-radius: 18px;
+
+  border-bottom-left-radius: 5px;
+}
+.message-specialist .message-content {
+  background: white;
+
+  color: #2d1b46;
+
+  border-radius: 18px 18px 18px 5px;
+
+  margin-right: auto;
+}
+
+
+/* =========================================
+   CONTENIDO
+========================================= */
+
+.message-content {
+  max-width: 70%;
+
+  padding: 11px 15px;
+
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+
+.message-content p {
+  margin: 0;
+
+  line-height: 1.5;
+}
+
+
+.message-time {
+  display: block;
+
+  margin-top: 5px;
+
+  font-size: 11px;
+
+  text-align: right;
+
+  opacity: .7;
+}
+
+/* ==========================================
+   USUARIO → DERECHA
+========================================== */
+
+.message-row-user {
+  justify-content: flex-end;
+}
+
+
+/* ==========================================
+   ESPECIALISTA → IZQUIERDA
+========================================== */
+
+.message-row-specialist {
+  justify-content: flex-start;
 }
