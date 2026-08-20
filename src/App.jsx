@@ -6,8 +6,13 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import VerifyEmail from "./pages/verifyEmail";
 
+import SpecialistRegister from "./pages/SpecialistRegister";
+import SpecialistLogin from "./pages/SpecialistLogin";
+import SpecialistMessages from "./pages/SpecialistMessages";
+
 // ================= Dashboard =================
 import Dashboard from "./pages/Dashboard";
+import SpecialistDashboard from "./pages/SpecialistDashboard";
 
 // ================= Bienestar =================
 import MoodTracker from "./pages/MoodTracker";
@@ -19,6 +24,8 @@ import Goals from "./pages/Goals";
 import Chatbot from "./pages/Chatbot";
 import Specialists from "./pages/Specialists";
 import ChatRoom from "./pages/ChatRoom";
+import SpecialistConversations from "./pages/SpecialistConversations";
+import SpecialistChat from "./pages/SpecialistChat";
 
 // ================= Recursos =================
 import Resources from "./pages/Resources";
@@ -32,21 +39,88 @@ import Profile from "./pages/Profile";
 // ================= Componentes =================
 import ProtectedRoute from "./components/ProtectedRoute";
 
+
 function App() {
+
   return (
+
     <BrowserRouter>
+
       <Routes>
 
-        {/* ================= Rutas públicas ================= */}
 
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
+        {/* =================================================
+            RUTAS PÚBLICAS
+        ================================================= */}
 
-        {/* ================= Rutas protegidas ================= */}
+        <Route
+          path="/"
+          element={<Landing />}
+        />
 
-        <Route element={<ProtectedRoute />}>
+        <Route
+          path="/login"
+          element={<Login />}
+        />
+
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        <Route
+          path="/verify-email"
+          element={<VerifyEmail />}
+        />
+
+
+        {/* =================================================
+            RUTAS DEL ESPECIALISTA
+        ================================================= */}
+
+        <Route
+          path="/specialist/register"
+          element={<SpecialistRegister />}
+        />
+
+        <Route
+          path="/specialist/login"
+          element={<SpecialistLogin />}
+        />
+
+        <Route
+          path="/specialist/dashboard"
+          element={<SpecialistDashboard />}
+        />
+
+        <Route
+          path="/specialist/messages"
+          element={<SpecialistMessages />}
+        />
+
+        <Route
+          path="/specialist-conversations"
+          element={<SpecialistConversations />}
+        />
+
+        {/* IMPORTANTE:
+            SpecialistChat utiliza location.state
+            para recibir la conversación.
+        */}
+
+        <Route
+          path="/specialist-chat"
+          element={<SpecialistChat />}
+        />
+
+
+        {/* =================================================
+            RUTAS PROTEGIDAS DEL USUARIO
+        ================================================= */}
+
+        <Route
+          element={<ProtectedRoute />}
+        >
 
           {/* ================= Dashboard ================= */}
 
@@ -55,7 +129,8 @@ function App() {
             element={<Dashboard />}
           />
 
-          {/* ================= Bienestar emocional ================= */}
+
+          {/* ================= Bienestar ================= */}
 
           <Route
             path="/mood"
@@ -77,6 +152,7 @@ function App() {
             element={<Goals />}
           />
 
+
           {/* ================= Chat ================= */}
 
           <Route
@@ -93,6 +169,7 @@ function App() {
             path="/chat-room"
             element={<ChatRoom />}
           />
+
 
           {/* ================= Recursos ================= */}
 
@@ -116,6 +193,7 @@ function App() {
             element={<SOS />}
           />
 
+
           {/* ================= Perfil ================= */}
 
           <Route
@@ -125,7 +203,10 @@ function App() {
 
         </Route>
 
-        {/* ================= Ruta por defecto ================= */}
+
+        {/* =================================================
+            RUTA NO ENCONTRADA
+        ================================================= */}
 
         <Route
           path="*"
@@ -133,8 +214,12 @@ function App() {
         />
 
       </Routes>
+
     </BrowserRouter>
+
   );
+
 }
+
 
 export default App;
