@@ -2,11 +2,11 @@
   display: grid;
   grid-template-columns: 1.8fr 1fr;
   gap: 24px;
-  background: linear-gradient(135deg, rgba(108, 99, 255, 0.95), rgba(54, 209, 220, 0.95));
+  background: linear-gradient(135deg, #6D4C8F, #8E70B8, #BFD7FF);
   color: white;
   border-radius: 28px;
   padding: 32px;
-  box-shadow: 0 20px 50px rgba(24, 27, 63, 0.18);
+  box-shadow: 0 20px 50px rgba(45, 27, 70, 0.18);
   align-items: center;
 }
 
@@ -43,13 +43,14 @@
 }
 
 .hero-summary-card {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 20px;
   padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  backdrop-filter: blur(8px);
 }
 
 .hero-summary-card small {
@@ -67,18 +68,18 @@
 .hero-action {
   border: none;
   background: white;
-  color: #3a1058;
+  color: #2D1B46;
   font-weight: 700;
   border-radius: 18px;
   padding: 16px 20px;
   cursor: pointer;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 30px rgba(45, 27, 70, 0.15);
   transition: transform 0.25s ease, background 0.25s ease;
 }
 
 .hero-action:hover {
   transform: translateY(-2px);
-  background: #f5f5ff;
+  background: #E9D8FD;
 }
 
 .dashboard-summary-grid {
@@ -99,11 +100,12 @@
 .dashboard-actions-header h2 {
   margin: 0 0 8px;
   font-size: 1.55rem;
+  color: #2D1B46;
 }
 
 .dashboard-actions-header p {
   margin: 0;
-  color: var(--text-light);
+  color: #7A6A91;
   max-width: 540px;
 }
 
@@ -119,31 +121,34 @@
   align-items: center;
   padding: 22px;
   border-radius: 24px;
-  border: 1px solid rgba(108, 99, 255, 0.12);
-  background: var(--surface);
-  box-shadow: 0 15px 35px rgba(108, 99, 255, 0.08);
+  border: 1px solid rgba(109, 76, 143, 0.12);
+  background: #FFFFFF;
+  box-shadow: 0 15px 35px rgba(109, 76, 143, 0.08);
   cursor: pointer;
-  transition: transform 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.25s ease, border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 .action-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(108, 99, 255, 0.2);
+  border-color: rgba(109, 76, 143, 0.25);
+  box-shadow: 0 18px 40px rgba(109, 76, 143, 0.14);
 }
 
 .action-card h3 {
   margin: 0 0 6px;
   font-size: 1.05rem;
+  color: #2D1B46;
 }
 
 .action-card p {
   margin: 0;
-  color: var(--text-light);
+  color: #7A6A91;
   font-size: 0.945rem;
 }
 
 .action-card span {
-  color: var(--primary);
+  color: #6D4C8F;
   font-size: 1.65rem;
 }
 
@@ -158,8 +163,8 @@
 .motivation-card {
   border-radius: 26px;
   padding: 28px;
-  box-shadow: 0 20px 40px rgba(31, 36, 70, 0.08);
-  background: var(--surface);
+  box-shadow: 0 20px 40px rgba(45, 27, 70, 0.08);
+  background: #FFFFFF;
 }
 
 .activity-header {
@@ -173,21 +178,22 @@
 .activity-header h2 {
   margin: 0;
   font-size: 1.4rem;
+  color: #2D1B46;
 }
 
 .card-subtitle {
   margin: 6px 0 0;
-  color: var(--text-light);
+  color: #7A6A91;
 }
 
 .activity-header span {
-  color: var(--primary);
+  color: #6D4C8F;
   font-weight: 700;
 }
 
 .activity-text {
   margin: 0 0 24px;
-  color: var(--text-light);
+  color: #7A6A91;
   line-height: 1.8;
 }
 
@@ -198,8 +204,8 @@
 }
 
 .activity-details div {
-  background: var(--background);
-  border: 1px solid var(--border);
+  background: #FAF8FB;
+  border: 1px solid #E9D8FD;
   border-radius: 18px;
   padding: 18px 20px;
 }
@@ -207,38 +213,44 @@
 .activity-details strong {
   display: block;
   font-size: 1.5rem;
-  color: var(--text);
+  color: #2D1B46;
   margin-bottom: 8px;
 }
 
 .activity-details span {
-  color: var(--text-light);
+  color: #7A6A91;
+}
+
+.motivation-card {
+  background: linear-gradient(135deg, #6D4C8F, #8E70B8);
+  color: white;
 }
 
 .motivation-card h2 {
   margin: 0 0 16px;
   font-size: 1.5rem;
-  color: var(--primary);
+  color: white;
 }
 
 .motivation-card p {
   margin: 0 0 20px;
-  color: var(--text-light);
+  color: rgba(255, 255, 255, 0.9);
   line-height: 1.8;
 }
 
 .motivation-footer {
   padding: 18px 20px;
   border-radius: 20px;
-  background: rgba(108, 99, 255, 0.08);
-  color: var(--text);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
   font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .loading-text {
   margin-top: 60px;
   text-align: center;
-  color: var(--text-light);
+  color: #7A6A91;
   font-size: 1rem;
 }
 
@@ -249,7 +261,7 @@
 
 .dashboard-login h2 {
   margin-bottom: 20px;
-  color: var(--text);
+  color: #2D1B46;
 }
 
 .login-btn,
@@ -263,8 +275,8 @@
 }
 
 .login-btn {
-  background: var(--primary);
-  color: var(--surface);
+  background: #6D4C8F;
+  color: white;
 }
 
 .login-btn:hover,
@@ -273,8 +285,8 @@
 }
 
 .logout-btn {
-  background: var(--danger);
-  color: var(--surface);
+  background: #6D4C8F;
+  color: white;
 }
 
 @media (max-width: 980px) {
