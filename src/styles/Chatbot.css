@@ -1,16 +1,16 @@
 .chat-container {
-  background: white;
+  background: #FAF8FB;
   height: 85vh;
   border-radius: 30px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
+  box-shadow: 0 8px 30px rgba(109, 76, 143, 0.15);
 }
 
 .chat-header {
   padding: 25px;
-  background: linear-gradient(135deg, #5B3CC4, #7B61FF);
+  background: linear-gradient(135deg, #6D4C8F, #CDB4DB);
   color: white;
 }
 
@@ -22,7 +22,7 @@
   flex: 1;
   padding: 25px;
   overflow-y: auto;
-  background: #F8F9FF;
+  background: #F9F5FC;
   display: flex;
   flex-direction: column;
   gap: 15px;
@@ -36,13 +36,14 @@
 }
 
 .message.bot {
-  background: white;
+  background: #FFFFFF;
   align-self: flex-start;
-  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
+  box-shadow: 0 8px 30px rgba(109, 76, 143, 0.12);
+  color: #2D1B46;
 }
 
 .message.user {
-  background: #7B61FF;
+  background: #6D4C8F;
   color: white;
   align-self: flex-end;
 }
@@ -51,16 +52,17 @@
   padding: 20px;
   display: flex;
   gap: 15px;
-  background: white;
+  background: #FFFFFF;
 }
 
 .chat-input input {
   flex: 1;
   border: none;
-  background: #F3F0FF;
+  background: #E9D8FD;
   padding: 15px 20px;
   border-radius: 15px;
   outline: none;
+  color: #2D1B46;
 }
 
 .chat-input button {
@@ -68,7 +70,7 @@
   height: 60px;
   border: none;
   border-radius: 15px;
-  background: #5B3CC4;
+  background: #6D4C8F;
   color: white;
   cursor: pointer;
   font-size: 1.2rem;
@@ -77,8 +79,8 @@
 .chat-error {
   padding: 15px 20px;
   margin: 10px 25px;
-  background: #fde8e8;
-  color: #b91c1c;
+  background: #FDE8E8;
+  color: #B91C1C;
   border-radius: 15px;
   box-shadow: 0 8px 30px rgba(248, 113, 113, 0.15);
 }
