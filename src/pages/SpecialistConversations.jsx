@@ -321,14 +321,8 @@ function SpecialistConversations() {
 
 
       navigate(
-        "/specialist-chat",
-        {
-          state: {
-            conversation,
-          },
-        }
+  `/specialist-chat/${conversation.id}`
       );
-
     };
 
 

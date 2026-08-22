@@ -21,29 +21,18 @@ import {
   db,
 } from "../services/firebase";
 
-
 const AppContext = createContext();
 
-
 const defaultUserData = {
-
   currentMood: "Neutral",
-
   wellbeing: 72,
-
   streak: 0,
-
   notes: [],
-
   emotions: [],
-
   description:
     "Comparte algo sobre ti y personaliza tu perfil.",
-
   profile: {},
-
 };
-
 
 const buildUser = (
   firebaseUser,
@@ -52,9 +41,7 @@ const buildUser = (
 ) => {
 
   return {
-
-    uid:
-      firebaseUser.uid,
+    uid: firebaseUser.uid,
 
     displayName:
       firebaseUser.displayName ||
@@ -89,12 +76,13 @@ const buildUser = (
       data.proveedor ||
       "",
 
-    tipoCuenta:
-      data.tipoCuenta ||
-      tipoCuenta,
+    // IMPORTANTE
+    tipoCuenta,
 
-    accountType:
-      data.tipoCuenta ||
+    accountType: tipoCuenta,
+
+    rol:
+      data.rol ||
       tipoCuenta,
 
     especialidad:
@@ -102,8 +90,7 @@ const buildUser = (
       "",
 
     experiencia:
-      data.experiencia ??
-      0,
+      data.experiencia ?? 0,
 
     telefono:
       data.telefono ||
@@ -119,8 +106,7 @@ const buildUser = (
       "Activo",
 
     disponible:
-      data.disponible ??
-      true,
+      data.disponible ?? true,
 
     correoVerificado:
       data.correoVerificado ??
@@ -153,49 +139,33 @@ const buildUser = (
 
     ...data,
 
-    // Siempre conservar el UID real
-    uid:
-      firebaseUser.uid,
+    // Nunca permitir que Firestore
+    // cambie estos valores
+    uid: firebaseUser.uid,
 
-    tipoCuenta:
-      data.tipoCuenta ||
+    tipoCuenta,
+
+    accountType: tipoCuenta,
+
+    rol:
+      data.rol ||
       tipoCuenta,
-
-    accountType:
-      data.tipoCuenta ||
-      tipoCuenta,
-
   };
-
 };
 
+export function AppProvider({ children }) {
 
-export function AppProvider({
-  children,
-}) {
+  const [user, setUser] = useState(null);
 
-  const [user, setUser] =
-    useState(null);
-
-  const [loading, setLoading] =
-    useState(true);
-
-
-  // =====================================================
-  // CARGAR PERFIL DESPUÉS DE AUTH
-  // =====================================================
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
 
-    let unsubscribeProfile =
-      null;
-
+    let unsubscribeProfile = null;
 
     const unsubscribeAuth =
       onAuthStateChanged(
-
         auth,
-
         async (firebaseUser) => {
 
           console.log(
@@ -220,30 +190,25 @@ export function AppProvider({
             "================================="
           );
 
-
-          // ==========================================
-          // CERRÓ SESIÓN
-          // ==========================================
+          // =========================================
+          // NO HAY SESIÓN
+          // =========================================
 
           if (!firebaseUser) {
 
             setUser(null);
-
             setLoading(false);
 
             return;
-
           }
-
 
           try {
 
             setLoading(true);
 
-
-            // ==========================================
-            // 1. BUSCAR ESPECIALISTA
-            // ==========================================
+            // =========================================
+            // BUSCAR ESPECIALISTA
+            // =========================================
 
             const specialistRef =
               doc(
@@ -252,16 +217,14 @@ export function AppProvider({
                 firebaseUser.uid
               );
 
-
             const specialistSnap =
               await getDoc(
                 specialistRef
               );
 
-
-            // ==========================================
-            // ESPECIALISTA ENCONTRADO
-            // ==========================================
+            // =========================================
+            // ESPECIALISTA
+            // =========================================
 
             if (
               specialistSnap.exists()
@@ -270,34 +233,13 @@ export function AppProvider({
               const specialistData =
                 specialistSnap.data();
 
-
               console.log(
-                "================================="
+                "🩺 CUENTA ESPECIALISTA"
               );
 
               console.log(
-                "ESPECIALISTA ENCONTRADO"
+                specialistData
               );
-
-              console.log(
-                "UID:",
-                firebaseUser.uid
-              );
-
-              console.log(
-                "Nombre:",
-                specialistData.nombre
-              );
-
-              console.log(
-                "Correo:",
-                specialistData.correo
-              );
-
-              console.log(
-                "================================="
-              );
-
 
               const specialistUser =
                 buildUser(
@@ -306,38 +248,25 @@ export function AppProvider({
                   "especialista"
                 );
 
-
               setUser(
                 specialistUser
               );
 
-
               setLoading(false);
-
-
-              // ========================================
-              // ESCUCHAR CAMBIOS DEL ESPECIALISTA
-              // ========================================
 
               unsubscribeProfile =
                 onSnapshot(
-
                   specialistRef,
-
                   (snapshot) => {
 
                     if (
                       snapshot.exists()
                     ) {
 
-                      const updatedData =
-                        snapshot.data();
-
-
                       setUser(
                         buildUser(
                           firebaseUser,
-                          updatedData,
+                          snapshot.data(),
                           "especialista"
                         )
                       );
@@ -345,7 +274,6 @@ export function AppProvider({
                     }
 
                   },
-
                   (error) => {
 
                     console.error(
@@ -354,23 +282,14 @@ export function AppProvider({
                     );
 
                   }
-
                 );
 
-
               return;
-
             }
 
-
-            // ==========================================
-            // 2. SI NO ES ESPECIALISTA → USUARIO
-            // ==========================================
-
-            console.log(
-              "No existe especialista con este UID."
-            );
-
+            // =========================================
+            // USUARIO NORMAL
+            // =========================================
 
             const userRef =
               doc(
@@ -379,16 +298,10 @@ export function AppProvider({
                 firebaseUser.uid
               );
 
-
             const userSnap =
               await getDoc(
                 userRef
               );
-
-
-            // ==========================================
-            // USUARIO EXISTENTE
-            // ==========================================
 
             if (
               userSnap.exists()
@@ -397,6 +310,13 @@ export function AppProvider({
               const userData =
                 userSnap.data();
 
+              console.log(
+                "👤 CUENTA USUARIO"
+              );
+
+              console.log(
+                userData
+              );
 
               const normalUser =
                 buildUser(
@@ -405,20 +325,15 @@ export function AppProvider({
                   "usuario"
                 );
 
-
               setUser(
                 normalUser
               );
 
-
               setLoading(false);
-
 
               unsubscribeProfile =
                 onSnapshot(
-
                   userRef,
-
                   (snapshot) => {
 
                     if (
@@ -436,7 +351,6 @@ export function AppProvider({
                     }
 
                   },
-
                   (error) => {
 
                     console.error(
@@ -445,18 +359,18 @@ export function AppProvider({
                     );
 
                   }
-
                 );
 
-
               return;
-
             }
 
+            // =========================================
+            // CREAR PERFIL DE USUARIO SI NO EXISTE
+            // =========================================
 
-            // ==========================================
-            // CREAR USUARIO
-            // ==========================================
+            console.log(
+              "⚠️ No existe perfil. Creando usuario..."
+            );
 
             const newUser =
               buildUser(
@@ -465,13 +379,9 @@ export function AppProvider({
                 "usuario"
               );
 
-
             await setDoc(
-
               userRef,
-
               {
-
                 uid:
                   firebaseUser.uid,
 
@@ -499,66 +409,59 @@ export function AppProvider({
                 tipoCuenta:
                   "usuario",
 
+                accountType:
+                  "usuario",
+
+                rol:
+                  "usuario",
+
+                estado:
+                  "Activo",
+
                 createdAt:
                   new Date().toISOString(),
 
                 ...defaultUserData,
-
               },
-
               {
                 merge: true,
               }
-
             );
-
 
             setUser(
               newUser
             );
 
-
             setLoading(false);
-
 
           } catch (error) {
 
             console.error(
-              "Error cargando perfil:",
+              "❌ Error cargando perfil:",
               error
             );
 
             setUser(null);
-
             setLoading(false);
-
           }
-
         }
-
       );
-
 
     return () => {
 
       unsubscribeAuth();
 
-      if (
-        unsubscribeProfile
-      ) {
-
+      if (unsubscribeProfile) {
         unsubscribeProfile();
-
       }
 
     };
 
   }, []);
 
-
-  // =====================================================
+  // =========================================
   // ACTUALIZAR PERFIL
-  // =====================================================
+  // =========================================
 
   const updateUserProfile =
     async (updates) => {
@@ -567,15 +470,10 @@ export function AppProvider({
         return;
       }
 
-
       const collectionName =
-        user.tipoCuenta ===
-        "especialista"
-
+        user.tipoCuenta === "especialista"
           ? "specialists"
-
           : "usuarios";
-
 
       const userRef =
         doc(
@@ -584,33 +482,21 @@ export function AppProvider({
           user.uid
         );
 
-
       const nextUser = {
-
         ...user,
-
         ...updates,
-
       };
 
-
-      setUser(
-        nextUser
-      );
-
+      setUser(nextUser);
 
       try {
 
         await setDoc(
-
           userRef,
-
           updates,
-
           {
             merge: true,
           }
-
         );
 
       } catch (error) {
@@ -621,36 +507,21 @@ export function AppProvider({
         );
 
       }
-
     };
 
-
   return (
-
     <AppContext.Provider
-
       value={{
-
         user,
-
         setUser,
-
         loading,
-
         updateUserProfile,
-
       }}
-
     >
-
       {children}
-
     </AppContext.Provider>
-
   );
-
 }
-
 
 export const useApp = () =>
   useContext(AppContext);

@@ -4,133 +4,234 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   onSnapshot,
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
 
-import { useLocation, useNavigate } from "react-router-dom";
+import {
+  onAuthStateChanged,
+} from "firebase/auth";
 
-import MainLayout from "../layouts/MainLayout";
+import {
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 
-import { db } from "../services/firebase";
-import { useApp } from "../context/AppContext";
+import SpecialistLayout from "../layouts/SpecialistLayout";
+
+import {
+  db,
+  auth,
+} from "../services/firebase";
 
 import "../styles/SpecialistChat.css";
 
-
 function SpecialistChat() {
-
-  const location = useLocation();
   const navigate = useNavigate();
 
-  const { user } = useApp();
-
-
-  // =====================================================
-  // CONVERSACIÓN
-  // =====================================================
-
-  const conversation =
-    location.state?.conversation;
-
+  const { conversationId } = useParams();
 
   // =====================================================
   // ESTADOS
   // =====================================================
 
-  const [messages, setMessages] = useState([]);
+  const [currentUser, setCurrentUser] =
+    useState(null);
 
-  const [message, setMessage] = useState("");
+  const [conversation, setConversation] =
+    useState(null);
 
-  const [loading, setLoading] = useState(true);
+  const [messages, setMessages] =
+    useState([]);
 
-  const [sending, setSending] = useState(false);
+  const [message, setMessage] =
+    useState("");
 
+  const [conversationLoading, setConversationLoading] =
+    useState(true);
+
+  const [loadingMessages, setLoadingMessages] =
+    useState(true);
+
+  const [sending, setSending] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
 
   // =====================================================
-  // INFORMACIÓN DE DEPURACIÓN
+  // AUTENTICACIÓN DEL ESPECIALISTA
   // =====================================================
 
   useEffect(() => {
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        (firebaseUser) => {
+          if (!firebaseUser) {
+            setCurrentUser(null);
 
-    console.log("======================================");
-    console.log("💬 SPECIALIST CHAT");
-    console.log("======================================");
+            navigate(
+              "/specialist/login",
+              { replace: true }
+            );
 
-    console.log(
-      "Conversación:",
-      conversation
-    );
+            return;
+          }
 
-    console.log(
-      "ID conversación:",
-      conversation?.id
-    );
+          console.log(
+            "ESPECIALISTA AUTENTICADO:",
+            firebaseUser.uid
+          );
 
-    console.log(
-      "Usuario:",
-      conversation?.usuarioId
-    );
+          setCurrentUser(firebaseUser);
+        }
+      );
 
-    console.log(
-      "Especialista:",
-      conversation?.especialistaId
-    );
+    return () => unsubscribe();
+  }, [navigate]);
 
-    console.log(
-      "Especialista autenticado:",
-      user?.uid
-    );
+  // =====================================================
+  // VALIDAR CONVERSACIÓN
+  // =====================================================
 
-    console.log("======================================");
+  useEffect(() => {
+    if (!conversationId) {
+      setError(
+        "No se encontró el ID de la conversación."
+      );
 
+      setConversationLoading(false);
+
+      return;
+    }
+
+    if (!currentUser?.uid) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadConversation =
+      async () => {
+        try {
+          setConversationLoading(true);
+          setError("");
+
+          const conversationRef =
+            doc(
+              db,
+              "conversaciones_especialistas",
+              conversationId
+            );
+
+          const conversationSnap =
+            await getDoc(
+              conversationRef
+            );
+
+          if (!conversationSnap.exists()) {
+            if (!cancelled) {
+              setConversation(null);
+
+              setError(
+                "Esta conversación no existe."
+              );
+
+              setConversationLoading(false);
+            }
+
+            return;
+          }
+
+          const data =
+            conversationSnap.data();
+
+          // =================================================
+          // SEGURIDAD
+          // =================================================
+
+          if (
+            data.especialistaId !==
+            currentUser.uid
+          ) {
+            console.error(
+              "Conversación no pertenece al especialista."
+            );
+
+            if (!cancelled) {
+              setConversation(null);
+
+              setError(
+                "No tienes permiso para acceder a esta conversación."
+              );
+
+              setConversationLoading(false);
+            }
+
+            return;
+          }
+
+          const loadedConversation = {
+            id: conversationSnap.id,
+            ...data,
+          };
+
+          console.log(
+            "CONVERSACIÓN CARGADA:",
+            loadedConversation
+          );
+
+          if (!cancelled) {
+            setConversation(
+              loadedConversation
+            );
+
+            setConversationLoading(false);
+          }
+        } catch (err) {
+          console.error(
+            "Error cargando conversación:",
+            err
+          );
+
+          if (!cancelled) {
+            setConversation(null);
+
+            setError(
+              "No se pudo cargar la conversación."
+            );
+
+            setConversationLoading(false);
+          }
+        }
+      };
+
+    loadConversation();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
-    conversation,
-    user?.uid,
+    conversationId,
+    currentUser?.uid,
   ]);
-
 
   // =====================================================
   // ESCUCHAR MENSAJES
   // =====================================================
 
   useEffect(() => {
-
-    if (!conversation?.id) {
-
-      console.error(
-        "❌ No existe ID de conversación."
-      );
-
-      setMessages([]);
-      setLoading(false);
-
+    if (
+      !conversation?.id ||
+      !currentUser?.uid
+    ) {
       return;
-
     }
 
-
-    console.log("======================================");
-    console.log("📨 ESCUCHANDO MENSAJES");
-    console.log("======================================");
-
-    console.log(
-      "Ruta:",
-      `conversaciones_especialistas/${conversation.id}/mensajes`
-    );
-
-    console.log(
-      "Usuario autenticado:",
-      user?.uid
-    );
-
-    console.log("======================================");
-
-
-    // ===================================================
-    // REFERENCIA A MENSAJES
-    // ===================================================
+    setLoadingMessages(true);
 
     const messagesRef =
       collection(
@@ -140,98 +241,36 @@ function SpecialistChat() {
         "mensajes"
       );
 
-
-    // ===================================================
-    // SNAPSHOT
-    // ===================================================
-
     const unsubscribe =
       onSnapshot(
-
         messagesRef,
-
         (snapshot) => {
-
-          console.log("======================================");
-          console.log(
-            "📨 MENSAJES ENCONTRADOS:",
-            snapshot.size
-          );
-          console.log("======================================");
-
-
           const loadedMessages =
             snapshot.docs.map(
               (messageDoc) => {
-
                 const data =
                   messageDoc.data();
 
-
-                console.log(
-                  "📩 MENSAJE:",
-                  messageDoc.id,
-                  data
-                );
-
-
-                // =================================================
-                // IDENTIFICAR REMITENTE
-                // =================================================
-
                 let sender = "user";
-
 
                 if (
                   data.remitenteId ===
-                  user?.uid
+                  currentUser.uid
                 ) {
-
                   sender =
                     "specialist";
-
-                } else if (
-                  data.remitenteId ===
-                  conversation.usuarioId
-                ) {
-
-                  sender =
-                    "user";
-
-                } else if (
-                  data.remitenteTipo ===
-                  "especialista"
-                ) {
-
-                  sender =
-                    "specialist";
-
-                } else {
-
-                  sender =
-                    "user";
-
                 }
 
-
-                // =================================================
-                // FECHA
-                // =================================================
-
                 let date = null;
-
                 let time = "";
-
 
                 if (
                   data.fecha &&
                   typeof data.fecha.toDate ===
-                  "function"
+                    "function"
                 ) {
-
                   date =
                     data.fecha.toDate();
-
 
                   time =
                     date.toLocaleTimeString(
@@ -241,18 +280,10 @@ function SpecialistChat() {
                         minute: "2-digit",
                       }
                     );
-
                 }
 
-
-                // =================================================
-                // MENSAJE PROCESADO
-                // =================================================
-
                 return {
-
-                  id:
-                    messageDoc.id,
+                  id: messageDoc.id,
 
                   text:
                     data.texto ||
@@ -281,7 +312,6 @@ function SpecialistChat() {
                     null,
 
                   date,
-
                   time,
 
                   leido:
@@ -294,201 +324,103 @@ function SpecialistChat() {
                     "specialist",
 
                   isUser:
-                    sender ===
-                    "user",
-
+                    sender === "user",
                 };
-
               }
             );
 
-
-          // ===================================================
-          // ORDENAR
-          // ===================================================
-
           loadedMessages.sort(
             (a, b) => {
-
               const timeA =
                 a.date
                   ? a.date.getTime()
                   : 0;
-
 
               const timeB =
                 b.date
                   ? b.date.getTime()
                   : 0;
 
-
-              return (
-                timeA -
-                timeB
-              );
-
+              return timeA - timeB;
             }
           );
-
-
-          console.log(
-            "📋 MENSAJES PROCESADOS:",
-            loadedMessages
-          );
-
 
           setMessages(
             loadedMessages
           );
 
-          setLoading(false);
-
+          setLoadingMessages(false);
         },
-
-        (error) => {
-
+        (err) => {
           console.error(
-            "======================================"
-          );
-
-          console.error(
-            "❌ ERROR LEYENDO MENSAJES"
-          );
-
-          console.error(
-            "Código:",
-            error.code
-          );
-
-          console.error(
-            "Mensaje:",
-            error.message
-          );
-
-          console.error(
-            "======================================"
+            "Error escuchando mensajes:",
+            err
           );
 
           setMessages([]);
 
-          setLoading(false);
-
+          setLoadingMessages(false);
         }
-
       );
 
-
-    // ===================================================
-    // LIMPIAR LISTENER
-    // ===================================================
-
-    return () => {
-
-      console.log(
-        "🔌 Desconectando listener de mensajes..."
-      );
-
-      unsubscribe();
-
-    };
-
-
+    return () => unsubscribe();
   }, [
     conversation?.id,
-    conversation?.usuarioId,
-    user?.uid,
+    currentUser?.uid,
   ]);
 
-
   // =====================================================
-  // MARCAR MENSAJES DEL USUARIO COMO LEÍDOS
+  // MARCAR MENSAJES COMO LEÍDOS
   // =====================================================
 
   useEffect(() => {
-
     if (
       !conversation?.id ||
       !conversation?.usuarioId ||
-      !user?.uid ||
+      !currentUser?.uid ||
       messages.length === 0
     ) {
-
       return;
-
     }
-
 
     const unreadMessages =
       messages.filter(
-        (msg) => {
-
-          return (
-
-            msg.remitenteId ===
-            conversation.usuarioId
-
-            &&
-
-            msg.leido === false
-
-          );
-
-        }
+        (msg) =>
+          msg.remitenteId ===
+            conversation.usuarioId &&
+          msg.leido === false
       );
-
 
     if (
       unreadMessages.length === 0
     ) {
-
       return;
-
     }
 
-
-    console.log(
-      "📖 Marcando mensajes como leídos:",
-      unreadMessages.length
-    );
-
-
-    const markMessagesAsRead =
+    const markAsRead =
       async () => {
-
         try {
+          await Promise.all(
+            unreadMessages.map(
+              async (msg) => {
+                const messageRef =
+                  doc(
+                    db,
+                    "conversaciones_especialistas",
+                    conversation.id,
+                    "mensajes",
+                    msg.id
+                  );
 
-          // ===============================================
-          // MARCAR CADA MENSAJE
-          // ===============================================
-
-          for (
-            const msg
-            of unreadMessages
-          ) {
-
-            const messageRef =
-              doc(
-                db,
-                "conversaciones_especialistas",
-                conversation.id,
-                "mensajes",
-                msg.id
-              );
-
-
-            await updateDoc(
-              messageRef,
-              {
-                leido: true,
+                await updateDoc(
+                  messageRef,
+                  {
+                    leido: true,
+                  }
+                );
               }
-            );
-
-          }
-
-
-          // ===============================================
-          // ACTUALIZAR CONVERSACIÓN
-          // ===============================================
+            )
+          );
 
           const conversationRef =
             doc(
@@ -497,42 +429,26 @@ function SpecialistChat() {
               conversation.id
             );
 
-
           await updateDoc(
             conversationRef,
             {
               mensajesNoLeidos: 0,
             }
           );
-
-
-          console.log(
-            "✅ Mensajes marcados como leídos."
-          );
-
-
-        } catch (error) {
-
+        } catch (err) {
           console.error(
-            "❌ Error marcando mensajes como leídos:",
-            error
+            "Error marcando mensajes:",
+            err
           );
-
         }
-
       };
 
-
-    markMessagesAsRead();
-
-
+    markAsRead();
   }, [
-    conversation?.id,
-    conversation?.usuarioId,
-    user?.uid,
+    conversation,
     messages,
+    currentUser?.uid,
   ]);
-
 
   // =====================================================
   // ENVIAR MENSAJE
@@ -540,114 +456,32 @@ function SpecialistChat() {
 
   const handleSendMessage =
     async () => {
-
       const text =
         message.trim();
 
-
-      // ================================================
-      // VALIDACIONES
-      // ================================================
-
-      if (!text) {
-
+      if (
+        !text ||
+        sending ||
+        !currentUser?.uid ||
+        !conversation?.id ||
+        !conversation?.usuarioId
+      ) {
         return;
-
       }
-
-
-      if (!user?.uid) {
-
-        console.error(
-          "❌ El especialista no está autenticado."
-        );
-
-        return;
-
-      }
-
-
-      if (!conversation?.id) {
-
-        console.error(
-          "❌ No existe conversación."
-        );
-
-        return;
-
-      }
-
-
-      if (!conversation?.usuarioId) {
-
-        console.error(
-          "❌ No existe usuario destinatario."
-        );
-
-        return;
-
-      }
-
 
       if (
         conversation.especialistaId !==
-        user.uid
+        currentUser.uid
       ) {
-
         console.error(
-          "❌ Esta conversación no pertenece al especialista."
-        );
-
-        console.error(
-          "Especialista conversación:",
-          conversation.especialistaId
-        );
-
-        console.error(
-          "Especialista actual:",
-          user.uid
+          "No tienes permiso para enviar mensajes aquí."
         );
 
         return;
-
       }
 
-
-      setSending(true);
-
-
       try {
-
-        console.log("======================================");
-        console.log("📤 ENVIANDO MENSAJE");
-        console.log("======================================");
-
-        console.log(
-          "Conversación:",
-          conversation.id
-        );
-
-        console.log(
-          "Especialista:",
-          user.uid
-        );
-
-        console.log(
-          "Usuario:",
-          conversation.usuarioId
-        );
-
-        console.log(
-          "Texto:",
-          text
-        );
-
-        console.log("======================================");
-
-
-        // =================================================
-        // REFERENCIA
-        // =================================================
+        setSending(true);
 
         const messagesRef =
           collection(
@@ -657,7 +491,6 @@ function SpecialistChat() {
             "mensajes"
           );
 
-
         // =================================================
         // CREAR MENSAJE
         // =================================================
@@ -665,12 +498,10 @@ function SpecialistChat() {
         await addDoc(
           messagesRef,
           {
-
-            texto:
-              text,
+            texto: text,
 
             remitenteId:
-              user.uid,
+              currentUser.uid,
 
             remitenteTipo:
               "especialista",
@@ -681,17 +512,9 @@ function SpecialistChat() {
             fecha:
               serverTimestamp(),
 
-            leido:
-              false,
-
+            leido: false,
           }
         );
-
-
-        console.log(
-          "✅ Mensaje creado correctamente."
-        );
-
 
         // =================================================
         // ACTUALIZAR CONVERSACIÓN
@@ -704,73 +527,34 @@ function SpecialistChat() {
             conversation.id
           );
 
-
         await updateDoc(
           conversationRef,
           {
-
-            ultimoMensaje:
-              text,
+            ultimoMensaje: text,
 
             fechaUltimoMensaje:
               serverTimestamp(),
 
-            // Especialista está leyendo
-            mensajesNoLeidos:
-              0,
+            mensajesNoLeidos: 0,
 
-            // Usuario tiene un nuevo mensaje
-            mensajesNoLeidosUsuario:
-              1,
-
+            mensajesNoLeidosUsuario: 1,
           }
         );
 
-
-        console.log(
-          "✅ Conversación actualizada."
-        );
-
-
-        // =================================================
-        // LIMPIAR INPUT
-        // =================================================
-
         setMessage("");
-
-
-      } catch (error) {
-
+      } catch (err) {
         console.error(
-          "======================================"
+          "Error enviando mensaje:",
+          err
         );
 
-        console.error(
-          "❌ ERROR ENVIANDO MENSAJE"
+        setError(
+          "No se pudo enviar el mensaje."
         );
-
-        console.error(
-          "Código:",
-          error.code
-        );
-
-        console.error(
-          "Mensaje:",
-          error.message
-        );
-
-        console.error(
-          "======================================"
-        );
-
       } finally {
-
         setSending(false);
-
       }
-
     };
-
 
   // =====================================================
   // ENTER
@@ -778,76 +562,37 @@ function SpecialistChat() {
 
   const handleKeyDown =
     (event) => {
-
       if (
         event.key === "Enter" &&
         !event.shiftKey
       ) {
-
         event.preventDefault();
 
         handleSendMessage();
-
       }
-
     };
 
+  // =====================================================
+  // VOLVER
+  // =====================================================
+
+  const goBack =
+    () => {
+      navigate(
+        "/specialist/messages"
+      );
+    };
 
   // =====================================================
-  // SIN CONVERSACIÓN
+  // LOADING CONVERSACIÓN
   // =====================================================
 
-  if (!conversation?.id) {
-
+  if (
+    conversationLoading
+  ) {
     return (
-
-      <MainLayout>
-
-        <div className="specialist-chat-error">
-
-          <div className="specialist-error-icon">
-            ⚠️
-          </div>
-
-          <h2>
-            Conversación no encontrada
-          </h2>
-
-          <p>
-            No se pudo identificar la conversación.
-          </p>
-
-          <button
-            onClick={() =>
-              navigate(
-                "/specialist-conversations"
-              )
-            }
-          >
-            ← Volver a conversaciones
-          </button>
-
-        </div>
-
-      </MainLayout>
-
-    );
-
-  }
-
-
-  // =====================================================
-  // LOADING
-  // =====================================================
-
-  if (loading) {
-
-    return (
-
-      <MainLayout>
-
+      <SpecialistLayout>
         <div className="specialist-chat-loading">
-
           <div className="specialist-loading-icon">
             💬
           </div>
@@ -855,26 +600,76 @@ function SpecialistChat() {
           <p>
             Cargando conversación...
           </p>
-
         </div>
-
-      </MainLayout>
-
+      </SpecialistLayout>
     );
-
   }
 
+  // =====================================================
+  // ERROR
+  // =====================================================
+
+  if (
+    !conversation?.id
+  ) {
+    return (
+      <SpecialistLayout>
+        <div className="specialist-chat-error">
+
+          <div className="specialist-error-icon">
+            ⚠️
+          </div>
+
+          <h2>
+            No se puede abrir la conversación
+          </h2>
+
+          <p>
+            {error ||
+              "La conversación no está disponible."}
+          </p>
+
+          <button
+            onClick={goBack}
+          >
+            ← Volver a mensajes
+          </button>
+
+        </div>
+      </SpecialistLayout>
+    );
+  }
+
+  // =====================================================
+  // LOADING MENSAJES
+  // =====================================================
+
+  if (
+    loadingMessages
+  ) {
+    return (
+      <SpecialistLayout>
+        <div className="specialist-chat-loading">
+          <div className="specialist-loading-icon">
+            💬
+          </div>
+
+          <p>
+            Cargando mensajes...
+          </p>
+        </div>
+      </SpecialistLayout>
+    );
+  }
 
   // =====================================================
   // INTERFAZ
   // =====================================================
 
   return (
-
-    <MainLayout>
+    <SpecialistLayout>
 
       <div className="specialist-chat-page">
-
 
         {/* ============================================
             HEADER
@@ -882,61 +677,38 @@ function SpecialistChat() {
 
         <div className="specialist-chat-header">
 
-
           <button
             className="specialist-back-button"
-
-            onClick={() =>
-              navigate(
-                "/specialist-conversations"
-              )
-            }
-
+            onClick={goBack}
           >
             ←
           </button>
 
-
-          {/* FOTO */}
-
           <div className="specialist-user-avatar">
 
             {conversation.usuarioFoto ? (
-
               <img
                 src={
                   conversation.usuarioFoto
                 }
-
                 alt={
                   conversation.usuarioNombre ||
                   "Usuario"
                 }
-
               />
-
             ) : (
-
               <span>
                 👤
               </span>
-
             )}
 
           </div>
 
-
-          {/* INFORMACIÓN */}
-
           <div className="specialist-user-info">
 
             <h2>
-
-              {
-                conversation.usuarioNombre ||
-                "Usuario"
-              }
-
+              {conversation.usuarioNombre ||
+                "Usuario"}
             </h2>
 
             <span>
@@ -947,13 +719,11 @@ function SpecialistChat() {
 
         </div>
 
-
         {/* ============================================
             MENSAJES
         ============================================= */}
 
         <div className="specialist-messages">
-
 
           {messages.length === 0 ? (
 
@@ -968,8 +738,8 @@ function SpecialistChat() {
               </h3>
 
               <p>
-                Todavía no hay mensajes en esta
-                conversación.
+                Todavía no hay mensajes en
+                esta conversación.
               </p>
 
             </div>
@@ -978,19 +748,12 @@ function SpecialistChat() {
 
             messages.map(
               (msg) => {
-
                 const isSpecialist =
-                  msg.sender ===
-                  "specialist";
-
+                  msg.isSpecialist;
 
                 return (
-
                   <div
-                    key={
-                      msg.id
-                    }
-
+                    key={msg.id}
                     className={`specialist-message-row ${
                       isSpecialist
                         ? "specialist-message-right"
@@ -1006,32 +769,20 @@ function SpecialistChat() {
                       }`}
                     >
 
-                      {/* TEXTO */}
-
                       <div className="specialist-message-text">
-
-                        {
-                          msg.text
-                        }
-
+                        {msg.text}
                       </div>
-
-
-                      {/* HORA */}
 
                       <div className="specialist-message-time">
 
-                        {
-                          msg.time
-                        }
-
+                        {msg.time}
 
                         {isSpecialist && (
-
                           <span className="message-check">
-                            ✓
+                            {msg.leido
+                              ? "✓✓"
+                              : "✓"}
                           </span>
-
                         )}
 
                       </div>
@@ -1039,17 +790,12 @@ function SpecialistChat() {
                     </div>
 
                   </div>
-
                 );
-
               }
-
             )
-
           )}
 
         </div>
-
 
         {/* ============================================
             INPUT
@@ -1057,62 +803,39 @@ function SpecialistChat() {
 
         <div className="specialist-chat-input">
 
-
           <textarea
-
-            value={
-              message
-            }
-
+            value={message}
             onChange={(event) =>
               setMessage(
                 event.target.value
               )
             }
-
-            onKeyDown={
-              handleKeyDown
-            }
-
+            onKeyDown={handleKeyDown}
             placeholder="Escribe una respuesta..."
-
             rows={1}
-
+            disabled={sending}
           />
 
-
           <button
-
             onClick={
               handleSendMessage
             }
-
             disabled={
               sending ||
               !message.trim()
             }
-
           >
-
-            {
-              sending
-                ? "..."
-                : "➤"
-            }
-
+            {sending
+              ? "..."
+              : "➤"}
           </button>
-
 
         </div>
 
-
       </div>
 
-    </MainLayout>
-
+    </SpecialistLayout>
   );
-
 }
-
 
 export default SpecialistChat;
