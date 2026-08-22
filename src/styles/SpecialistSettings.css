@@ -1,0 +1,253 @@
+.specialist-settings-page {
+  min-height: 100vh;
+  padding: 35px;
+  background: #f7f5fc;
+  color: #29233d;
+}
+
+.specialist-settings-header {
+  max-width: 1000px;
+  margin: 0 auto 30px;
+}
+
+.settings-back-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-bottom: 15px;
+  color: #7357c8;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.specialist-settings-header span {
+  display: block;
+  color: #8b78c9;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.specialist-settings-header h1 {
+  margin: 6px 0;
+  font-size: 32px;
+}
+
+.specialist-settings-header p {
+  margin: 0;
+  color: #817b90;
+}
+
+.specialist-settings-content {
+  max-width: 1000px;
+  margin: auto;
+}
+
+.settings-success,
+.settings-error {
+  margin-bottom: 18px;
+  padding: 13px 16px;
+  border-radius: 12px;
+}
+
+.settings-success {
+  background: #edf9f1;
+  color: #287345;
+}
+
+.settings-error {
+  background: #fff1f1;
+  color: #a33b3b;
+}
+
+.settings-card {
+  margin-bottom: 18px;
+  padding: 25px;
+  background: white;
+  border: 1px solid #ebe7f3;
+  border-radius: 20px;
+  box-shadow: 0 7px 22px rgba(70, 55, 110, 0.06);
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.settings-card-icon {
+  width: 43px;
+  height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: #eee8fc;
+  font-size: 20px;
+}
+
+.settings-card-header span {
+  color: #8b78c9;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+}
+
+.settings-card-header h2 {
+  margin: 3px 0 0;
+  font-size: 19px;
+}
+
+.settings-row,
+.settings-toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 17px 0;
+  border-top: 1px solid #f0edf5;
+}
+
+.settings-row strong,
+.settings-toggle-row strong {
+  display: block;
+  font-size: 14px;
+}
+
+.settings-row small,
+.settings-toggle-row small {
+  display: block;
+  margin-top: 4px;
+  color: #8b8495;
+  font-size: 12px;
+}
+
+.settings-value {
+  color: #686172;
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.settings-badge {
+  padding: 7px 12px;
+  border-radius: 20px;
+  background: #eee8fc;
+  color: #7357c8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.settings-switch {
+  width: 50px;
+  height: 28px;
+  padding: 3px;
+  border: none;
+  border-radius: 20px;
+  background: #d8d4df;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.settings-switch span {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: white;
+  transition: 0.2s;
+}
+
+.settings-switch.active {
+  background: #7357c8;
+}
+
+.settings-switch.active span {
+  transform: translateX(22px);
+}
+
+.settings-switch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.availability-message {
+  margin-top: 8px;
+  padding: 11px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.availability-message.available {
+  background: #edf9f1;
+  color: #287345;
+}
+
+.availability-message.unavailable {
+  background: #f4f1f6;
+  color: #756e7c;
+}
+
+.settings-action,
+.settings-logout {
+  border: none;
+  border-radius: 11px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-action {
+  background: #eee8fc;
+  color: #7357c8;
+}
+
+.settings-logout {
+  background: #fff0f0;
+  color: #b13e3e;
+}
+
+.danger-card {
+  border-color: #f0dddd;
+}
+
+.settings-card-icon.danger {
+  background: #fff0f0;
+  color: #b13e3e;
+}
+
+.settings-saving {
+  text-align: center;
+  color: #817b90;
+  font-size: 13px;
+}
+
+.specialist-settings-loading {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #f7f5fc;
+}
+
+.specialist-settings-loading div {
+  font-size: 40px;
+}
+
+@media (max-width: 650px) {
+  .specialist-settings-page {
+    padding: 20px;
+  }
+
+  .settings-row,
+  .settings-toggle-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .settings-action,
+  .settings-logout {
+    width: 100%;
+  }
+}

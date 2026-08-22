@@ -1,0 +1,341 @@
+.specialist-agenda-page {
+  min-height: 100vh;
+  padding: 35px;
+  background: #f7f5fc;
+  color: #29233d;
+}
+
+.specialist-agenda-header {
+  max-width: 1100px;
+  margin: 0 auto 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+}
+
+.agenda-back-button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-bottom: 15px;
+  color: #7357c8;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.agenda-label {
+  display: block;
+  color: #8b78c9;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.specialist-agenda-header h1 {
+  margin: 6px 0;
+  font-size: 32px;
+}
+
+.specialist-agenda-header p {
+  margin: 0;
+  color: #817b90;
+}
+
+.new-appointment-button {
+  border: none;
+  border-radius: 13px;
+  padding: 13px 20px;
+  background: #7357c8;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.agenda-success,
+.agenda-error {
+  max-width: 1100px;
+  margin: 0 auto 20px;
+  padding: 13px 16px;
+  border-radius: 12px;
+}
+
+.agenda-success {
+  background: #edf9f1;
+  color: #287345;
+}
+
+.agenda-error {
+  background: #fff1f1;
+  color: #a33b3b;
+}
+
+.appointment-form-card,
+.appointments-section {
+  max-width: 1100px;
+  margin: 0 auto 25px;
+  padding: 28px;
+  background: white;
+  border: 1px solid #ebe7f3;
+  border-radius: 22px;
+  box-shadow: 0 8px 25px rgba(70, 55, 110, 0.07);
+}
+
+.agenda-section-title span {
+  color: #8b78c9;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.agenda-section-title h2 {
+  margin: 5px 0 22px;
+  font-size: 22px;
+}
+
+.appointment-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.agenda-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.agenda-field-full {
+  grid-column: 1 / -1;
+}
+
+.agenda-field label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.agenda-field input,
+.agenda-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #e2ddeb;
+  border-radius: 12px;
+  outline: none;
+  background: #fcfbfe;
+  font-family: inherit;
+}
+
+.agenda-field input:focus,
+.agenda-field textarea:focus {
+  border-color: #7357c8;
+}
+
+.agenda-field textarea {
+  resize: vertical;
+}
+
+.appointment-form-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.appointment-form-actions button {
+  border: none;
+  border-radius: 12px;
+  padding: 11px 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.agenda-cancel {
+  background: #eeeaf5;
+  color: #5c5669;
+}
+
+.agenda-save {
+  background: #7357c8;
+  color: white;
+}
+
+.agenda-save:disabled {
+  opacity: 0.6;
+}
+
+.agenda-stats {
+  max-width: 1100px;
+  margin: 0 auto 25px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.agenda-stat-card {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: white;
+  border: 1px solid #ebe7f3;
+  border-radius: 18px;
+  box-shadow: 0 8px 25px rgba(70, 55, 110, 0.06);
+}
+
+.agenda-stat-card > span {
+  font-size: 28px;
+}
+
+.agenda-stat-card small {
+  display: block;
+  color: #817b90;
+}
+
+.agenda-stat-card strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 25px;
+}
+
+.agenda-empty {
+  padding: 50px 20px;
+  text-align: center;
+}
+
+.agenda-empty > div {
+  font-size: 45px;
+}
+
+.agenda-empty h3 {
+  margin-bottom: 5px;
+}
+
+.agenda-empty p {
+  color: #817b90;
+}
+
+.agenda-empty button {
+  border: none;
+  border-radius: 12px;
+  padding: 11px 18px;
+  background: #7357c8;
+  color: white;
+  cursor: pointer;
+}
+
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.appointment-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 17px;
+  border: 1px solid #eeeaf5;
+  border-radius: 16px;
+}
+
+.appointment-date {
+  min-width: 60px;
+  text-align: center;
+  padding: 8px;
+  border-radius: 13px;
+  background: #f0ebfc;
+  color: #7357c8;
+}
+
+.appointment-date strong {
+  display: block;
+  font-size: 24px;
+}
+
+.appointment-date span {
+  font-size: 12px;
+}
+
+.appointment-info {
+  flex: 1;
+}
+
+.appointment-info h3 {
+  margin: 0 0 4px;
+}
+
+.appointment-info p {
+  margin: 0;
+  color: #7357c8;
+  font-size: 13px;
+}
+
+.appointment-info span {
+  display: block;
+  margin-top: 5px;
+  color: #625c6c;
+  font-size: 13px;
+}
+
+.appointment-info small {
+  display: block;
+  margin-top: 5px;
+  color: #9992a6;
+  text-transform: capitalize;
+}
+
+.appointment-status {
+  padding: 7px 10px;
+  border-radius: 20px;
+  background: #fff5df;
+  color: #9b6b18;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.specialist-agenda-loading {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #f7f5fc;
+}
+
+.specialist-agenda-loading > div {
+  font-size: 40px;
+}
+
+.specialist-agenda-loading p {
+  color: #817b90;
+}
+
+@media (max-width: 750px) {
+  .specialist-agenda-page {
+    padding: 20px;
+  }
+
+  .specialist-agenda-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .appointment-form-grid,
+  .agenda-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .agenda-field-full {
+    grid-column: auto;
+  }
+
+  .appointment-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .appointment-status {
+    align-self: flex-start;
+  }
+}
