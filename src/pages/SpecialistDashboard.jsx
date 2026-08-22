@@ -23,28 +23,31 @@ function SpecialistDashboard() {
   const navigate = useNavigate();
 
   const [specialist, setSpecialist] = useState(null);
-
   const [conversations, setConversations] = useState([]);
-
   const [loading, setLoading] = useState(true);
-
   const [conversationsLoading, setConversationsLoading] =
     useState(true);
 
   // =====================================================
-  // AUTENTICACIÓN + ESPECIALISTA
+  // AUTENTICACIÓN + PERFIL DEL ESPECIALISTA
   // =====================================================
 
   useEffect(() => {
+    let mounted = true;
+
     const unsubscribe = onAuthStateChanged(
       auth,
       async (user) => {
+        if (!mounted) return;
+
         if (!user) {
           setSpecialist(null);
           setConversations([]);
           setLoading(false);
 
-          navigate("/specialist/login");
+          navigate("/specialist/login", {
+            replace: true,
+          });
 
           return;
         }
@@ -62,18 +65,21 @@ function SpecialistDashboard() {
             user.uid
           );
 
-          const specialistSnap = await getDoc(
-            specialistRef
-          );
+          const specialistSnap =
+            await getDoc(specialistRef);
+
+          if (!mounted) return;
 
           if (!specialistSnap.exists()) {
             console.error(
-              "No existe perfil de especialista."
+              "No existe el perfil del especialista."
             );
 
             await signOut(auth);
 
-            navigate("/specialist/login");
+            navigate("/specialist/login", {
+              replace: true,
+            });
 
             return;
           }
@@ -95,26 +101,39 @@ function SpecialistDashboard() {
             "Error obteniendo especialista:",
             error
           );
+
+          if (mounted) {
+            setSpecialist(null);
+          }
         } finally {
-          setLoading(false);
+          if (mounted) {
+            setLoading(false);
+          }
         }
       }
     );
 
-    return () => unsubscribe();
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, [navigate]);
 
   // =====================================================
-  // CARGAR CONVERSACIONES DEL ESPECIALISTA
+  // CARGAR CONVERSACIONES
   // =====================================================
 
   useEffect(() => {
     if (!specialist?.uid) {
+      setConversations([]);
+      setConversationsLoading(false);
       return;
     }
 
     console.log("=================================");
-    console.log("BUSCANDO CONVERSACIONES DEL DASHBOARD");
+    console.log(
+      "BUSCANDO CONVERSACIONES DEL ESPECIALISTA"
+    );
     console.log(
       "Especialista:",
       specialist.uid
@@ -141,7 +160,7 @@ function SpecialistDashboard() {
       conversationsQuery,
       (snapshot) => {
         console.log(
-          "CONVERSACIONES DEL DASHBOARD:",
+          "CONVERSACIONES:",
           snapshot.size
         );
 
@@ -174,20 +193,16 @@ function SpecialistDashboard() {
           return fechaB - fechaA;
         });
 
-        console.log(
-          "LISTA DASHBOARD:",
-          data
-        );
-
         setConversations(data);
         setConversationsLoading(false);
       },
       (error) => {
         console.error(
-          "Error cargando conversaciones del dashboard:",
+          "Error cargando conversaciones:",
           error
         );
 
+        setConversations([]);
         setConversationsLoading(false);
       }
     );
@@ -203,7 +218,12 @@ function SpecialistDashboard() {
     try {
       await signOut(auth);
 
-      navigate("/specialist/login");
+      setSpecialist(null);
+      setConversations([]);
+
+      navigate("/specialist/login", {
+        replace: true,
+      });
     } catch (error) {
       console.error(
         "Error cerrando sesión:",
@@ -218,15 +238,40 @@ function SpecialistDashboard() {
 
   const openConversation = (conversation) => {
     console.log(
-      "Abriendo conversación desde Dashboard:",
-      conversation
+      "================================="
     );
 
-    navigate("/specialist-chat", {
-      state: {
-        conversation,
-      },
-    });
+    console.log(
+      "ABRIENDO CONVERSACIÓN DESDE DASHBOARD"
+    );
+
+    console.log(
+      "ID:",
+      conversation.id
+    );
+
+    console.log(
+      "Usuario:",
+      conversation.usuarioId
+    );
+
+    console.log(
+      "Especialista:",
+      conversation.especialistaId
+    );
+
+    console.log(
+      "================================="
+    );
+
+    navigate(
+      `/specialist-chat/${conversation.id}`,
+      {
+        state: {
+          conversation,
+        },
+      }
+    );
   };
 
   // =====================================================
@@ -236,7 +281,7 @@ function SpecialistDashboard() {
   const formatTime = (timestamp) => {
     if (
       !timestamp ||
-      !timestamp.toDate
+      typeof timestamp.toDate !== "function"
     ) {
       return "";
     }
@@ -244,20 +289,17 @@ function SpecialistDashboard() {
     try {
       return timestamp
         .toDate()
-        .toLocaleTimeString(
-          "es-NI",
-          {
-            hour: "2-digit",
-            minute: "2-digit",
-          }
-        );
+        .toLocaleTimeString("es-NI", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
     } catch {
       return "";
     }
   };
 
   // =====================================================
-  // LOADING
+  // LOADING PRINCIPAL
   // =====================================================
 
   if (loading) {
@@ -316,6 +358,8 @@ function SpecialistDashboard() {
 
       <aside className="specialist-sidebar">
 
+        {/* LOGO */}
+
         <div className="sidebar-logo">
 
           <div className="sidebar-logo-icon">
@@ -334,16 +378,25 @@ function SpecialistDashboard() {
 
         </div>
 
+        {/* NAVEGACIÓN */}
+
         <nav className="specialist-nav">
 
           <button
+            type="button"
             className="nav-item active"
+            onClick={() =>
+              navigate(
+                "/specialist/dashboard"
+              )
+            }
           >
             <span>⌂</span>
             Inicio
           </button>
 
           <button
+            type="button"
             className="nav-item"
             onClick={() =>
               navigate(
@@ -355,37 +408,45 @@ function SpecialistDashboard() {
 
             Mensajes
 
-            {totalUnread > 0 ? (
-              <small>
-                {totalUnread}
-              </small>
-            ) : (
-              <small>
-                {totalConversations}
-              </small>
-            )}
-
+            <small>
+              {totalUnread > 0
+                ? totalUnread
+                : totalConversations}
+            </small>
           </button>
+
+          {/* USUARIOS */}
 
           <button
-            className="nav-item"
-          >
-            <span>👥</span>
-            Usuarios
-          </button>
+          className="nav-item"
+          onClick={() =>
+            navigate("/specialist/users")
+          }
+        >
+          <span>👥</span>
+          Usuarios
+        </button>
 
-          <button
-            className="nav-item"
-          >
-            <span>📅</span>
-            Agenda
-          </button>
+          {/* AGENDA */}
+
+         <button
+          className="nav-item"
+          onClick={() =>
+            navigate("/specialist/agenda")
+          }
+        >
+          <span>📅</span>
+          Agenda
+        </button>
 
         </nav>
+
+        {/* PARTE INFERIOR */}
 
         <div className="sidebar-bottom">
 
           <button
+            type="button"
             className="nav-item"
             onClick={() =>
               navigate(
@@ -397,14 +458,18 @@ function SpecialistDashboard() {
             Mi perfil
           </button>
 
-          <button
+         <button
             className="nav-item"
+            onClick={() =>
+              navigate("/specialist/settings")
+            }
           >
             <span>⚙</span>
             Configuración
           </button>
 
           <button
+            type="button"
             className="nav-item logout"
             onClick={handleLogout}
           >
@@ -417,14 +482,12 @@ function SpecialistDashboard() {
       </aside>
 
       {/* =================================================
-          MAIN
+          CONTENIDO PRINCIPAL
       ================================================= */}
 
       <main className="specialist-main">
 
-        {/* =================================================
-            HEADER
-        ================================================= */}
+        {/* HEADER */}
 
         <header className="specialist-header">
 
@@ -436,10 +499,10 @@ function SpecialistDashboard() {
 
             <h1>
               Buenos días,{" "}
-              {
-                specialist.nombre
-                  ?.split(" ")[0]
-              } 👋
+              {specialist.nombre
+                ?.split(" ")[0] ||
+                "Especialista"}{" "}
+              👋
             </h1>
 
             <p>
@@ -452,14 +515,20 @@ function SpecialistDashboard() {
           <div className="header-profile">
 
             <div className="header-status">
-
               <span></span>
-
               Disponible
-
             </div>
 
-            <div className="specialist-avatar">
+            <button
+              type="button"
+              className="specialist-avatar"
+              onClick={() =>
+                navigate(
+                  "/specialist/profile"
+                )
+              }
+              title="Ver perfil"
+            >
 
               {specialist.fotoPerfil ? (
                 <img
@@ -467,23 +536,24 @@ function SpecialistDashboard() {
                     specialist.fotoPerfil
                   }
                   alt={
-                    specialist.nombre
+                    specialist.nombre ||
+                    "Especialista"
                   }
                 />
               ) : (
                 specialist.nombre
                   ?.charAt(0)
-                  .toUpperCase()
+                  .toUpperCase() || "E"
               )}
 
-            </div>
+            </button>
 
           </div>
 
         </header>
 
         {/* =================================================
-            STATS
+            ESTADÍSTICAS
         ================================================= */}
 
         <section className="specialist-stats">
@@ -548,7 +618,7 @@ function SpecialistDashboard() {
 
           </div>
 
-          {/* ESTADO */}
+          {/* MENSAJES PENDIENTES */}
 
           <div className="stat-card">
 
@@ -559,15 +629,19 @@ function SpecialistDashboard() {
             <div>
 
               <span>
-                Estado
+                Mensajes pendientes
               </span>
 
               <strong>
-                Activo
+                {totalUnread}
               </strong>
 
               <small>
-                Tu cuenta está activa
+                {totalUnread === 0
+                  ? "Todo al día"
+                  : totalUnread === 1
+                  ? "1 mensaje sin leer"
+                  : `${totalUnread} mensajes sin leer`}
               </small>
 
             </div>
@@ -577,7 +651,7 @@ function SpecialistDashboard() {
         </section>
 
         {/* =================================================
-            CONTENT
+            CONTENIDO
         ================================================= */}
 
         <section className="specialist-content-grid">
@@ -593,7 +667,8 @@ function SpecialistDashboard() {
               </span>
 
               <h2>
-                {specialist.especialidad}
+                {specialist.especialidad ||
+                  "Especialista FeelSafe"}
               </h2>
 
               <p>
@@ -602,6 +677,7 @@ function SpecialistDashboard() {
               </p>
 
               <button
+                type="button"
                 onClick={() =>
                   navigate(
                     "/specialist/profile"
@@ -619,9 +695,7 @@ function SpecialistDashboard() {
 
           </div>
 
-          {/* =================================================
-              CONVERSACIONES RECIENTES
-          ================================================= */}
+          {/* CONVERSACIONES */}
 
           <div className="recent-card">
 
@@ -640,6 +714,7 @@ function SpecialistDashboard() {
               </div>
 
               <button
+                type="button"
                 onClick={() =>
                   navigate(
                     "/specialist/messages"
@@ -713,6 +788,19 @@ function SpecialistDashboard() {
                             conversation
                           )
                         }
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(event) => {
+                          if (
+                            event.key ===
+                              "Enter" ||
+                            event.key === " "
+                          ) {
+                            openConversation(
+                              conversation
+                            );
+                          }
+                        }}
                       >
 
                         {/* AVATAR */}
