@@ -9,6 +9,9 @@ import VerifyEmail from "./pages/verifyEmail";
 import SpecialistRegister from "./pages/SpecialistRegister";
 import SpecialistLogin from "./pages/SpecialistLogin";
 import SpecialistMessages from "./pages/SpecialistMessages";
+import SpecialistProfile from "./pages/SpecialistProfile";
+import SpecialistUsers from "./pages/SpecialistUsers";
+import SpecialistSettings from "./pages/SpecialistSettings";
 
 // ================= Dashboard =================
 import Dashboard from "./pages/Dashboard";
@@ -35,7 +38,7 @@ import SOS from "./pages/Sos";
 
 // ================= Perfil =================
 import Profile from "./pages/Profile";
-
+import SpecialistAgenda from "./pages/SpecialistAgenda";
 // ================= Componentes =================
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -99,8 +102,29 @@ function App() {
         />
 
         <Route
+          path="/specialist/profile"
+          element={<SpecialistProfile />}
+        />
+
+        <Route
+          path="/specialist/users"
+          element={<SpecialistUsers />}
+        />
+
+        <Route
           path="/specialist-conversations"
           element={<SpecialistConversations />}
+        />
+
+        <Route
+          path="/specialist/agenda"
+          element={<SpecialistAgenda />}
+        />
+
+  
+        <Route
+          path="/specialist/settings"
+          element={<SpecialistSettings />}
         />
 
         {/* IMPORTANTE:
@@ -108,10 +132,10 @@ function App() {
             para recibir la conversación.
         */}
 
-        <Route
-          path="/specialist-chat"
-          element={<SpecialistChat />}
-        />
+            <Route
+        path="/specialist-chat/:conversationId"
+        element={<SpecialistChat />}
+      />
 
 
         {/* =================================================

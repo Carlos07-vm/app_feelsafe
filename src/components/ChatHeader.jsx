@@ -1,26 +1,43 @@
 function ChatHeader({ specialist }) {
+  const name =
+    specialist?.nombre ||
+    specialist?.name ||
+    specialist?.nombreCompleto ||
+    "Especialista";
+
+  const photo =
+    specialist?.fotoPerfil ||
+    specialist?.foto ||
+    specialist?.photo ||
+    specialist?.photoURL ||
+    "https://i.pravatar.cc/100?img=25";
+
+  const status =
+    specialist?.status ||
+    specialist?.estado ||
+    "En línea";
+
   return (
-    <div className="chat-header">
+    <header className="chat-header">
 
       <img
-        src={
-          specialist?.photo ||
-          "https://i.pravatar.cc/60?img=25"
-        }
-        alt={specialist?.name || "Especialista"}
+        src={photo}
+        alt={`Foto de ${name}`}
       />
 
       <div>
+
         <h2>
-          {specialist?.name || "Especialista"}
+          {name}
         </h2>
 
         <span>
-          🟢 {specialist?.status || "En línea"}
+          🟢 {status}
         </span>
+
       </div>
 
-    </div>
+    </header>
   );
 }
 
