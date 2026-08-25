@@ -287,9 +287,11 @@ function Login() {
               merge: true,
             }
           );
-
+         
+      
           navigate(
             "/specialist/dashboard",
+
             {
               replace: true,
             }

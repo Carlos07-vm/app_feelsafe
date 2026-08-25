@@ -232,10 +232,6 @@ function Register() {
 
         <div className="register-header">
 
-          <div className="register-icon">
-            👤
-          </div>
-
           <h1>
             Crear cuenta
           </h1>
@@ -265,7 +261,7 @@ function Register() {
             <input
               id="name"
               type="text"
-              placeholder="Ej. Carlos Vásquez"
+              placeholder="Ej. Carlos Perez"
               value={name}
               onChange={(e) =>
                 setName(e.target.value)
