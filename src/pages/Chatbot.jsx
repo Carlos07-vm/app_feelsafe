@@ -1,7 +1,7 @@
 ﻿import "../styles/Chatbot.css";
 import MainLayout from "../layouts/MainLayout";
-import { FaPaperPlane } from "react-icons/fa";
-import { useEffect, useState } from "react";
+import { FaPaperPlane, FaTrash } from "react-icons/fa";
+import { useEffect, useState, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import { auth } from "../services/firebase";
 import { queryGemini } from "../services/geminiService";
@@ -18,11 +18,8 @@ import {
 
 function Chatbot() {
   const { user } = useApp();
-
   const [conversationId, setConversationId] = useState(null);
-
   const [message, setMessage] = useState("");
-
   const [messages, setMessages] = useState([
     {
       sender: "bot",
@@ -33,101 +30,87 @@ function Chatbot() {
   const [loading, setLoading] = useState(false);
   const [loadingChat, setLoadingChat] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Referencia para hacer scroll automático al último mensaje
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   /*
    * Crear una conversación cuando se abre el chatbot
    */
-useEffect(() => {
-  const iniciarConversacion = async () => {
-    const usuarioActual = auth.currentUser;
+  useEffect(() => {
+    const iniciarConversacion = async () => {
+      const usuarioActual = auth.currentUser;
 
-    if (!usuarioActual) {
-      setError("Debes iniciar sesión para usar el chatbot.");
-      setLoadingChat(false);
-      return;
-    }
-
-    try {
-      setLoadingChat(true);
-
-      const resultado = await crearConversacion({
-        uidUsuario: usuarioActual.uid,
-        titulo: "Conversación con FeelSafe AI",
-      });
-
-      if (!resultado.success) {
-        throw new Error(resultado.error);
+      if (!usuarioActual) {
+        setError("Debes iniciar sesión para usar el chatbot.");
+        setLoadingChat(false);
+        return;
       }
 
-      const idConversacion = resultado.id;
+      try {
+        setLoadingChat(true);
 
-      setConversationId(idConversacion);
+        const resultado = await crearConversacion({
+          uidUsuario: usuarioActual.uid,
+          titulo: "Conversación con FeelSafe AI",
+        });
 
-      console.log(
-        "Conversación creada correctamente:",
-        idConversacion
-      );
+        if (!resultado.success) {
+          throw new Error(resultado.error);
+        }
 
-      const mensajeInicial = await crearMensajeChat({
-        idConversacion,
-        uidUsuario: usuarioActual.uid,
-        remitente: "Bot",
-        mensaje:
-          "Hola 👋 Soy FeelSafe AI. Estoy aquí para escucharte y apoyarte con empatía.",
-      });
+        const idConversacion = resultado.id;
+        setConversationId(idConversacion);
+        console.log("Conversación creada correctamente:", idConversacion);
 
-      if (!mensajeInicial.success) {
-        throw new Error(mensajeInicial.error);
-      }
+        const mensajeInicial = await crearMensajeChat({
+          idConversacion,
+          uidUsuario: usuarioActual.uid,
+          remitente: "Bot",
+          mensaje: "Hola 👋 Soy FeelSafe AI. Estoy aquí para escucharte y apoyarte con empatía.",
+        });
 
-      console.log(
-        "Mensaje inicial guardado:",
-        mensajeInicial.id
-      );
+        if (!mensajeInicial.success) {
+          throw new Error(mensajeInicial.error);
+        }
 
-      const mensajesGuardados =
-        await obtenerMensajesChat(idConversacion);
+        const mensajesGuardados = await obtenerMensajesChat(idConversacion);
 
-      if (!mensajesGuardados.success) {
-        throw new Error(mensajesGuardados.error);
-      }
+        if (!mensajesGuardados.success) {
+          throw new Error(mensajesGuardados.error);
+        }
 
-      if (mensajesGuardados.data.length > 0) {
-        const mensajesFormateados =
-          mensajesGuardados.data.map((mensaje) => ({
-            sender:
-              mensaje.remitente === "Usuario"
-                ? "user"
-                : "bot",
+        if (mensajesGuardados.data.length > 0) {
+          const mensajesFormateados = mensajesGuardados.data.map((mensaje) => ({
+            sender: mensaje.remitente === "Usuario" ? "user" : "bot",
             text: mensaje.mensaje,
           }));
-
-        setMessages(mensajesFormateados);
+          setMessages(mensajesFormateados);
+        }
+      } catch (err) {
+        console.error("Error al iniciar conversación:", err);
+        setError("No se pudo iniciar la conversación: " + err.message);
+      } finally {
+        setLoadingChat(false);
       }
+    };
 
-    } catch (err) {
-      console.error(
-        "Error al iniciar conversación:",
-        err
-      );
+    iniciarConversacion();
+  }, []);
 
-      setError(
-        "No se pudo iniciar la conversación: " +
-          err.message
-      );
-    } finally {
-      setLoadingChat(false);
-    }
-  };
-
-  iniciarConversacion();
-}, []);
   /*
    * Enviar mensaje
    */
   const handleSend = async () => {
     const trimmed = message.trim();
-
     if (!trimmed) return;
 
     if (!conversationId) {
@@ -156,9 +139,6 @@ useEffect(() => {
     setLoading(true);
 
     try {
-      /*
-       * 1. Guardar mensaje del usuario
-       */
       const resultadoUsuario = await crearMensajeChat({
         idConversacion: conversationId,
         uidUsuario: usuarioActual.uid,
@@ -167,28 +147,11 @@ useEffect(() => {
       });
 
       if (!resultadoUsuario.success) {
-        throw new Error(
-          "No se pudo guardar el mensaje del usuario: " +
-            resultadoUsuario.error
-        );
+        throw new Error("No se pudo guardar el mensaje del usuario: " + resultadoUsuario.error);
       }
 
-      console.log(
-        "Mensaje del usuario guardado:",
-        resultadoUsuario.id
-      );
+      const response = await queryGemini(trimmed, nextMessages);
 
-      /*
-       * 2. Consultar Gemini
-       */
-      const response = await queryGemini(
-        trimmed,
-        nextMessages
-      );
-
-      /*
-       * 3. Mostrar respuesta del bot
-       */
       setMessages((prev) => [
         ...prev,
         {
@@ -197,9 +160,6 @@ useEffect(() => {
         },
       ]);
 
-      /*
-       * 4. Guardar respuesta del bot
-       */
       const resultadoBot = await crearMensajeChat({
         idConversacion: conversationId,
         uidUsuario: usuarioActual.uid,
@@ -208,46 +168,22 @@ useEffect(() => {
       });
 
       if (!resultadoBot.success) {
-        throw new Error(
-          "No se pudo guardar la respuesta del bot: " +
-            resultadoBot.error
-        );
+        throw new Error("No se pudo guardar la respuesta del bot: " + resultadoBot.error);
       }
 
-      console.log(
-        "Respuesta del bot guardada:",
-        resultadoBot.id
-      );
-
-      /*
-       * 5. Actualizar última actividad
-       */
-      const actualizacion =
-        await actualizarUltimoMensaje(conversationId);
+      const actualizacion = await actualizarUltimoMensaje(conversationId);
 
       if (!actualizacion.success) {
-        console.error(
-          "No se pudo actualizar la conversación:",
-          actualizacion.error
-        );
+        console.error("No se pudo actualizar la conversación:", actualizacion.error);
       }
     } catch (err) {
-      console.error(
-        "Error al procesar mensaje:",
-        err
-      );
-
-      setError(
-        err.message ||
-          "Error al conectar con FeelSafe AI."
-      );
-
+      console.error("Error al procesar mensaje:", err);
+      setError(err.message || "Error al conectar con FeelSafe AI.");
       setMessages((prev) => [
         ...prev,
         {
           sender: "bot",
-          text:
-            "Lo siento, no pude procesar tu mensaje en este momento. Por favor inténtalo de nuevo.",
+          text: "Lo siento, no pude procesar tu mensaje en este momento. Por favor inténtalo de nuevo.",
         },
       ]);
     } finally {
@@ -262,95 +198,99 @@ useEffect(() => {
     setMessages([
       {
         sender: "bot",
-        text:
-          "Hola 👋 Soy FeelSafe AI. Estoy aquí para escucharte y apoyarte con empatía.",
+        text: "Hola 👋 Soy FeelSafe AI. Estoy aquí para escucharte y apoyarte con empatía.",
       },
     ]);
-
     setError(null);
   };
 
   return (
     <MainLayout>
-      <div className="chat-container">
-
-        <div className="chat-header">
-          <div>
-            <h2>🤖 FeelSafe AI</h2>
-            <p>Tu asistente emocional inteligente</p>
-          </div>
-
-          <button
-            className="clear-chat-btn"
-            type="button"
-            onClick={handleClear}
-          >
-            Limpiar chat
-          </button>
-        </div>
-
-        {loadingChat && (
-          <div className="chat-status">
-            Iniciando conversación...
-          </div>
-        )}
-
-        <div className="chat-messages">
-          {messages.map((msg, index) => (
-            <div
-              key={index}
-              className={`message ${msg.sender}`}
-            >
-              {msg.text}
+      <div className="chat-wrapper">
+        <div className="chat-container">
+          
+          {/* ENCABEZADO */}
+          <div className="chat-header">
+            <div className="chat-header-info">
+              <h2>🤖 FeelSafe AI</h2>
+              <p>Tu asistente emocional inteligente</p>
             </div>
-          ))}
-        </div>
 
-        {error && (
-          <div className="chat-error">
-            {error}
+            <button
+              className="clear-chat-btn"
+              type="button"
+              onClick={handleClear}
+              title="Limpiar chat"
+            >
+              <FaTrash /> <span>Limpiar</span>
+            </button>
           </div>
-        )}
 
-        <div className="chat-input">
-          <input
-            type="text"
-            placeholder="Escribe cómo te sientes..."
-            value={message}
-            onChange={(e) =>
-              setMessage(e.target.value)
-            }
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            disabled={
-              loading ||
-              loadingChat ||
-              !conversationId
-            }
-          />
+          {/* ESTADO CARGANDO */}
+          {loadingChat && (
+            <div className="chat-status">
+              <div className="chat-spinner"></div>
+              <span>Iniciando espacio seguro...</span>
+            </div>
+          )}
 
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={
-              loading ||
-              loadingChat ||
-              !conversationId ||
-              !message.trim()
-            }
-          >
-            {loading ? (
-              "Enviando..."
-            ) : (
-              <FaPaperPlane />
+          {/* ÁREA DE MENSAJES */}
+          <div className="chat-messages">
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={`message-wrapper ${msg.sender === "user" ? "wrapper-user" : "wrapper-bot"}`}
+              >
+                <div className={`message-bubble ${msg.sender}`}>
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="message-wrapper wrapper-bot">
+                <div className="message-bubble bot typing-indicator">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
             )}
-          </button>
-        </div>
+            <div ref={messagesEndRef} />
+          </div>
 
+          {/* MENSAJES DE ERROR */}
+          {error && (
+            <div className="chat-error">
+              {error}
+            </div>
+          )}
+
+          {/* INPUT DE TEXTO */}
+          <div className="chat-input-container">
+            <input
+              type="text"
+              className="chat-input-field"
+              placeholder="Escribe cómo te sientes..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              disabled={loading || loadingChat || !conversationId}
+            />
+
+            <button
+              className="chat-send-btn"
+              type="button"
+              onClick={handleSend}
+              disabled={loading || loadingChat || !conversationId || !message.trim()}
+            >
+              <FaPaperPlane />
+            </button>
+          </div>
+
+        </div>
       </div>
     </MainLayout>
   );
