@@ -1,9 +1,11 @@
 import "../styles/Calendar.css";
 import MainLayout from "../layouts/MainLayout";
 import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
+// Importamos los estilos por defecto de la librería para luego sobreescribirlos
+import "react-calendar/dist/Calendar.css"; 
 import { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
+import { FaCalendarAlt, FaEdit, FaSave } from "react-icons/fa";
 
 function CalendarPage() {
   const { user, updateUserProfile } = useApp();
@@ -17,7 +19,8 @@ function CalendarPage() {
 
   useEffect(() => {
     setNoteText(selectedNote?.text || "");
-  }, [selectedNote]);
+    setStatus(""); // Limpiar estado al cambiar de día
+  }, [selectedNote, value]);
 
   const saveNote = async () => {
     if (!noteText.trim()) {
@@ -45,43 +48,92 @@ function CalendarPage() {
 
     setStatus("Guardando nota...");
     await updateUserProfile({ notes: updatedNotes });
-    setStatus("Nota guardada en el calendario.");
+    setStatus("¡Nota guardada exitosamente!");
+    
+    // Limpiar mensaje después de 3 segundos
+    setTimeout(() => setStatus(""), 3000);
   };
 
   return (
     <MainLayout>
-      <h1 className="page-title">📅 Calendario Emocional</h1>
-
-      <div className="calendar-card">
-        <Calendar onChange={setValue} value={value} />
-
-        <div className="selected-date-card">
-          <h3>Fecha seleccionada</h3>
-          <p>{formattedDate}</p>
-          <p className="calendar-note">
-            {selectedNote
-              ? `${selectedNote.mood} — ${selectedNote.text}`
-              : "No hay notas para esta fecha. Registra tu estado hoy."}
-          </p>
-
-          <textarea
-            value={noteText}
-            onChange={(e) => setNoteText(e.target.value)}
-            placeholder="Escribe una nota para este día..."
-            rows={4}
-          />
-          <button className="save-btn" type="button" onClick={saveNote}>
-            Guardar nota
-          </button>
-          {status && <p className="calendar-status">{status}</p>}
+      <div className="calendar-page-container">
+        
+        {/* ENCABEZADO */}
+        <div className="calendar-header">
+          <h1 className="page-title">
+            <FaCalendarAlt className="title-icon" /> Calendario Emocional
+          </h1>
+          <p>Explora tu historial, identifica patrones y registra cómo te sientes cada día.</p>
         </div>
-      </div>
 
-      <div className="legend">
-        <div>🟢 Feliz</div>
-        <div>🟡 Neutral</div>
-        <div>🟠 Ansioso</div>
-        <div>🔴 Triste</div>
+        {/* LAYOUT A 2 COLUMNAS (PC) / APILADO (MÓVIL) */}
+        <div className="calendar-layout-grid">
+          
+          {/* COLUMNA IZQUIERDA: CALENDARIO Y LEYENDA */}
+          <div className="calendar-left-panel">
+            <div className="calendar-wrapper">
+              <Calendar 
+                onChange={setValue} 
+                value={value} 
+                className="feelsafe-calendar"
+              />
+            </div>
+            
+            {/* LEYENDA INTEGRADA DEBAJO DEL CALENDARIO */}
+            <div className="calendar-legend">
+              <div className="legend-item"><span className="dot dot-happy"></span> Feliz</div>
+              <div className="legend-item"><span className="dot dot-neutral"></span> Neutral</div>
+              <div className="legend-item"><span className="dot dot-anxious"></span> Ansioso</div>
+              <div className="legend-item"><span className="dot dot-sad"></span> Triste</div>
+            </div>
+          </div>
+
+          {/* COLUMNA DERECHA: EDITOR DE NOTAS */}
+          <div className="calendar-right-panel">
+            <div className="note-editor-card">
+              
+              <div className="note-header">
+                <h3>{formattedDate}</h3>
+                <span className={`mood-badge ${selectedNote ? 'has-note' : 'no-note'}`}>
+                  {selectedNote ? selectedNote.mood : "Sin registro"}
+                </span>
+              </div>
+
+              <div className="note-history">
+                {selectedNote ? (
+                  <p className="saved-text">"{selectedNote.text}"</p>
+                ) : (
+                  <p className="empty-text">No hay notas para esta fecha. ¡Registra tu estado hoy!</p>
+                )}
+              </div>
+
+              <div className="note-input-group">
+                <label>
+                  <FaEdit /> {selectedNote ? "Actualizar nota" : "Nueva nota"}
+                </label>
+                <textarea
+                  value={noteText}
+                  onChange={(e) => setNoteText(e.target.value)}
+                  placeholder="Escribe cómo te sientes en este día..."
+                  rows={5}
+                />
+              </div>
+
+              <button className="save-btn" type="button" onClick={saveNote}>
+                <FaSave /> Guardar nota
+              </button>
+              
+              {status && (
+                <div className={`calendar-status ${status.includes("exitosa") ? "success" : ""}`}>
+                  {status}
+                </div>
+              )}
+              
+            </div>
+          </div>
+
+        </div>
+
       </div>
     </MainLayout>
   );
