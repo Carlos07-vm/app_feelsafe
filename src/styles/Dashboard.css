@@ -1,318 +1,568 @@
-﻿.dashboard-hero {
-  display: grid;
-  grid-template-columns: 1.8fr 1fr;
+﻿/* =========================================================
+   FEELSAFE - DASHBOARD (CLEAN UI)
+   ========================================================= */
+.dashboard-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 10px 40px 10px;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
-  background: linear-gradient(135deg, #6D4C8F, #8E70B8, #BFD7FF);
-  color: white;
-  border-radius: 28px;
-  padding: 32px;
-  box-shadow: 0 20px 50px rgba(45, 27, 70, 0.18);
+  font-family: "Inter", sans-serif;
+}
+
+/* =========================================================
+   BARRA SUPERIOR (TOPBAR)
+   ========================================================= */
+.dashboard-topbar {
+  display: flex;
+  justify-content: flex-end;
   align-items: center;
+  gap: 20px;
+  padding: 10px 0 5px 0;
 }
 
-.hero-content {
+.icon-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  color: #5A4A6F;
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  padding: 8px;
 }
 
-.hero-label {
-  font-size: 0.85rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 700;
+.icon-btn:hover {
+  color: #7A3BBA;
 }
 
-.dashboard-hero h1 {
-  margin: 0;
-  font-size: clamp(2rem, 3vw, 2.8rem);
-  line-height: 1.05;
-}
-
-.dashboard-hero p {
-  margin: 0;
-  max-width: 560px;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.7;
-}
-
-.hero-summary {
-  display: grid;
-  gap: 18px;
-}
-
-.hero-summary-card {
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 20px;
-  padding: 22px;
+/* PERFIL EN LA TOPBAR */
+.topbar-profile {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 12px;
-  backdrop-filter: blur(8px);
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 50px;
+  transition: background 0.2s;
 }
 
-.hero-summary-card small {
-  color: rgba(255, 255, 255, 0.8);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.topbar-profile:hover {
+  background: #F3F4F6;
+}
+
+.topbar-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #EBDFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7A3BBA;
+  font-size: 1.5rem;
+}
+
+.topbar-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.topbar-name {
+  font-weight: 600;
+  color: #2D1B46;
+  font-size: 0.95rem;
+}
+
+.topbar-arrow {
+  color: #7A6A91;
   font-size: 0.8rem;
 }
 
-.hero-summary-card strong {
-  font-size: 1.8rem;
-  color: white;
-}
-
-.hero-action {
-  border: none;
-  background: white;
-  color: #2D1B46;
-  font-weight: 700;
-  border-radius: 18px;
-  padding: 16px 20px;
-  cursor: pointer;
-  box-shadow: 0 12px 30px rgba(45, 27, 70, 0.15);
-  transition: transform 0.25s ease, background 0.25s ease;
-}
-
-.hero-action:hover {
-  transform: translateY(-2px);
-  background: #E9D8FD;
-}
-
-.dashboard-summary-grid {
-  margin-top: 32px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-}
-
-.dashboard-actions {
-  margin-top: 32px;
-}
-
-.dashboard-actions-header {
-  margin-bottom: 18px;
-}
-
-.dashboard-actions-header h2 {
-  margin: 0 0 8px;
-  font-size: 1.55rem;
-  color: #2D1B46;
-}
-
-.dashboard-actions-header p {
-  margin: 0;
-  color: #7A6A91;
-  max-width: 540px;
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-}
-
-.action-card {
+/* =========================================================
+   HERO PRINCIPAL (COLOR MORADO INTENSO Y PURO)
+   ========================================================= */
+.dashboard-hero-solid {
+  background-color: #7B2CBF; /* <--- COLOR MORADO INTENSO Y PURO */
+  border-radius: 28px;
+  padding: 40px 50px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 22px;
-  border-radius: 24px;
-  border: 1px solid rgba(109, 76, 143, 0.12);
-  background: #FFFFFF;
-  box-shadow: 0 15px 35px rgba(109, 76, 143, 0.08);
-  cursor: pointer;
-  transition: transform 0.25s ease, border-color 0.25s ease,
-    box-shadow 0.25s ease;
+  color: white;
+  box-shadow: 0 15px 35px rgba(123, 44, 191, 0.2);
+  position: relative;
+  overflow: hidden;
 }
 
-.action-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(109, 76, 143, 0.25);
-  box-shadow: 0 18px 40px rgba(109, 76, 143, 0.14);
+/* Círculos decorativos sutiles */
+.dashboard-hero-solid::before,
+.dashboard-hero-solid::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+}
+.dashboard-hero-solid::before { width: 300px; height: 300px; top: -100px; left: -50px; }
+.dashboard-hero-solid::after { width: 400px; height: 400px; bottom: -150px; right: 20%; }
+
+.hero-text-content {
+  position: relative;
+  z-index: 2;
+  max-width: 500px;
 }
 
-.action-card h3 {
-  margin: 0 0 6px;
-  font-size: 1.05rem;
-  color: #2D1B46;
+.hero-tag {
+  display: inline-block;
+  font-size: 1.35rem; 
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-weight: 800; 
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 15px;
 }
 
-.action-card p {
-  margin: 0;
-  color: #7A6A91;
-  font-size: 0.945rem;
-}
-
-.action-card span {
-  color: #6D4C8F;
-  font-size: 1.65rem;
-}
-
-.dashboard-bottom-grid {
-  margin-top: 32px;
-  display: grid;
-  grid-template-columns: 1.35fr 0.9fr;
-  gap: 20px;
-}
-
-.activity-card,
-.motivation-card {
-  border-radius: 26px;
-  padding: 28px;
-  box-shadow: 0 20px 40px rgba(45, 27, 70, 0.08);
-  background: #FFFFFF;
-}
-
-.activity-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-.activity-header h2 {
-  margin: 0;
-  font-size: 1.4rem;
-  color: #2D1B46;
-}
-
-.card-subtitle {
-  margin: 6px 0 0;
-  color: #7A6A91;
-}
-
-.activity-header span {
-  color: #6D4C8F;
+.hero-text-content h1 {
+  font-family: "Poppins", sans-serif;
+  font-size: 2.8rem;
   font-weight: 700;
+  margin: 0 0 15px 0;
+  line-height: 1.1;
 }
 
-.activity-text {
-  margin: 0 0 24px;
-  color: #7A6A91;
-  line-height: 1.8;
-}
-
-.activity-details {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.activity-details div {
-  background: #FAF8FB;
-  border: 1px solid #E9D8FD;
-  border-radius: 18px;
-  padding: 18px 20px;
-}
-
-.activity-details strong {
-  display: block;
-  font-size: 1.5rem;
-  color: #2D1B46;
-  margin-bottom: 8px;
-}
-
-.activity-details span {
-  color: #7A6A91;
-}
-
-.motivation-card {
-  background: linear-gradient(135deg, #6D4C8F, #8E70B8);
-  color: white;
-}
-
-.motivation-card h2 {
-  margin: 0 0 16px;
-  font-size: 1.5rem;
-  color: white;
-}
-
-.motivation-card p {
-  margin: 0 0 20px;
+.hero-text-content p {
+  font-size: 1.1rem;
   color: rgba(255, 255, 255, 0.9);
-  line-height: 1.8;
+  line-height: 1.5;
+  margin: 0;
 }
 
-.motivation-footer {
-  padding: 18px 20px;
+/* Widgets del Hero (Lado derecho) */
+.hero-widgets {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 380px;
+}
+
+.hero-widgets-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.hero-widget-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.12);
-  color: white;
-  font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
-.loading-text {
-  margin-top: 60px;
-  text-align: center;
-  color: #7A6A91;
-  font-size: 1rem;
+.widget-icon {
+  background: white;
+  color: #7B2CBF;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
 }
 
-.dashboard-login {
-  margin-top: 60px;
-  text-align: center;
+.hero-widget-card small {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 4px;
 }
 
-.dashboard-login h2 {
-  margin-bottom: 20px;
-  color: #2D1B46;
+.hero-widget-card strong {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 10px;
 }
 
-.login-btn,
-.logout-btn {
+.widget-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.widget-fill {
+  height: 100%;
+  background: white;
+  border-radius: 10px;
+}
+
+.hero-main-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
   border: none;
-  border-radius: 14px;
-  padding: 14px 26px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: transform 0.25s ease, opacity 0.25s ease;
-}
-
-.login-btn {
-  background: #6D4C8F;
+  background: linear-gradient(90deg, #9D4EDD, #7B2CBF);
   color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
 }
 
-.login-btn:hover,
-.logout-btn:hover {
+.hero-main-btn:hover {
   transform: translateY(-2px);
 }
 
-.logout-btn {
-  background: #6D4C8F;
+/* =========================================================
+   ESTADÍSTICAS BLANCAS (4 COLUMNAS)
+   ========================================================= */
+.stats-4col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.stat-clean-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 8px 25px rgba(45, 27, 70, 0.04);
+  border: 1px solid rgba(109, 76, 143, 0.05);
+}
+
+.stat-icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.bg-purple { background: #F3E8FF; color: #7E22CE; }
+.bg-light-purple { background: #F5F3FF; color: #8B5CF6; }
+.bg-pink { background: #FDF2F8; color: #DB2777; }
+.bg-blue { background: #EFF6FF; color: #2563EB; }
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-info small {
+  font-size: 0.8rem;
+  color: #64748B;
+  margin-bottom: 2px;
+}
+
+.stat-info strong {
+  font-size: 1.3rem;
+  color: #1E293B;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.stat-sub {
+  font-size: 0.75rem;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dot { width: 6px; height: 6px; border-radius: 50%; }
+.dot-purple { background: #7E22CE; }
+.dot-light-purple { background: #8B5CF6; }
+
+/* =========================================================
+   ACCIONES RÁPIDAS
+   ========================================================= */
+.section-title {
+  font-family: "Poppins", sans-serif;
+  font-size: 1.3rem;
+  color: #1E293B;
+  margin: 10px 0 0 0;
+}
+
+.actions-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.action-color-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  border-radius: 24px;
+  border: none;
+  cursor: pointer;
   color: white;
+  text-align: left;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-@media (max-width: 980px) {
-  .dashboard-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-bottom-grid {
-    grid-template-columns: 1fr;
-  }
+.action-color-card:hover {
+  transform: translateY(-4px);
 }
 
-@media (max-width: 720px) {
-  .dashboard-hero,
-  .activity-card,
-  .motivation-card,
-  .action-card,
-  .hero-summary-card {
-    padding: 22px;
-  }
+.color-purple { background: #8B5CF6; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3); }
+.color-blue { background: #3B82F6; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3); }
+.color-green { background: #4ADE80; box-shadow: 0 10px 25px rgba(74, 222, 128, 0.3); }
 
-  .hero-summary {
-    grid-template-columns: 1fr;
-  }
+.action-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 
-  .hero-action {
+.action-circle {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.action-texts h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.action-texts p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.action-arrow {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* =========================================================
+   SECCIÓN INFERIOR (2 COLUMNAS)
+   ========================================================= */
+.bottom-2col {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+}
+
+/* Tarjeta Blanca (Último Registro) */
+.last-record-card {
+  background: white;
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: 0 8px 25px rgba(45, 27, 70, 0.04);
+  border: 1px solid rgba(109, 76, 143, 0.05);
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.record-title-area {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.record-title-icon {
+  color: #64748B;
+  font-size: 1.2rem;
+}
+
+.record-title-area h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #1E293B;
+}
+
+.record-date {
+  font-size: 0.85rem;
+  color: #94A3B8;
+}
+
+.record-desc {
+  font-size: 0.9rem;
+  color: #64748B;
+  margin: 0 0 20px 0;
+}
+
+.record-mini-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.mini-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mini-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.mini-card small {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748B;
+  margin-bottom: 2px;
+}
+
+.mini-card strong {
+  font-size: 1.1rem;
+  color: #1E293B;
+}
+
+.record-notes {
+  background: #F8FAFC;
+  border-radius: 16px;
+  padding: 16px 20px;
+}
+
+.notes-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+
+.record-notes p {
+  margin: 0;
+  color: #334155;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Tarjeta Morada (Mensaje de Calma) */
+.calm-message-card {
+  background: linear-gradient(135deg, #A855F7, #7B2CBF);
+  border-radius: 24px;
+  padding: 35px 30px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.calm-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.calm-icon {
+  font-size: 1.3rem;
+}
+
+.calm-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.calm-subtitle {
+  margin: 0 0 25px 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+.calm-quote {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 25px;
+  position: relative;
+}
+
+.quote-mark {
+  font-size: 3rem;
+  position: absolute;
+  font-family: Georgia, serif;
+  color: rgba(255, 255, 255, 0.3);
+  line-height: 1;
+}
+
+.quote-mark.left { top: 10px; left: 15px; }
+.quote-mark.right { bottom: -10px; right: 15px; }
+
+.calm-quote p {
+  margin: 0;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.5;
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 1100px) {
+  .dashboard-hero-solid {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 30px;
+    padding: 30px;
+  }
+  .hero-widgets {
     width: 100%;
   }
+  .stats-4col { grid-template-columns: repeat(2, 1fr); }
+  .actions-3col { grid-template-columns: 1fr; }
+  .bottom-2col { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .stats-4col { grid-template-columns: 1fr; }
+  .hero-widgets-row { grid-template-columns: 1fr; }
+  .record-mini-cards { grid-template-columns: 1fr; }
 }
