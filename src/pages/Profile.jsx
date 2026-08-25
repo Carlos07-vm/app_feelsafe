@@ -5,6 +5,21 @@ import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../services/firebase";
+import { 
+  FaUser, 
+  FaCamera, 
+  FaPen, 
+  FaPalette, 
+  FaGlobe, 
+  FaBell, 
+  FaLock, 
+  FaHeart, 
+  FaFileAlt, 
+  FaInfoCircle, 
+  FaSignOutAlt, 
+  FaTrash,
+  FaChevronRight
+} from "react-icons/fa";
 
 function Profile() {
   const { user, updateUserProfile } = useApp();
@@ -37,23 +52,6 @@ function Profile() {
       localStorage.setItem("profileImage", profileImage);
     }
   }, [profileImage]);
-
-  const getMoodColor = (mood) => {
-    switch (mood?.toLowerCase()) {
-      case "feliz":
-        return "#4CAF50";
-      case "triste":
-        return "#2196F3";
-      case "estresado":
-        return "#FF9800";
-      case "ansioso":
-        return "#E91E63";
-      case "enojado":
-        return "#F44336";
-      default:
-        return "#6C63FF";
-    }
-  };
 
   const handleLogout = async () => {
     if (!window.confirm("¿Estás seguro de que deseas cerrar sesión?")) return;
@@ -134,219 +132,242 @@ function Profile() {
   return (
     <MainLayout>
       <div className="profile-page">
-        <div className="profile-header">
-          <div className="profile-avatar" onClick={() => setShowPhotoMenu(true)}>
-            <div className="avatar">
-              {profileImage ? (
-                <img src={profileImage} alt="Perfil" />
-              ) : user?.photoURL ? (
-                <img src={user.photoURL} alt="Perfil" />
-              ) : (
-                "👤"
-              )}
+        
+        {/* =================================================
+            CABECERA DEL PERFIL (Portada y Avatar)
+        ================================================= */}
+        <div className="profile-header-card">
+          <div className="profile-cover"></div>
+          
+          <div className="profile-avatar-section">
+            <div className="profile-avatar" onClick={() => setShowPhotoMenu(true)}>
+              <div className="avatar-img-container">
+                {profileImage ? (
+                  <img src={profileImage} alt="Perfil" />
+                ) : user?.photoURL ? (
+                  <img src={user.photoURL} alt="Perfil" />
+                ) : (
+                  <span className="avatar-placeholder">👤</span>
+                )}
+              </div>
+              <button
+                className="camera-btn"
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPhotoMenu(true);
+                }}
+              >
+                <FaCamera />
+              </button>
             </div>
-            <button
-              className="camera-btn"
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowPhotoMenu(true);
-              }}
-            >
-              📷
-            </button>
           </div>
 
           <div className="profile-header-info">
             <h2>{user?.displayName || user?.nombre || "Usuario"}</h2>
+            <span className="user-email">{user?.email || "Correo no registrado"}</span>
             <p className="profile-description">
               {user?.description || "Añade una descripción sobre ti para personalizar tu perfil."}
             </p>
-            <div className="profile-contact">
-              <span>{user?.email || "Correo no registrado"}</span>
-              <span>{user?.provider ? `Proveedor: ${user.provider}` : "Proveedor: email"}</span>
-            </div>
           </div>
         </div>
 
-        <div className="profile-info-card">
-          <div className="info-item">
-            <span>😊 Estado</span>
-            <div className="mood-badge" style={{ backgroundColor: getMoodColor(user?.currentMood) }}>
-              {user?.currentMood || "Neutral"}
-            </div>
+        {/* =================================================
+            ESTADÍSTICAS UNIFICADAS
+        ================================================= */}
+        <div className="profile-stats-grid">
+          <div className="stat-box">
+            <span className="stat-value">{user?.streak ?? 0}</span>
+            <span className="stat-label">🔥 Racha</span>
           </div>
-          <div className="info-item">
-            <span>🎂 Edad</span>
-            <strong>{user?.profile?.age ? `${user.profile.age} años` : "No especificado"}</strong>
+          <div className="stat-box">
+            <span className="stat-value">{user?.wellbeing ?? 72}%</span>
+            <span className="stat-label">💚 Bienestar</span>
           </div>
-          <div className="info-item">
-            <span>💚 Bienestar</span>
-            <strong>{user?.wellbeing ?? 72}%</strong>
-          </div>
-          <div className="info-item">
-            <span>📌 Racha</span>
-            <strong>{user?.streak ?? 0} días</strong>
-          </div>
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: `${user?.wellbeing ?? 72}%` }} />
+          <div className="stat-box">
+            <span className="stat-value">{user?.notes?.length || 0}</span>
+            <span className="stat-label">📝 Notas</span>
           </div>
         </div>
 
         {statusMessage && <div className="profile-status">{statusMessage}</div>}
 
-        <div className="stats">
-          <div className="stat-card">
-            <h3>{user?.streak ?? 0}</h3>
-            <p>🔥 Racha</p>
+        {/* =================================================
+            MENÚS DE CONFIGURACIÓN
+        ================================================= */}
+        
+        {/* SECCIÓN: CUENTA */}
+        <div className="menu-group">
+          <h3 className="menu-title">Cuenta</h3>
+          <div className="menu-card">
+            <button className="menu-item" type="button" onClick={() => setShowEditProfile(true)}>
+              <div className="menu-item-left">
+                <FaUser className="menu-icon text-purple" />
+                <span>Editar perfil</span>
+              </div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
+            <button className="menu-item" type="button" onClick={() => setShowPhotoMenu(true)}>
+              <div className="menu-item-left">
+                <FaCamera className="menu-icon text-blue" />
+                <span>Cambiar foto</span>
+              </div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
+            <button className="menu-item" type="button" onClick={() => setShowEditProfile(true)}>
+              <div className="menu-item-left">
+                <FaPen className="menu-icon text-green" />
+                <span>Actualizar descripción</span>
+              </div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
           </div>
-          <div className="stat-card">
-            <h3>{user?.notes?.length || 0}</h3>
-            <p>📝 Notas</p>
+        </div>
+
+        {/* SECCIÓN: CONFIGURACIÓN */}
+        <div className="menu-group">
+          <h3 className="menu-title">Configuración</h3>
+          <div className="menu-card">
+            <button className="menu-item" type="button" onClick={() => handleModalAction("Tema oscuro disponible pronto.")}>
+              <div className="menu-item-left">
+                <FaPalette className="menu-icon text-orange" />
+                <span>Tema</span>
+              </div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
+            <button className="menu-item" type="button" onClick={() => handleModalAction("Próximo soporte para idiomas.")}>
+              <div className="menu-item-left">
+                <FaGlobe className="menu-icon text-blue" />
+                <span>Idioma</span>
+              </div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
+            <button className="menu-item" type="button" onClick={() => handleModalAction("Notificaciones activadas próximamente.")}>
+              <div className="menu-item-left">
+                <FaBell className="menu-icon text-yellow" />
+                <span>Notificaciones</span>
+              </div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
+            <button className="menu-item" type="button" onClick={() => handleModalAction("Privacidad mejorada en la próxima versión.")}>
+              <div className="menu-item-left">
+                <FaLock className="menu-icon text-gray" />
+                <span>Privacidad</span>
+              </div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
           </div>
-          <div className="stat-card">
-            <h3>{user?.wellbeing ?? 72}%</h3>
-            <p>💚 Salud</p>
+        </div>
+
+        {/* SECCIÓN: APLICACIÓN */}
+        <div className="menu-group">
+          <h3 className="menu-title">Aplicación</h3>
+          <div className="menu-card">
+            <button className="menu-item" type="button" onClick={() => handleModalAction("Frase del día visible en el dashboard.")}>
+              <div className="menu-item-left">
+                <FaHeart className="menu-icon text-pink" />
+                <span>Frase del día</span>
+              </div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
+            <button className="menu-item" type="button" onClick={() => handleModalAction("Política de privacidad disponible pronto.")}>
+              <div className="menu-item-left">
+                <FaFileAlt className="menu-icon text-gray" />
+                <span>Política de privacidad</span>
+              </div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
+            <button className="menu-item" type="button" onClick={() => handleModalAction("Más información sobre FeelSafe próximamente.")}>
+              <div className="menu-item-left">
+                <FaInfoCircle className="menu-icon text-blue" />
+                <span>Acerca de FeelSafe</span>
+              </div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
           </div>
         </div>
 
-        <div className="profile-menu">
-          <div className="menu-title">Cuenta</div>
-          <button className="menu-item" type="button" onClick={() => setShowEditProfile(true)}>
-            <span>👤 Editar perfil</span>
-            <span>›</span>
-          </button>
-          <button className="menu-item" type="button" onClick={() => setShowPhotoMenu(true)}>
-            <span>📷 Cambiar foto</span>
-            <span>›</span>
-          </button>
-          <button className="menu-item" type="button" onClick={() => setShowEditProfile(true)}>
-            <span>✍️ Actualizar descripción</span>
-            <span>›</span>
-          </button>
+        {/* SECCIÓN: ZONA DE PELIGRO */}
+        <div className="menu-group">
+          <div className="menu-card card-danger">
+            <button className="menu-item text-red" type="button" onClick={handleLogout}>
+              <div className="menu-item-left">
+                <FaSignOutAlt className="menu-icon" />
+                <span>Cerrar sesión</span>
+              </div>
+            </button>
+            <button className="menu-item text-red" type="button" onClick={() => alert("La eliminación de cuenta está disponible en la próxima versión.")}>
+              <div className="menu-item-left">
+                <FaTrash className="menu-icon" />
+                <span>Eliminar cuenta</span>
+              </div>
+            </button>
+          </div>
         </div>
 
-        <div className="profile-menu">
-          <div className="menu-title">Configuración</div>
-          <button className="menu-item" type="button" onClick={() => handleModalAction("Tema oscuro disponible pronto.")}>
-            <span>🎨 Tema</span>
-            <span>›</span>
-          </button>
-          <button className="menu-item" type="button" onClick={() => handleModalAction("Próximo soporte para idiomas.")}>
-            <span>🌎 Idioma</span>
-            <span>›</span>
-          </button>
-          <button className="menu-item" type="button" onClick={() => handleModalAction("Notificaciones activadas próximamente.")}>
-            <span>🔔 Notificaciones</span>
-            <span>›</span>
-          </button>
-          <button className="menu-item" type="button" onClick={() => handleModalAction("Privacidad mejorada en la próxima versión.")}>
-            <span>🔒 Privacidad</span>
-            <span>›</span>
-          </button>
-        </div>
+        {/* =================================================
+            MODALES (Archivos ocultos e interfaces emergentes)
+        ================================================= */}
+        <input type="file" accept="image/*" ref={fileInputRef} onChange={handleSelectPhoto} hidden />
+        <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} onChange={handleSelectPhoto} hidden />
 
-        <div className="profile-menu">
-          <div className="menu-title">Aplicación</div>
-          <button className="menu-item" type="button" onClick={() => handleModalAction("Frase del día visible en el dashboard.")}>
-            <span>💙 Frase del día</span>
-            <span>›</span>
-          </button>
-          <button className="menu-item" type="button" onClick={() => handleModalAction("Política de privacidad disponible pronto.")}>
-            <span>📄 Política de privacidad</span>
-            <span>›</span>
-          </button>
-          <button className="menu-item" type="button" onClick={() => handleModalAction("Más información sobre FeelSafe próximamente.")}>
-            <span>ℹ️ Acerca de FeelSafe</span>
-            <span>›</span>
-          </button>
-        </div>
-
-        {latestNote && (
-          <div className="last-note">
-            <h3>📝 Última nota</h3>
-            <p>{latestNote.text}</p>
+        {showPhotoMenu && (
+          <div className="modal-overlay" onClick={() => setShowPhotoMenu(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Cambiar foto</h2>
+              <div className="modal-options">
+                <button type="button" onClick={openGallery}>🖼 Elegir de la galería</button>
+                <button type="button" onClick={openCamera}>📷 Tomar foto</button>
+                <button type="button" onClick={viewPhoto}>👁 Ver foto actual</button>
+                <button type="button" className="text-red" onClick={handleDeletePhoto}>🗑 Eliminar foto</button>
+              </div>
+              <button className="modal-cancel-btn" type="button" onClick={() => setShowPhotoMenu(false)}>Cancelar</button>
+            </div>
           </div>
         )}
 
-        <div className="danger-zone">
-          <button className="logout-btn" type="button" onClick={handleLogout}>
-            🚪 Cerrar sesión
-          </button>
-          <button className="delete-btn" type="button" onClick={() => alert("La eliminación de cuenta está disponible en la próxima versión.")}>
-            🗑 Eliminar cuenta
-          </button>
-        </div>
-      </div>
-
-      <input type="file" accept="image/*" ref={fileInputRef} onChange={handleSelectPhoto} hidden />
-      <input type="file" accept="image/*" capture="environment" ref={cameraInputRef} onChange={handleSelectPhoto} hidden />
-
-      {showPhotoMenu && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>Cambiar foto de perfil</h2>
-            <button className="menu-item" type="button" onClick={openGallery}>
-              <span>🖼 Elegir de la galería</span>
-              <span>›</span>
-            </button>
-            <button className="menu-item" type="button" onClick={openCamera}>
-              <span>📷 Tomar foto</span>
-              <span>›</span>
-            </button>
-            <button className="menu-item" type="button" onClick={viewPhoto}>
-              <span>👁 Ver foto</span>
-              <span>›</span>
-            </button>
-            <button className="menu-item" type="button" onClick={handleDeletePhoto}>
-              <span>🗑 Eliminar foto</span>
-              <span>›</span>
-            </button>
-            <button className="menu-item" type="button" onClick={() => setShowPhotoMenu(false)}>
-              <span>❌ Cancelar</span>
-            </button>
+        {showEditProfile && (
+          <div className="modal-overlay" onClick={() => setShowEditProfile(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Editar perfil</h2>
+              <input
+                className="modal-input"
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Tu nombre"
+              />
+              <textarea
+                className="modal-textarea"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Escribe una breve descripción sobre ti..."
+                rows={4}
+              />
+              <div className="modal-actions">
+                <button className="modal-cancel-btn" type="button" onClick={() => setShowEditProfile(false)}>
+                  Cancelar
+                </button>
+                <button className="modal-save-btn" type="button" onClick={handleSaveProfile}>
+                  Guardar
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showEditProfile && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h2>Editar perfil</h2>
-            <input
-              type="text"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              placeholder="Nombre"
-            />
-            <textarea
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              placeholder="Descripción breve"
-              rows={4}
-            />
-            <div className="modal-buttons">
-              <button className="cancel-btn" type="button" onClick={() => setShowEditProfile(false)}>
-                Cancelar
-              </button>
-              <button className="save-btn" type="button" onClick={handleSaveProfile}>
-                Guardar cambios
+        {showImagePreview && (
+          <div className="modal-overlay" onClick={() => setShowImagePreview(false)}>
+            <div className="image-preview-container" onClick={(e) => e.stopPropagation()}>
+              <img src={profileImage || user?.photoURL} alt="Foto de perfil" />
+              <button className="close-preview-btn" type="button" onClick={() => setShowImagePreview(false)}>
+                Cerrar vista
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {showImagePreview && (
-        <div className="modal-overlay">
-          <div className="image-preview">
-            <img src={profileImage || user?.photoURL} alt="Foto de perfil" />
-            <button className="close-preview" type="button" onClick={() => setShowImagePreview(false)}>
-              ❌ Cerrar
-            </button>
-          </div>
-        </div>
-      )}
+      </div>
     </MainLayout>
   );
 }
