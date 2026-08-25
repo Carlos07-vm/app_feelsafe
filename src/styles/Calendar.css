@@ -1,51 +1,314 @@
-.calendar-card {
-  background: white;
-  padding: 30px;
-  border-radius: 25px;
-  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
-  margin-top: 20px;
+/* =========================================================
+   FEELSAFE - CALENDARIO EMOCIONAL
+   ========================================================= */
+
+.calendar-page-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 0 50px 0;
 }
 
-.selected-date-card {
-  margin-top: 25px;
-  border-radius: 20px;
-  padding: 22px;
-  background: #F8F7FF;
-  border: 1px solid #E9E5F8;
+/* =========================================================
+   ENCABEZADO
+   ========================================================= */
+.calendar-header {
+  text-align: center;
+  margin-bottom: 40px;
 }
 
-.selected-date-card h3 {
-  margin: 0 0 10px;
-  color: #5B3CC4;
-}
-
-.selected-date-card p {
-  margin: 0;
-  color: #5B548F;
-  line-height: 1.7;
-}
-
-.calendar-note {
-  margin-top: 12px;
-  color: #6B7280;
-}
-
-.legend {
+.calendar-header h1 {
   display: flex;
-  gap: 20px;
-  margin-top: 20px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: "Poppins", sans-serif;
+  font-size: 2.2rem;
+  color: #2D1B46;
+  font-weight: 800;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.03em;
+}
+
+.title-icon {
+  color: #7A3BBA;
+}
+
+.calendar-header p {
+  color: #7A6A91;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* =========================================================
+   LAYOUT A DOS COLUMNAS
+   ========================================================= */
+.calendar-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Mitad y mitad en PC */
+  gap: 35px;
+  align-items: start;
+}
+
+/* =========================================================
+   COLUMNA IZQUIERDA (CONTENEDOR DEL CALENDARIO)
+   ========================================================= */
+.calendar-wrapper {
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: 0 12px 30px rgba(45, 27, 70, 0.05);
+  border: 1px solid rgba(109, 76, 143, 0.08);
+}
+
+/* SOBRESCRIBIENDO ESTILOS DE "REACT-CALENDAR" */
+.react-calendar {
+  width: 100% !important;
+  border: none !important; /* Quitamos el borde feo por defecto */
+  font-family: "Inter", sans-serif !important;
+  background: transparent !important;
+}
+
+/* Encabezado del calendario (Mes y botones) */
+.react-calendar__navigation {
+  margin-bottom: 20px;
+}
+.react-calendar__navigation button {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #2D1B46;
+  border-radius: 12px;
+  transition: background 0.2s ease;
+  min-width: 44px;
+}
+.react-calendar__navigation button:hover {
+  background: #FAF8FB !important;
+  color: #7A3BBA;
+}
+.react-calendar__navigation button:disabled {
+  background: transparent !important;
+}
+
+/* Días de la semana (L, M, M, J...) */
+.react-calendar__month-view__weekdays {
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #7A6A91;
+  font-size: 0.75rem;
+  text-decoration: none !important;
+  margin-bottom: 10px;
+}
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none !important;
+}
+
+/* Botones de los días individuales */
+.react-calendar__tile {
+  padding: 14px 10px !important;
+  border-radius: 12px !important;
+  transition: all 0.2s ease !important;
+  font-weight: 600 !important;
+  color: #5A4A6F;
+}
+.react-calendar__tile:hover {
+  background: #EBDFFF !important;
+  color: #7A3BBA !important;
+}
+
+/* Día Seleccionado (El degradado morado) */
+.react-calendar__tile--active,
+.react-calendar__tile--active:enabled:hover,
+.react-calendar__tile--active:enabled:focus {
+  background: linear-gradient(135deg, #7A3BBA, #501D8A) !important;
+  color: white !important;
+  box-shadow: 0 6px 15px rgba(122, 59, 186, 0.3) !important;
+}
+
+/* Día Actual (Hoy) */
+.react-calendar__tile--now {
+  background: #F8FAFC !important;
+  color: #3B82F6 !important;
+  border: 1px solid #BFDBFE !important;
+}
+
+/* Fines de semana (Quitar el rojo feo) */
+.react-calendar__month-view__days__day--weekend {
+  color: #2D1B46;
+}
+
+/* =========================================================
+   LEYENDA DE COLORES
+   ========================================================= */
+.calendar-legend {
+  display: flex;
+  justify-content: center;
   flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 25px;
 }
 
-.legend div {
-  background: white;
-  padding: 16px 18px;
-  border-radius: 18px;
-  box-shadow: 0 6px 20px rgba(123, 97, 255, 0.08);
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #5A4A6F;
+  font-weight: 600;
+  background: #FFFFFF;
+  padding: 8px 16px;
+  border-radius: 50px;
+  box-shadow: 0 4px 10px rgba(45, 27, 70, 0.04);
+  border: 1px solid rgba(109, 76, 143, 0.08);
 }
 
-@media (max-width: 760px) {
-  .calendar-card {
-    padding: 20px;
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.dot-happy { background: #10B981; } /* Verde */
+.dot-neutral { background: #F59E0B; } /* Amarillo */
+.dot-anxious { background: #F97316; } /* Naranja */
+.dot-sad { background: #EF4444; } /* Rojo */
+
+/* =========================================================
+   COLUMNA DERECHA (EDITOR DE NOTAS)
+   ========================================================= */
+.note-editor-card {
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 35px 30px;
+  box-shadow: 0 12px 30px rgba(45, 27, 70, 0.05);
+  border: 1px solid rgba(109, 76, 143, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+.note-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(109, 76, 143, 0.1);
+  padding-bottom: 20px;
+  margin-bottom: 25px;
+}
+
+.note-header h3 {
+  font-family: "Poppins", sans-serif;
+  font-size: 1.3rem;
+  color: #2D1B46;
+  margin: 0;
+}
+
+.mood-badge {
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.has-note { background: #EBDFFF; color: #7A3BBA; }
+.no-note { background: #F1F5F9; color: #64748B; }
+
+.note-history {
+  margin-bottom: 30px;
+  min-height: 50px;
+}
+
+.saved-text {
+  font-size: 1rem;
+  color: #2D1B46;
+  font-style: italic;
+  line-height: 1.6;
+  border-left: 4px solid #7A3BBA;
+  padding-left: 20px;
+  background: #FAF8FB;
+  padding: 15px 20px;
+  border-radius: 0 16px 16px 0;
+  margin: 0;
+}
+
+.empty-text {
+  color: #94A3B8;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.note-input-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: #5A4A6F;
+  margin-bottom: 12px;
+}
+
+.note-input-group textarea {
+  width: 100%;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+  color: #2D1B46;
+  resize: vertical;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.note-input-group textarea:focus {
+  border-color: #A855F7;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.1);
+}
+
+.save-btn {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #7A3BBA, #501D8A);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 25px;
+  box-shadow: 0 6px 15px rgba(122, 59, 186, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(122, 59, 186, 0.35);
+}
+
+.calendar-status {
+  text-align: center;
+  font-weight: 600;
+  margin-top: 20px;
+  font-size: 0.95rem;
+  color: #7A3BBA;
+}
+
+.calendar-status.success {
+  color: #10B981;
+}
+
+/* =========================================================
+   RESPONSIVE (TABLETS Y MÓVILES)
+   ========================================================= */
+@media (max-width: 900px) {
+  .calendar-layout-grid {
+    grid-template-columns: 1fr; /* Apila las columnas */
+    gap: 25px;
+  }
+
+  .calendar-header h1 {
+    font-size: 1.8rem;
   }
 }
