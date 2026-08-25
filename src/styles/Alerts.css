@@ -1,77 +1,222 @@
+/* =========================================================
+   FEELSAFE - CENTRO DE ALERTAS
+   ========================================================= */
+
+.alerts-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 0 50px 0;
+}
+
+/* =========================================================
+   ENCABEZADO
+   ========================================================= */
+.alerts-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.alerts-header h1 {
+  font-family: "Poppins", sans-serif;
+  font-size: 2.2rem;
+  color: #2D1B46;
+  font-weight: 800;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.03em;
+}
+
+.alerts-header p {
+  color: #7A6A91;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* =========================================================
+   GRID DE TARJETAS
+   ========================================================= */
 .alerts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(2, 1fr); /* 2 columnas en PC */
+  gap: 24px;
+  margin-bottom: 40px;
 }
 
+/* =========================================================
+   ESTILO BASE DE LAS TARJETAS (Blancas, modernas, limpias)
+   ========================================================= */
 .alert-card {
-  padding: 30px;
-  border-radius: 25px;
-  color: white;
-  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.15);
-}
-
-.alert-card h2 {
-  margin-top: 15px;
-  font-size: 1.2rem;
-}
-
-.alert-card h3 {
-  margin: 10px 0;
-  font-size: 2rem;
-}
-
-.alert-card p {
-  opacity: 0.95;
-  line-height: 1.6;
-}
-
-.alert-icon {
-  font-size: 2.8rem;
-}
-
-.alert-card.success {
-  background: linear-gradient(135deg, #22C55E, #4ADE80);
-}
-
-.alert-card.warning {
-  background: linear-gradient(135deg, #F59E0B, #FBBF24);
-}
-
-.alert-card.purple {
-  background: linear-gradient(135deg, #5B3CC4, #7B61FF);
-}
-
-.alert-card.blue {
-  background: linear-gradient(135deg, #60A5FA, #A5D8FF);
-}
-
-.alerts-footer {
-  margin-top: 30px;
   display: flex;
-  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: 0 12px 30px rgba(45, 27, 70, 0.05);
+  border: 1px solid rgba(109, 76, 143, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.alert-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(45, 27, 70, 0.08);
+}
+
+/* =========================================================
+   CONTENEDOR DEL ICONO
+   ========================================================= */
+.alert-icon-wrapper {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  display: flex;
   align-items: center;
-  padding: 24px 30px;
-  background: white;
-  border-radius: 25px;
-  box-shadow: 0 8px 30px rgba(123, 97, 255, 0.12);
+  justify-content: center;
+  font-size: 1.6rem;
 }
 
-.alerts-footer p {
+/* =========================================================
+   TEXTOS DENTRO DE LA TARJETA
+   ========================================================= */
+.alert-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.alert-content h2 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7A6A91;
+  margin: 0 0 6px 0;
+  font-weight: 700;
+}
+
+.alert-content h3 {
+  font-family: "Poppins", sans-serif;
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+  line-height: 1.1;
+}
+
+.alert-content p {
+  font-size: 0.9rem;
+  color: #5A4A6F;
+  line-height: 1.6;
   margin: 0;
-  color: #5B3CC4;
-  font-weight: 600;
 }
 
-.alerts-footer button {
-  border: none;
-  background: #7B61FF;
+/* =========================================================
+   COLORES ESPECÍFICOS POR TARJETA (El acento elegante)
+   ========================================================= */
+
+/* VERDE (Estado General) */
+.card-green .alert-icon-wrapper { background: rgba(16, 185, 129, 0.12); color: #10B981; }
+.card-green .alert-content h3 { color: #10B981; }
+
+/* NARANJA (Estrés) */
+.card-orange .alert-icon-wrapper { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
+.card-orange .alert-content h3 { color: #F59E0B; }
+
+/* MORADO (Bienestar) */
+.card-purple .alert-icon-wrapper { background: rgba(122, 59, 186, 0.12); color: #7A3BBA; }
+.card-purple .alert-content h3 { color: #7A3BBA; }
+
+/* AZUL (IA) */
+.card-blue .alert-icon-wrapper { background: rgba(59, 130, 246, 0.12); color: #3B82F6; }
+.card-blue .alert-content h3 { color: #3B82F6; }
+
+
+/* =========================================================
+   BANNER INFERIOR (Llamado a la acción)
+   ========================================================= */
+.alerts-cta-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #7A3BBA 0%, #501D8A 100%);
+  border-radius: 24px;
+  padding: 35px 45px;
   color: white;
-  padding: 14px 22px;
-  border-radius: 16px;
-  cursor: pointer;
+  box-shadow: 0 15px 35px rgba(45, 27, 70, 0.15);
 }
 
-.alerts-footer button:hover {
-  background: #5B3CC4;
+.cta-content h2 {
+  font-family: "Poppins", sans-serif;
+  font-size: 1.4rem;
+  margin: 0 0 8px 0;
+}
+
+.cta-content p {
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  font-size: 0.95rem;
+  max-width: 500px;
+}
+
+.cta-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #F953C6 0%, #B91D73 100%);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(185, 29, 115, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 25px rgba(185, 29, 115, 0.5);
+}
+
+
+/* =========================================================
+   RESPONSIVE (TABLETS Y MÓVILES)
+   ========================================================= */
+@media (max-width: 900px) {
+  .alerts-cta-banner {
+    flex-direction: column;
+    text-align: center;
+    gap: 25px;
+    padding: 30px;
+  }
+  
+  .cta-content p {
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .alerts-grid {
+    grid-template-columns: 1fr; /* Pasa a 1 sola columna en pantallas pequeñas */
+  }
+
+  .alerts-header h1 {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .alert-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 25px;
+    gap: 15px;
+  }
+
+  .alerts-cta-banner {
+    padding: 25px 20px;
+  }
+
+  .cta-content h2 {
+    font-size: 1.2rem;
+  }
 }
