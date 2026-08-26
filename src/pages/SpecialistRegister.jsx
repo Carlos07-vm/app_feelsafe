@@ -590,7 +590,7 @@ function SpecialistRegister() {
               type="button"
               onClick={() =>
                 navigate(
-                  "/specialist/login"
+                  "/login"
                 )
               }
             >

@@ -7,7 +7,6 @@ import Register from "./pages/Register";
 import VerifyEmail from "./pages/verifyEmail";
 
 import SpecialistRegister from "./pages/SpecialistRegister";
-import SpecialistLogin from "./pages/SpecialistLogin";
 import SpecialistMessages from "./pages/SpecialistMessages";
 import SpecialistProfile from "./pages/SpecialistProfile";
 import SpecialistUsers from "./pages/SpecialistUsers";
@@ -84,11 +83,6 @@ function App() {
         <Route
           path="/specialist/register"
           element={<SpecialistRegister />}
-        />
-
-        <Route
-          path="/specialist/login"
-          element={<SpecialistLogin />}
         />
 
         <Route

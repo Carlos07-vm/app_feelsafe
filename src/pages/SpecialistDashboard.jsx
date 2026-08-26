@@ -221,7 +221,7 @@ function SpecialistDashboard() {
       setSpecialist(null);
       setConversations([]);
 
-      navigate("/specialist/login", {
+      navigate("/login", {
         replace: true,
       });
     } catch (error) {
