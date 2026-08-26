@@ -8,7 +8,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-body);
 }
 
 /* =========================================================
@@ -26,7 +26,7 @@
   background: transparent;
   border: none;
   font-size: 1.4rem;
-  color: #5A4A6F;
+  color: var(--text-muted); /* <--- VARIABLE APLICADA */
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -36,7 +36,7 @@
 }
 
 .icon-btn:hover {
-  color: #7A3BBA;
+  color: var(--primary); /* <--- VARIABLE APLICADA */
 }
 
 /* PERFIL EN LA TOPBAR */
@@ -51,7 +51,7 @@
 }
 
 .topbar-profile:hover {
-  background: #F3F4F6;
+  background: var(--surface-soft); /* <--- VARIABLE APLICADA */
 }
 
 .topbar-avatar {
@@ -59,11 +59,11 @@
   height: 40px;
   border-radius: 50%;
   overflow: hidden;
-  background: #EBDFFF;
+  background: var(--primary-light); /* <--- VARIABLE APLICADA */
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #7A3BBA;
+  color: var(--primary-dark);
   font-size: 1.5rem;
 }
 
@@ -75,12 +75,12 @@
 
 .topbar-name {
   font-weight: 600;
-  color: #2D1B46;
+  color: var(--text); /* <--- VARIABLE APLICADA */
   font-size: 0.95rem;
 }
 
 .topbar-arrow {
-  color: #7A6A91;
+  color: var(--text-light); /* <--- VARIABLE APLICADA */
   font-size: 0.8rem;
 }
 
@@ -88,13 +88,13 @@
    HERO PRINCIPAL (COLOR MORADO INTENSO Y PURO)
    ========================================================= */
 .dashboard-hero-solid {
-  background-color: #7B2CBF; /* <--- COLOR MORADO INTENSO Y PURO */
+  background-color: var(--primary); /* <--- VARIABLE APLICADA */
   border-radius: 28px;
   padding: 40px 50px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: white;
+  color: white; /* Se queda blanco porque el fondo siempre será morado */
   box-shadow: 0 15px 35px rgba(123, 44, 191, 0.2);
   position: relative;
   overflow: hidden;
@@ -128,7 +128,7 @@
 }
 
 .hero-text-content h1 {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-title);
   font-size: 2.8rem;
   font-weight: 700;
   margin: 0 0 15px 0;
@@ -170,7 +170,7 @@
 
 .widget-icon {
   background: white;
-  color: #7B2CBF;
+  color: var(--primary);
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -211,7 +211,7 @@
   padding: 16px;
   border-radius: 16px;
   border: none;
-  background: linear-gradient(90deg, #9D4EDD, #7B2CBF);
+  background: linear-gradient(90deg, #9D4EDD, var(--primary));
   color: white;
   font-weight: 700;
   font-size: 1rem;
@@ -239,14 +239,14 @@
 }
 
 .stat-clean-card {
-  background: #FFFFFF;
+  background: var(--surface); /* <--- VARIABLE APLICADA */
   border-radius: 24px;
   padding: 24px 20px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 8px 25px rgba(45, 27, 70, 0.04);
-  border: 1px solid rgba(109, 76, 143, 0.05);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border); /* <--- VARIABLE APLICADA */
 }
 
 .stat-icon-circle {
@@ -260,10 +260,11 @@
   flex-shrink: 0;
 }
 
-.bg-purple { background: #F3E8FF; color: #7E22CE; }
-.bg-light-purple { background: #F5F3FF; color: #8B5CF6; }
-.bg-pink { background: #FDF2F8; color: #DB2777; }
-.bg-blue { background: #EFF6FF; color: #2563EB; }
+/* Mantendremos estos fondos para que no pierdan la vida */
+.bg-purple { background: rgba(126, 34, 206, 0.1); color: #7E22CE; }
+.bg-light-purple { background: rgba(139, 92, 246, 0.1); color: #8B5CF6; }
+.bg-pink { background: rgba(219, 39, 119, 0.1); color: #DB2777; }
+.bg-blue { background: rgba(37, 99, 235, 0.1); color: #2563EB; }
 
 .stat-info {
   display: flex;
@@ -272,13 +273,13 @@
 
 .stat-info small {
   font-size: 0.8rem;
-  color: #64748B;
+  color: var(--text-muted); /* <--- VARIABLE APLICADA */
   margin-bottom: 2px;
 }
 
 .stat-info strong {
   font-size: 1.3rem;
-  color: #1E293B;
+  color: var(--text); /* <--- VARIABLE APLICADA */
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 4px;
@@ -286,7 +287,7 @@
 
 .stat-sub {
   font-size: 0.75rem;
-  color: #94A3B8;
+  color: var(--text-light); /* <--- VARIABLE APLICADA */
   display: flex;
   align-items: center;
   gap: 4px;
@@ -300,9 +301,9 @@
    ACCIONES RÁPIDAS
    ========================================================= */
 .section-title {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-title);
   font-size: 1.3rem;
-  color: #1E293B;
+  color: var(--text); /* <--- VARIABLE APLICADA */
   margin: 10px 0 0 0;
 }
 
@@ -378,11 +379,11 @@
 
 /* Tarjeta Blanca (Último Registro) */
 .last-record-card {
-  background: white;
+  background: var(--surface); /* <--- VARIABLE APLICADA */
   border-radius: 24px;
   padding: 30px;
-  box-shadow: 0 8px 25px rgba(45, 27, 70, 0.04);
-  border: 1px solid rgba(109, 76, 143, 0.05);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border); /* <--- VARIABLE APLICADA */
 }
 
 .record-header {
@@ -399,24 +400,24 @@
 }
 
 .record-title-icon {
-  color: #64748B;
+  color: var(--text-muted); /* <--- VARIABLE APLICADA */
   font-size: 1.2rem;
 }
 
 .record-title-area h3 {
   margin: 0;
   font-size: 1.15rem;
-  color: #1E293B;
+  color: var(--text); /* <--- VARIABLE APLICADA */
 }
 
 .record-date {
   font-size: 0.85rem;
-  color: #94A3B8;
+  color: var(--text-light); /* <--- VARIABLE APLICADA */
 }
 
 .record-desc {
   font-size: 0.9rem;
-  color: #64748B;
+  color: var(--text-muted); /* <--- VARIABLE APLICADA */
   margin: 0 0 20px 0;
 }
 
@@ -428,7 +429,7 @@
 }
 
 .mini-card {
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--border); /* <--- VARIABLE APLICADA */
   border-radius: 16px;
   padding: 16px;
   display: flex;
@@ -449,17 +450,17 @@
 .mini-card small {
   display: block;
   font-size: 0.75rem;
-  color: #64748B;
+  color: var(--text-muted); /* <--- VARIABLE APLICADA */
   margin-bottom: 2px;
 }
 
 .mini-card strong {
   font-size: 1.1rem;
-  color: #1E293B;
+  color: var(--text); /* <--- VARIABLE APLICADA */
 }
 
 .record-notes {
-  background: #F8FAFC;
+  background: var(--surface-soft); /* <--- VARIABLE APLICADA */
   border-radius: 16px;
   padding: 16px 20px;
 }
@@ -468,21 +469,21 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #475569;
+  color: var(--text-muted); /* <--- VARIABLE APLICADA */
   margin-bottom: 8px;
   font-size: 0.9rem;
 }
 
 .record-notes p {
   margin: 0;
-  color: #334155;
+  color: var(--text); /* <--- VARIABLE APLICADA */
   font-size: 0.95rem;
   line-height: 1.5;
 }
 
 /* Tarjeta Morada (Mensaje de Calma) */
 .calm-message-card {
-  background: linear-gradient(135deg, #A855F7, #7B2CBF);
+  background: linear-gradient(135deg, var(--primary-light), var(--primary-dark));
   border-radius: 24px;
   padding: 35px 30px;
   color: white;
@@ -544,7 +545,7 @@
 }
 
 /* =========================================================
-   RESPONSIVE
+   RESPONSIVE (Ajustes clave para Móviles y Tablets)
    ========================================================= */
 @media (max-width: 1100px) {
   .dashboard-hero-solid {
@@ -561,8 +562,49 @@
   .bottom-2col { grid-template-columns: 1fr; }
 }
 
+/* === REGLAS NUEVAS PARA CELULARES (Menos de 768px) === */
+@media (max-width: 768px) {
+  .dashboard-wrapper {
+    padding: 0 15px 40px 15px;
+  }
+  
+  .dashboard-hero-solid {
+    padding: 25px 20px;
+    border-radius: 20px;
+  }
+
+  .hero-text-content h1 {
+    font-size: 2rem; 
+  }
+  
+  .hero-tag {
+    font-size: 1rem;
+  }
+
+  .hero-widgets-row { 
+    grid-template-columns: 1fr; 
+    gap: 10px;
+  }
+  
+  .hero-widget-card {
+    padding: 15px;
+  }
+
+  .action-color-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+  
+  .action-texts h3 {
+    font-size: 0.95rem;
+  }
+  
+  .action-texts p {
+    font-size: 0.75rem;
+  }
+}
+
 @media (max-width: 600px) {
   .stats-4col { grid-template-columns: 1fr; }
-  .hero-widgets-row { grid-template-columns: 1fr; }
   .record-mini-cards { grid-template-columns: 1fr; }
 }
