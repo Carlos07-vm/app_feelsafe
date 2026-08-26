@@ -1,9 +1,8 @@
 import "../styles/Sidebar.css";
-// 1. Agregamos useLocation aquí:
 import { NavLink, useLocation } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-// 2. Importamos useEffect y useRef de React:
 import { useEffect, useRef } from "react"; 
+import { translations } from "../constants/translations"; // <-- IMPORTAMOS EL DICCIONARIO GLOBAL
 
 import {
   FaHome,
@@ -23,18 +22,18 @@ import {
 import logo from "../assets/logo.jpeg";
 
 function Sidebar({ sidebarOpen, onClose }) {
-  const { user } = useApp();
+  const { user, language } = useApp(); // <-- EXTRAEMOS EL IDIOMA GLOBAL
   
-  // 3. Declaramos las herramientas para el scroll:
+  // ACTIVAMOS EL DICCIONARIO
+  const t = translations[language] || translations.es;
+
   const location = useLocation(); 
   const navRef = useRef(null); 
 
-  // 4. Esta es la función que arregla el problema (Auto-scroll):
   useEffect(() => {
     if (navRef.current) {
       const activeItem = navRef.current.querySelector(".active");
       if (activeItem) {
-        // Esto hace que la barra baje suavemente hasta el botón activo
         activeItem.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
@@ -57,7 +56,7 @@ function Sidebar({ sidebarOpen, onClose }) {
           alt="FeelSafe Logo"
         />
         <h2>FeelSafe</h2>
-        <p>Tu bienestar importa</p>
+        <p>{language === 'es' ? "Tu bienestar importa" : "Your wellbeing matters"}</p>
       </div>
 
       {/* ================= Información del usuario ================= */}
@@ -76,7 +75,7 @@ function Sidebar({ sidebarOpen, onClose }) {
         <h3>
           {user?.displayName ||
             user?.nombre ||
-            "Usuario"}
+            (language === 'es' ? "Usuario" : "User")}
         </h3>
         <p>
           {user?.email ||
@@ -86,15 +85,13 @@ function Sidebar({ sidebarOpen, onClose }) {
       </div>
 
       {/* ================= Navegación ================= */}
-      {/* 5. Enlazamos la navegación con navRef */}
       <nav className="sidebar-menu" ref={navRef}> 
 
         {/* ================= PRINCIPAL ================= */}
         <p className="sidebar-title">
-          Principal
+          {language === 'es' ? "Principal" : "Main"}
         </p>
 
-        {/* 6. Agregamos onClick={onClose} a todos los NavLink para el celular */}
         <NavLink
           to="/dashboard"
           onClick={onClose}
@@ -103,7 +100,7 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaHome />
-          <span>Inicio</span>
+          <span>{t.menuHome}</span>
         </NavLink>
 
         <NavLink
@@ -114,7 +111,7 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaSmile />
-          <span>Emociones</span>
+          <span>{t.menuEmotions}</span>
         </NavLink>
 
         <NavLink
@@ -125,7 +122,7 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaRobot />
-          <span>Chat IA</span>
+          <span>{t.menuChat}</span>
         </NavLink>
 
         <NavLink
@@ -136,7 +133,7 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaChartBar />
-          <span>Reportes</span>
+          <span>{t.menuReports}</span>
         </NavLink>
 
         {/* ================= Especialistas ================= */}
@@ -148,14 +145,14 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaUserMd />
-          <span>Especialistas</span>
+          <span>{t.menuSpecialists}</span>
         </NavLink>
 
         <hr />
 
         {/* ================= HERRAMIENTAS ================= */}
         <p className="sidebar-title">
-          Herramientas
+          {language === 'es' ? "Herramientas" : "Tools"}
         </p>
 
         <NavLink
@@ -166,7 +163,7 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaBook />
-          <span>Recursos</span>
+          <span>{language === 'es' ? "Recursos" : "Resources"}</span>
         </NavLink>
 
         <NavLink
@@ -177,7 +174,7 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaCalendarAlt />
-          <span>Calendario</span>
+          <span>{language === 'es' ? "Calendario" : "Calendar"}</span>
         </NavLink>
 
         <NavLink
@@ -188,14 +185,14 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaBrain />
-          <span>Análisis IA</span>
+          <span>{language === 'es' ? "Análisis IA" : "AI Analysis"}</span>
         </NavLink>
 
         <hr />
 
         {/* ================= CUENTA ================= */}
         <p className="sidebar-title">
-          Cuenta
+          {language === 'es' ? "Cuenta" : "Account"}
         </p>
 
         <NavLink
@@ -206,7 +203,7 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaUserCircle />
-          <span>Perfil</span>
+          <span>{t.menuProfile}</span>
         </NavLink>
 
         <NavLink
@@ -217,7 +214,7 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaBell />
-          <span>Alertas</span>
+          <span>{language === 'es' ? "Alertas" : "Alerts"}</span>
         </NavLink>
 
         <NavLink
@@ -228,7 +225,7 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaBullseye />
-          <span>Objetivos</span>
+          <span>{language === 'es' ? "Objetivos" : "Goals"}</span>
         </NavLink>
 
         <NavLink
@@ -239,7 +236,7 @@ function Sidebar({ sidebarOpen, onClose }) {
           }
         >
           <FaLifeRing />
-          <span>Centro SOS</span>
+          <span>{language === 'es' ? "Centro SOS" : "SOS Center"}</span>
         </NavLink>
 
       </nav>
