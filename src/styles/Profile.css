@@ -15,11 +15,11 @@
    CABECERA DEL PERFIL (Portada + Avatar + Info)
    ========================================================= */
 .profile-header-card {
-  background: #FFFFFF;
+  background: var(--surface); /* Cambiado a variable */
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 12px 30px rgba(45, 27, 70, 0.05);
-  border: 1px solid rgba(109, 76, 143, 0.08);
+  box-shadow: var(--shadow-sm); /* Cambiado a variable */
+  border: 1px solid var(--border); /* Cambiado a variable */
   text-align: center;
   padding-bottom: 30px;
 }
@@ -27,14 +27,14 @@
 /* La portada morada de arriba */
 .profile-cover {
   height: 120px;
-  background: linear-gradient(135deg, #7A3BBA 0%, #501D8A 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
 }
 
 /* Contenedor del avatar flotante */
 .profile-avatar-section {
   display: flex;
   justify-content: center;
-  margin-top: -55px; /* Empuja el avatar hacia arriba sobre la portada */
+  margin-top: -55px;
   margin-bottom: 15px;
 }
 
@@ -47,8 +47,8 @@
   width: 110px;
   height: 110px;
   border-radius: 50%;
-  border: 5px solid #FFFFFF;
-  background-color: #EBDFFF;
+  border: 5px solid var(--surface); /* Cambiado a variable */
+  background-color: var(--surface-soft); /* Cambiado a variable */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -73,7 +73,7 @@
   right: 0;
   background: linear-gradient(135deg, #F953C6, #B91D73);
   color: white;
-  border: 4px solid #FFFFFF;
+  border: 4px solid var(--surface); /* Cambiado a variable */
   border-radius: 50%;
   width: 38px;
   height: 38px;
@@ -95,9 +95,9 @@
 }
 
 .profile-header-info h2 {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-title);
   font-size: 1.6rem;
-  color: #2D1B46;
+  color: var(--text); /* Cambiado a variable */
   font-weight: 800;
   margin: 0 0 4px 0;
 }
@@ -105,7 +105,7 @@
 .user-email {
   display: inline-block;
   font-size: 0.95rem;
-  color: #7A6A91;
+  color: var(--text-light); /* Cambiado a variable */
   font-weight: 500;
   margin-bottom: 15px;
 }
@@ -114,7 +114,7 @@
   max-width: 500px;
   margin: 0 auto;
   font-size: 0.95rem;
-  color: #5A4A6F;
+  color: var(--text-muted); /* Cambiado a variable */
   line-height: 1.6;
 }
 
@@ -128,27 +128,27 @@
 }
 
 .stat-box {
-  background: #FFFFFF;
+  background: var(--surface); /* Cambiado a variable */
   border-radius: 20px;
   padding: 20px 10px;
   text-align: center;
-  box-shadow: 0 8px 20px rgba(45, 27, 70, 0.04);
-  border: 1px solid rgba(109, 76, 143, 0.08);
+  box-shadow: var(--shadow-sm); /* Cambiado a variable */
+  border: 1px solid var(--border); /* Cambiado a variable */
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
 
 .stat-value {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-title);
   font-size: 1.6rem;
   font-weight: 800;
-  color: #2D1B46;
+  color: var(--text); /* Cambiado a variable */
 }
 
 .stat-label {
   font-size: 0.85rem;
-  color: #7A6A91;
+  color: var(--text-muted); /* Cambiado a variable */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -164,9 +164,9 @@
 }
 
 .menu-title {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-title);
   font-size: 0.9rem;
-  color: #7A6A91;
+  color: var(--text-muted); /* Cambiado a variable */
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding-left: 15px;
@@ -175,11 +175,11 @@
 }
 
 .menu-card {
-  background: #FFFFFF;
+  background: var(--surface); /* Cambiado a variable */
   border-radius: 20px;
-  box-shadow: 0 4px 15px rgba(45, 27, 70, 0.03);
-  border: 1px solid rgba(109, 76, 143, 0.08);
-  overflow: hidden; /* Mantiene los bordes redondeados al pasar el mouse por los botones */
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border); /* Cambiado a variable */
+  overflow: hidden;
 }
 
 .menu-item {
@@ -190,21 +190,20 @@
   padding: 16px 20px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(109, 76, 143, 0.06);
+  border-bottom: 1px solid var(--border); /* Cambiado a variable */
   cursor: pointer;
   font-size: 1rem;
-  color: #2D1B46;
+  color: var(--text); /* Cambiado a variable */
   font-weight: 500;
   transition: background 0.2s ease;
 }
 
-/* Quitar el borde al último elemento de la tarjeta */
 .menu-item:last-child {
   border-bottom: none;
 }
 
 .menu-item:hover {
-  background: #FAF8FB;
+  background: var(--surface-soft); /* Cambiado a variable */
 }
 
 .menu-item-left {
@@ -218,7 +217,7 @@
 }
 
 .menu-arrow {
-  color: #CDB4DB;
+  color: var(--text-light); /* Cambiado a variable */
   font-size: 0.9rem;
 }
 
@@ -244,8 +243,8 @@
    MENSAJE DE ESTADO
    ========================================================= */
 .profile-status {
-  background: #EBDFFF;
-  color: #7A3BBA;
+  background: var(--surface-soft); /* Cambiado a variable */
+  color: var(--primary); /* Cambiado a variable */
   text-align: center;
   padding: 12px;
   border-radius: 12px;
@@ -262,7 +261,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(45, 27, 70, 0.6);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -272,18 +271,18 @@
 }
 
 .modal-content {
-  background: #FFFFFF;
+  background: var(--surface); /* Cambiado a variable */
   border-radius: 24px;
   width: 100%;
   max-width: 400px;
   padding: 30px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg); /* Cambiado a variable */
   text-align: center;
 }
 
 .modal-content h2 {
-  font-family: "Poppins", sans-serif;
-  color: #2D1B46;
+  font-family: var(--font-title);
+  color: var(--text); /* Cambiado a variable */
   margin: 0 0 20px 0;
   font-size: 1.4rem;
 }
@@ -299,31 +298,31 @@
 .modal-options button {
   width: 100%;
   padding: 14px;
-  background: #FAF8FB;
-  border: 1px solid rgba(109, 76, 143, 0.08);
+  background: var(--surface-soft); /* Cambiado a variable */
+  border: 1px solid var(--border); /* Cambiado a variable */
   border-radius: 16px;
   font-size: 1rem;
-  color: #2D1B46;
+  color: var(--text); /* Cambiado a variable */
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .modal-options button:hover {
-  background: #EBDFFF;
+  background: var(--border); /* Cambiado a variable */
 }
 
 /* Inputs de edición */
 .modal-input,
 .modal-textarea {
   width: 100%;
-  background: #FAF8FB;
-  border: 1px solid rgba(109, 76, 143, 0.15);
+  background: var(--surface-soft); /* Cambiado a variable */
+  border: 1px solid var(--border); /* Cambiado a variable */
   border-radius: 12px;
   padding: 14px;
   font-size: 1rem;
-  color: #2D1B46;
-  font-family: "Inter", sans-serif;
+  color: var(--text); /* Cambiado a variable */
+  font-family: var(--font-body);
   margin-bottom: 15px;
   transition: border-color 0.3s;
 }
@@ -331,7 +330,7 @@
 .modal-input:focus,
 .modal-textarea:focus {
   outline: none;
-  border-color: #A855F7;
+  border-color: var(--primary);
 }
 
 .modal-textarea {
@@ -356,12 +355,12 @@
 }
 
 .modal-cancel-btn {
-  background: #F1F5F9;
-  color: #64748B;
+  background: var(--surface-soft); /* Cambiado a variable */
+  color: var(--text-muted); /* Cambiado a variable */
 }
 
 .modal-save-btn {
-  background: linear-gradient(135deg, #7A3BBA, #501D8A);
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   color: white;
 }
 
@@ -377,12 +376,12 @@
   max-width: 90vw;
   max-height: 70vh;
   border-radius: 20px;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .close-preview-btn {
   background: white;
-  color: #2D1B46;
+  color: #111; /* Lo mantenemos así por si el fondo de la pantalla completa es oscuro */
   border: none;
   padding: 12px 24px;
   border-radius: 50px;
