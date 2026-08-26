@@ -156,8 +156,38 @@ const buildUser = (
 export function AppProvider({ children }) {
 
   const [user, setUser] = useState(null);
-
   const [loading, setLoading] = useState(true);
+
+  // =========================================
+  // NUEVO: ESTADOS DE TEMA E IDIOMA
+  // =========================================
+  const [theme, setTheme] = useState(localStorage.getItem('feelsafe_theme') || 'light');
+  const [language, setLanguage] = useState(localStorage.getItem('feelsafe_language') || 'es');
+
+  // Efecto para aplicar el tema al HTML automáticamente
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+    localStorage.setItem('feelsafe_theme', theme);
+  }, [theme]);
+
+  // Efecto para guardar el idioma
+  useEffect(() => {
+    localStorage.setItem('feelsafe_language', language);
+  }, [language]);
+
+  // Funciones para alternar que usaremos en los botones
+  const toggleTheme = () => {
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
+
+  const toggleLanguage = () => {
+    setLanguage((prevLang) => (prevLang === 'es' ? 'en' : 'es'));
+  };
+  // =========================================
 
   useEffect(() => {
 
@@ -516,6 +546,11 @@ export function AppProvider({ children }) {
         setUser,
         loading,
         updateUserProfile,
+        // Exponemos el tema y el idioma a toda la app
+        theme,
+        toggleTheme,
+        language,
+        toggleLanguage
       }}
     >
       {children}

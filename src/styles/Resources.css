@@ -1,132 +1,160 @@
+/* =========================================================
+   FEELSAFE - CENTRO DE RECURSOS Y BIENESTAR
+   ========================================================= */
 .resources-page {
-  display: grid;
-  gap: 28px;
-}
-
-.wellness-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 0 40px 0;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
 }
 
-.wellness-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 30px;
-  text-align: center;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
-}
-
-.wellness-card:hover {
-  transform: translateY(-8px);
-  border-color: rgba(109, 76, 143, 0.18);
-  box-shadow: var(--shadow-md);
-}
-
-.wellness-icon {
-  font-size: 3.2rem;
-  color: var(--primary);
-  margin-bottom: 18px;
-}
-
-.wellness-card h3 {
-  margin-bottom: 12px;
+.resources-main-title {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
   color: var(--text);
+  margin-bottom: 5px;
+}
+
+/* Grid superior de 4 tarjetas */
+.resources-grid-top {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.res-card {
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 24px 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.res-card:hover {
+  transform: translateY(-4px);
+}
+
+.res-card-icon {
+  font-size: 1.4rem;
+  color: var(--primary);
+  margin-bottom: 12px;
+  background: var(--surface-soft);
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.res-card h3 {
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  color: var(--text);
+  margin: 0 0 8px 0;
+}
+
+.res-card p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+  flex-grow: 1;
+}
+
+.res-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  width: 100%;
+}
+
+.res-btn:hover {
+  opacity: 0.9;
+}
+
+/* Grid inferior de 2 columnas */
+.resources-grid-bottom {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.res-info-card,
+.res-challenge-card {
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+}
+
+.res-info-card h3,
+.res-challenge-card h3 {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  color: var(--text);
+  margin: 0 0 8px 0;
+}
+
+.res-info-card p,
+.res-challenge-card p {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.challenge-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.challenge-icon {
+  color: #EAB308;
   font-size: 1.2rem;
 }
 
-.wellness-card p {
-  color: var(--text-light);
-  margin-bottom: 22px;
-  line-height: 1.85;
-}
-
-.wellness-card button {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: var(--surface);
-  padding: 14px 24px;
-  border-radius: 16px;
-  min-width: 140px;
-  font-weight: 700;
-}
-
-.quote-text {
-  min-height: 80px;
-}
-
-.resource-panel {
-  display: grid;
-  grid-template-columns: 1.3fr 0.7fr;
-  gap: 24px;
-}
-
-.resource-info-card,
-.challenge-card {
-  border-radius: var(--radius-lg);
-  padding: 32px;
-  box-shadow: var(--shadow-sm);
-}
-
-.resource-info-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
-
-.resource-info-card h3 {
-  margin-bottom: 16px;
-  color: var(--primary-dark);
-  font-size: 1.25rem;
-}
-
-.resource-info-card p {
-  margin: 0;
-  color: var(--text-light);
-  line-height: 1.8;
-}
-
-.challenge-card {
-  background: linear-gradient(135deg, rgba(109, 76, 143, 0.95), rgba(123, 97, 255, 0.95));
+.res-btn-challenge {
+  margin-top: 15px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 18px;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  width: 100%;
 }
 
-.challenge-card h2 {
-  margin: 0;
-  font-size: 1.5rem;
-}
-
-.challenge-card p {
-  margin: 0;
-  line-height: 1.8;
-}
-
-.challenge-card button {
-  align-self: flex-start;
-  background: rgba(255, 255, 255, 0.18);
-  color: white;
-  padding: 14px 24px;
-  border-radius: 16px;
-  font-weight: 700;
-}
-
-@media (max-width: 900px) {
-  .resource-panel {
+/* Responsive */
+@media (max-width: 1024px) {
+  .resources-grid-top {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .resources-grid-bottom {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 640px) {
-  .wellness-grid {
+@media (max-width: 600px) {
+  .resources-grid-top {
     grid-template-columns: 1fr;
-  }
-
-  .challenge-card,
-  .resource-info-card {
-    padding: 24px;
   }
 }

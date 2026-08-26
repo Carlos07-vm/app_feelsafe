@@ -1,124 +1,136 @@
 import "../styles/Resources.css";
 import MainLayout from "../layouts/MainLayout";
-import {
-  FaSpa,
-  FaMusic,
-  FaQuoteLeft,
-  FaHeartbeat,
-} from "react-icons/fa";
+import { useApp } from "../context/AppContext";
+import { translations } from "../constants/translations";
+import { FaLeaf, FaHeartbeat, FaMusic, FaQuoteLeft, FaBullseye } from "react-icons/fa";
 import { useState } from "react";
 import MeditationModal from "../components/MeditationModal";
 
-const motivationalQuotes = [
-  "Cada pequeño paso es un avance hacia tu bienestar.",
-  "Respira profundo y recuerda que tú importas.",
-  "La calma empieza cuando decides cuidarte.",
-  "Hoy es un buen día para ser amable contigo mismo.",
-];
-
 function Resources() {
+  const { language } = useApp();
+  const t = translations[language] || translations.es;
+
   const [showMeditation, setShowMeditation] = useState(false);
-  const [quote, setQuote] = useState(motivationalQuotes[0]);
-  const [infoMessage, setInfoMessage] = useState(
-    "Selecciona una herramienta para recibir una guía práctica."
-  );
-  const [detailTitle, setDetailTitle] = useState("Información de bienestar");
+
+  const motivationalQuotes = language === 'es' ? [
+    "Cada pequeño paso es un avance hacia tu bienestar.",
+    "Respira profundo y recuerda que tú importas.",
+    "La calma empieza cuando decides cuidarte.",
+    "Hoy es un buen día para ser amable contigo mismo."
+  ] : [
+    "Every small step is progress toward your wellbeing.",
+    "Breathe deep and remember that you matter.",
+    "Calm begins when you decide to take care of yourself.",
+    "Today is a good day to be kind to yourself."
+  ];
+
+  const [quoteIndex, setQuoteIndex] = useState(0);
+  const [infoMessage, setInfoMessage] = useState(t.resInfoDesc);
+  const [detailTitle, setDetailTitle] = useState(t.resInfoTitle);
 
   const handleQuote = () => {
-    const nextQuote = motivationalQuotes[
-      Math.floor(Math.random() * motivationalQuotes.length)
-    ];
-    setQuote(nextQuote);
-    setInfoMessage("Tu frase de ánimo ha sido renovada.");
-    setDetailTitle("Mensaje positivo");
+    const nextIndex = (quoteIndex + 1) % motivationalQuotes.length;
+    setQuoteIndex(nextIndex);
+    setInfoMessage(language === 'es' ? "Tu frase de ánimo ha sido renovada." : "Your motivational quote has been renewed.");
+    setDetailTitle(language === 'es' ? "Mensaje positivo" : "Positive Message");
   };
 
   const handleToolClick = (tool) => {
     switch (tool) {
       case "breathing":
-        setDetailTitle("Ejercicio de respiración");
+        setDetailTitle(language === 'es' ? "Ejercicio de respiración" : "Breathing Exercise");
         setInfoMessage(
-          "Inhala durante 4 segundos, mantén por 4 y exhala por 4. Repite durante 1-2 minutos para calmar tu ritmo." 
+          language === 'es' 
+            ? "Inhala durante 4 segundos, mantén por 4 y exhala por 4. Repite durante 1-2 minutos para calmar tu ritmo." 
+            : "Inhale for 4 seconds, hold for 4, and exhale for 4. Repeat for 1-2 minutes to calm your pace."
         );
         break;
       case "music":
-        setDetailTitle("Música relajante");
+        setDetailTitle(language === 'es' ? "Música relajante" : "Relaxing Music");
         setInfoMessage(
-          "Abre una lista de reproducción suave y respira lentamente. La música puede ayudar a bajar el ritmo cardiaco.");
+          language === 'es'
+            ? "Abre una lista de reproducción suave y respira lentamente. La música puede ayudar a bajar el ritmo cardiaco."
+            : "Open a soft playlist and breathe slowly. Music can help lower your heart rate."
+        );
         window.open("https://www.youtube.com/watch?v=2OEL4P1Rz04", "_blank");
         break;
       default:
-        setDetailTitle("Herramienta de bienestar");
-        setInfoMessage("Encuentra el equilibrio emocional con esta actividad y anota cómo te hace sentir.");
+        setDetailTitle(language === 'es' ? "Herramienta de bienestar" : "Wellness Tool");
+        setInfoMessage(language === 'es' ? "Encuentra el equilibrio emocional con esta actividad y anota cómo te hace sentir." : "Find emotional balance with this activity and note how it makes you feel.");
         break;
     }
   };
 
   const handleChallenge = () => {
-    setDetailTitle("Reto del día");
-    setInfoMessage(
-      "Escribe tres cosas por las que te sientes agradecido y observa cómo cambia tu ánimo."
-    );
+    setDetailTitle(t.resChallengeTitle);
+    setInfoMessage(t.resChallengeDesc);
   };
 
   return (
     <MainLayout>
       <div className="resources-page">
-        <h1 className="page-title">Centro de Bienestar</h1>
+        <h1 className="resources-main-title">{t.resTitle}</h1>
 
-        <div className="wellness-grid">
-          <div className="wellness-card">
-            <FaSpa className="wellness-icon" />
-            <h3>Meditación guiada</h3>
-            <p>Relaja tu mente y mejora tu concentración con un ejercicio corto.</p>
-            <button type="button" onClick={() => setShowMeditation(true)}>
-              Comenzar
+        {/* Grid superior de 4 tarjetas */}
+        <div className="resources-grid-top">
+          
+          <div className="res-card">
+            <div className="res-card-icon"><FaLeaf /></div>
+            <h3>{t.resMeditation}</h3>
+            <p>{t.resMeditationDesc}</p>
+            <button className="res-btn" type="button" onClick={() => setShowMeditation(true)}>
+              {t.resStart}
             </button>
           </div>
 
-          <div className="wellness-card">
-            <FaHeartbeat className="wellness-icon" />
-            <h3>Respiración consciente</h3>
-            <p>Aprende un método simple para calmar tu nerviosismo y reencontrar el foco.</p>
-            <button type="button" onClick={() => handleToolClick("breathing")}>
-              Practicar
+          <div className="res-card">
+            <div className="res-card-icon"><FaHeartbeat /></div>
+            <h3>{t.resBreathing}</h3>
+            <p>{t.resBreathingDesc}</p>
+            <button className="res-btn" type="button" onClick={() => handleToolClick("breathing")}>
+              {t.resPractice}
             </button>
           </div>
 
-          <div className="wellness-card">
-            <FaMusic className="wellness-icon" />
-            <h3>Música relajante</h3>
-            <p>Abre una sesión sonora diseñada para tranquilizar tu mente.</p>
-            <button type="button" onClick={() => handleToolClick("music")}>
-              Escuchar
+          <div className="res-card">
+            <div className="res-card-icon"><FaMusic /></div>
+            <h3>{t.resMusic}</h3>
+            <p>{t.resMusicDesc}</p>
+            <button className="res-btn" type="button" onClick={() => handleToolClick("music")}>
+              {t.resListen}
             </button>
           </div>
 
-          <div className="wellness-card">
-            <FaQuoteLeft className="wellness-icon" />
-            <h3>Frase motivacional</h3>
-            <p className="quote-text">{quote}</p>
-            <button type="button" onClick={handleQuote}>
-              Renovar
+          <div className="res-card">
+            <div className="res-card-icon"><FaQuoteLeft /></div>
+            <h3>{t.resQuoteTitle}</h3>
+            <p className="quote-text">{motivationalQuotes[quoteIndex]}</p>
+            <button className="res-btn" type="button" onClick={handleQuote}>
+              {t.resRenew}
             </button>
           </div>
+
         </div>
 
-        <div className="resource-panel">
-          <div className="resource-info-card">
+        {/* Sección Inferior de 2 columnas */}
+        <div className="resources-grid-bottom">
+          
+          <div className="res-info-card">
             <h3>{detailTitle}</h3>
             <p>{infoMessage}</p>
           </div>
 
-          <div className="challenge-card">
-            <div>
-              <h2>🎯 Reto del día</h2>
-              <p>Escribe tres cosas por las que te sientes agradecido hoy.</p>
+          <div className="res-challenge-card">
+            <div className="challenge-header">
+              <FaBullseye className="challenge-icon" />
+              <h3>{t.resChallengeTitle}</h3>
             </div>
-            <button type="button" onClick={handleChallenge}>
-              Tomar reto
+            <p>{t.resChallengeDesc}</p>
+            <button className="res-btn-challenge" type="button" onClick={handleChallenge}>
+              {t.resChallengeBtn}
             </button>
           </div>
+
         </div>
 
         {showMeditation && <MeditationModal close={() => setShowMeditation(false)} />}

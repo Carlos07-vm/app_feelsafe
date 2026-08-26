@@ -2,35 +2,31 @@
 import MainLayout from "../layouts/MainLayout";
 import { useApp } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
+import { translations } from "../constants/translations"; // <-- IMPORTAMOS EL DICCIONARIO
 import {
-  FaSmile,
-  FaHeartbeat,
-  FaBrain,
-  FaChartLine,
-  FaArrowRight,
-  FaUserCircle,
-  FaLeaf,
-  FaRegEdit,
-  FaRegCommentDots,
-  FaChevronDown,
-  FaCalendarAlt,
-  FaRegFileAlt
+  
+  FaSmile, FaHeartbeat, FaBrain, FaChartLine, FaArrowRight,
+  FaUserCircle, FaLeaf, FaRegEdit, FaRegCommentDots,
+  FaChevronDown, FaCalendarAlt, FaRegFileAlt
 } from "react-icons/fa";
 
 function Dashboard() {
-  const { user, loading } = useApp();
+  const { user, loading, language } = useApp(); // <-- EXTRAEMOS EL IDIOMA
   const navigate = useNavigate();
+
+  // ACTIVAMOS EL DICCIONARIO
+  const t = translations[language] || translations.es;
 
   const hour = new Date().getHours();
   let greeting = "Hola";
-  if (hour >= 5 && hour < 12) greeting = "Buenos días";
-  else if (hour >= 12 && hour < 18) greeting = "Buenas tardes";
-  else greeting = "Buenas noches";
+  if (hour >= 5 && hour < 12) greeting = t.morning;
+  else if (hour >= 12 && hour < 18) greeting = t.afternoon;
+  else greeting = t.evening;
 
   if (loading) {
     return (
       <MainLayout>
-        <p className="loading-text">Cargando tu información...</p>
+        <p className="loading-text">Cargando...</p>
       </MainLayout>
     );
   }
@@ -47,17 +43,12 @@ function Dashboard() {
       <div className="dashboard-wrapper">
         
         {/* =================================================
-            BARRA SUPERIOR (Perfil a la derecha)
+            BARRA SUPERIOR
         ================================================= */}
         <div className="dashboard-topbar">
-
           <div className="topbar-profile" onClick={() => navigate("/profile")}>
             <div className="topbar-avatar">
-              {profilePhoto ? (
-                <img src={profilePhoto} alt="Perfil" />
-              ) : (
-                <FaUserCircle />
-              )}
+              {profilePhoto ? <img src={profilePhoto} alt="Perfil" /> : <FaUserCircle />}
             </div>
             <span className="topbar-name">{userName}</span>
             <FaChevronDown className="topbar-arrow" />
@@ -65,77 +56,71 @@ function Dashboard() {
         </div>
 
         {/* =================================================
-            HERO PRINCIPAL (Color morado puro e intenso)
+            HERO PRINCIPAL
         ================================================= */}
         <section className="dashboard-hero-solid">
           <div className="hero-text-content">
             <span className="hero-tag">PANEL DE BIENESTAR</span>
             <h1>{greeting}, {userName}</h1>
-            <p>
-              Un espacio para comprender cómo te sientes, cuidar de ti y avanzar a tu propio ritmo.
-            </p>
+            <p>{t.dashSubtitle}</p>
           </div>
 
           <div className="hero-widgets">
             <div className="hero-widgets-row">
               <div className="hero-widget-card">
                 <div className="widget-icon"><FaLeaf /></div>
-                <small>Bienestar actual</small>
+                <small>{t.wellbeing}</small>
                 <strong>{wellbeing}%</strong>
                 <div className="widget-bar"><div className="widget-fill" style={{width: `${wellbeing}%`}}></div></div>
               </div>
               
               <div className="hero-widget-card">
                 <div className="widget-icon"><FaFire /></div>
-                <small>Racha actual</small>
+                <small>{t.streak}</small>
                 <strong>{streak} días</strong>
                 <div className="widget-bar"><div className="widget-fill" style={{width: '30%'}}></div></div>
               </div>
             </div>
             
             <button className="hero-main-btn" onClick={() => navigate("/mood")}>
-              Registrar hoy <FaArrowRight />
+              {t.recordToday} <FaArrowRight />
             </button>
           </div>
         </section>
 
         {/* =================================================
-            ESTADÍSTICAS (4 Columnas)
+            ESTADÍSTICAS
         ================================================= */}
         <section className="stats-4col">
           <div className="stat-clean-card">
             <div className="stat-icon-circle bg-purple"><FaSmile /></div>
             <div className="stat-info">
-              <small>Estado emocional</small>
+              <small>{t.emotionalState}</small>
               <strong>Neutro</strong>
-              <span className="stat-sub"><span className="dot dot-purple"></span> Hoy</span>
             </div>
           </div>
 
           <div className="stat-clean-card">
             <div className="stat-icon-circle bg-light-purple"><FaHeartbeat /></div>
             <div className="stat-info">
-              <small>Bienestar</small>
+              <small>{t.wellbeing}</small>
               <strong>{wellbeing}%</strong>
-              <span className="stat-sub"><span className="dot dot-light-purple"></span> Hoy</span>
             </div>
           </div>
 
           <div className="stat-clean-card">
             <div className="stat-icon-circle bg-pink"><FaBrain /></div>
             <div className="stat-info">
-              <small>Asistente IA</small>
+              <small>{t.aiAssistant}</small>
               <strong>{aiStatus}</strong>
-              <span className="stat-sub">Disponible 24/7</span>
             </div>
           </div>
 
           <div className="stat-clean-card">
             <div className="stat-icon-circle bg-blue"><FaChartLine /></div>
             <div className="stat-info">
-              <small>Racha</small>
+              <small>{t.streak}</small>
               <strong>{streak} días</strong>
-              <span className="stat-sub">¡Sigue así!</span>
             </div>
           </div>
         </section>
@@ -143,14 +128,14 @@ function Dashboard() {
         {/* =================================================
             ACCIONES RÁPIDAS
         ================================================= */}
-        <h2 className="section-title">Acciones rápidas</h2>
+        <h2 className="section-title">{t.quickActions}</h2>
         <section className="actions-3col">
-          <button className="action-color-card color-purple" onClick={() => navigate("/specialist")}>
+          <button className="action-color-card color-purple" onClick={() => navigate("/specialists")}>
             <div className="action-left">
               <div className="action-circle"><FaRegCommentDots /></div>
               <div className="action-texts">
-                <h3>Hablar con especialista</h3>
-                <p>Sesión personalizada</p>
+                <h3>{t.speakSpecialist}</h3>
+                <p>{t.speakSpecialistSub}</p>
               </div>
             </div>
             <FaArrowRight className="action-arrow" />
@@ -160,8 +145,8 @@ function Dashboard() {
             <div className="action-left">
               <div className="action-circle"><FaBrain /></div>
               <div className="action-texts">
-                <h3>Hablar con IA</h3>
-                <p>Orientación y apoyo</p>
+                <h3>{t.speakAI}</h3>
+                <p>{t.speakAISub}</p>
               </div>
             </div>
             <FaArrowRight className="action-arrow" />
@@ -171,8 +156,8 @@ function Dashboard() {
             <div className="action-left">
               <div className="action-circle"><FaRegEdit /></div>
               <div className="action-texts">
-                <h3>Registrar emociones</h3>
-                <p>¿Cómo te sientes hoy?</p>
+                <h3>{t.recordEmotions}</h3>
+                <p>{t.recordEmotionsSub}</p>
               </div>
             </div>
             <FaArrowRight className="action-arrow" />
@@ -188,24 +173,23 @@ function Dashboard() {
             <div className="record-header">
               <div className="record-title-area">
                 <FaCalendarAlt className="record-title-icon" />
-                <h3>Último registro</h3>
+                <h3>{t.lastRecord}</h3>
               </div>
-              <span className="record-date">Hoy, 16:42</span>
             </div>
-            <p className="record-desc">Tu registro más reciente nos ayuda a entender cómo te sientes.</p>
+            <p className="record-desc">{t.lastRecordDesc}</p>
             
             <div className="record-mini-cards">
               <div className="mini-card">
                 <div className="mini-icon bg-purple"><FaSmile /></div>
                 <div>
-                  <small>Estado emocional</small>
+                  <small>{t.emotionalState}</small>
                   <strong>Neutro</strong>
                 </div>
               </div>
               <div className="mini-card">
                 <div className="mini-icon bg-light-purple"><FaHeartbeat /></div>
                 <div>
-                  <small>Bienestar</small>
+                  <small>{t.wellbeing}</small>
                   <strong>{wellbeing}%</strong>
                 </div>
               </div>
@@ -213,34 +197,32 @@ function Dashboard() {
 
             <div className="record-notes">
               <div className="notes-header">
-                <FaRegFileAlt /> <strong>Notas del día</strong>
+                <FaRegFileAlt /> <strong>{t.notesOfDay}</strong>
               </div>
-              <p>{latestNote ? latestNote.text : "Me siento tranquilo y enfocado. Tuve un día productivo."}</p>
+              <p>{latestNote ? latestNote.text : "..."}</p>
             </div>
           </div>
 
           <div className="calm-message-card">
             <div className="calm-header">
               <FaLeaf className="calm-icon" />
-              <h3>Mensaje de calma</h3>
+              <h3>{t.calmMessage}</h3>
             </div>
-            <p className="calm-subtitle">Respira, estás haciendo lo mejor que puedes con lo que tienes hoy.</p>
+            <p className="calm-subtitle">{t.calmSubtitle}</p>
             
             <div className="calm-quote">
               <span className="quote-mark left">“</span>
-              <p>Tu bienestar merece atención, paciencia y compasión.</p>
+              <p>{t.calmQuote}</p>
               <span className="quote-mark right">”</span>
             </div>
           </div>
 
         </section>
-
       </div>
     </MainLayout>
   );
 }
 
-// Icono extra de fuego
 function FaFire() {
   return (
     <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 384 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
