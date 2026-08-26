@@ -22,6 +22,28 @@
   --font-body: "Inter", sans-serif;
 }
 
+/* =========================================================
+   MÉTODO CORRECTO: MODO OSCURO (DARK MODE)
+   ========================================================= */
+body.dark-mode {
+  /* 1. Primero redefinimos las variables para que tomen los valores oscuros */
+  --primary-light: #4A316A;
+  --background: #13111C; 
+  --surface: #1E1A29;    
+  --surface-soft: #2A2438;
+  --text: #F7F4FB;       
+  --text-light: #D9C3F2;
+  --text-muted: #9CA3AF;
+  --border: #3A324C;     
+  --shadow-sm: 0 10px 25px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 18px 45px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 25px 70px rgba(0, 0, 0, 0.6);
+
+  /* 2. Aplicamos los colores al body al final para que sí lean las nuevas variables */
+  background-color: var(--background); 
+  color: var(--text);
+}
+
 button,
 input,
 textarea,
@@ -37,4 +59,3 @@ img {
 button {
   transition: var(--transition);
 }
-
