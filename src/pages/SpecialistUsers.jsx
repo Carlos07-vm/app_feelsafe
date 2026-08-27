@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { onAuthStateChanged } from "firebase/auth";
-
 import {
   collection,
   doc,
@@ -11,37 +9,37 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import {
+  FaUsers,
+  FaSearch,
+  FaComments,
+  FaCalendarPlus,
+  FaUserCircle,
+  FaClock,
+} from "react-icons/fa";
 
 import { auth, db } from "../services/firebase";
-
 import SpecialistLayout from "../components/SpecialistLayout";
-
 import "../styles/SpecialistUsers.css";
 
 function SpecialistUsers() {
   const navigate = useNavigate();
 
   const [currentUser, setCurrentUser] = useState(null);
-  const [conversations, setConversations] = useState([]);
-
+  const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
 
   // =====================================================
-  // AUTENTICACIÓN
+  // 1. AUTENTICACIÓN
   // =====================================================
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
-        navigate("/specialist/login", {
-          replace: true,
-        });
-
+        navigate("/login", { replace: true });
         return;
       }
-
       setCurrentUser(user);
     });
 
@@ -49,188 +47,90 @@ function SpecialistUsers() {
   }, [navigate]);
 
   // =====================================================
-  // CARGAR USUARIOS
+  // 2. CARGAR USUARIOS / PACIENTES
   // =====================================================
-
   useEffect(() => {
-    if (!currentUser?.uid) {
-      return;
-    }
+    if (!currentUser?.uid) return;
 
     setLoading(true);
     setError("");
 
-    const conversationsRef = collection(
-      db,
-      "conversaciones_especialistas"
-    );
-
+    const conversationsRef = collection(db, "conversaciones_especialistas");
     const conversationsQuery = query(
       conversationsRef,
-      where(
-        "especialistaId",
-        "==",
-        currentUser.uid
-      )
+      where("especialistaId", "==", currentUser.uid)
     );
 
     const unsubscribe = onSnapshot(
       conversationsQuery,
       async (snapshot) => {
         try {
-          const users = await Promise.all(
-            snapshot.docs.map(async (conversationDoc) => {
-              const data = conversationDoc.data();
+          const userMap = new Map();
 
-              const userId = data.usuarioId;
+          for (const convDoc of snapshot.docs) {
+            const data = convDoc.data();
+            const userId = data.usuarioId;
+            if (!userId) continue;
 
-              let usuarioNombre =
-                data.usuarioNombre ||
-                "Usuario";
+            let usuarioNombre = data.usuarioNombre || "Usuario";
+            let usuarioFoto = data.usuarioFoto || "";
+            let usuarioCorreo = "";
 
-              let usuarioFoto =
-                data.usuarioFoto ||
-                "";
-
-              // =================================================
-              // BUSCAR PERFIL REAL EN "usuarios"
-              // =================================================
-
-              if (userId) {
-                try {
-                  const userRef = doc(
-                    db,
-                    "usuarios",
-                    userId
-                  );
-
-                  const userSnapshot =
-                    await getDoc(userRef);
-
-                  if (userSnapshot.exists()) {
-                    const userData =
-                      userSnapshot.data();
-
-                    console.log(
-                      "👤 PERFIL DEL USUARIO:",
-                      userId,
-                      userData
-                    );
-
-                    usuarioNombre =
-                      userData.nombre ||
-                      userData.displayName ||
-                      userData.nombreCompleto ||
-                      usuarioNombre;
-
-                    usuarioFoto =
-                      userData.foto ||
-                      userData.fotoPerfil ||
-                      userData.photoURL ||
-                      usuarioFoto ||
-                      "";
-                  } else {
-                    console.warn(
-                      "⚠️ No existe perfil en usuarios:",
-                      userId
-                    );
-                  }
-                } catch (profileError) {
-                  console.error(
-                    "❌ Error obteniendo usuario:",
-                    profileError
-                  );
-                }
+            try {
+              const userRef = doc(db, "usuarios", userId);
+              const userSnap = await getDoc(userRef);
+              if (userSnap.exists()) {
+                const realData = userSnap.data();
+                usuarioNombre =
+                  realData.displayName ||
+                  realData.nombre ||
+                  usuarioNombre;
+                usuarioFoto =
+                  realData.photoURL ||
+                  realData.foto ||
+                  usuarioFoto;
+                usuarioCorreo =
+                  realData.email ||
+                  realData.correo ||
+                  "";
               }
-
-              return {
-                id: userId || conversationDoc.id,
-
-                conversationId:
-                  conversationDoc.id,
-
-                usuarioId: userId,
-
-                usuarioNombre,
-
-                usuarioFoto,
-
-                ultimoMensaje:
-                  data.ultimoMensaje ||
-                  "",
-
-                mensajesNoLeidos:
-                  Number(
-                    data.mensajesNoLeidos || 0
-                  ),
-
-                fecha:
-                  data.fechaUltimoMensaje ||
-                  null,
-              };
-            })
-          );
-
-          // =================================================
-          // EVITAR USUARIOS DUPLICADOS
-          // =================================================
-
-          const usersMap = new Map();
-
-          users.forEach((user) => {
-            if (!usersMap.has(user.id)) {
-              usersMap.set(user.id, user);
+            } catch {
+              // fallback
             }
+
+            if (!userMap.has(userId)) {
+              userMap.set(userId, {
+                id: userId,
+                conversationId: convDoc.id,
+                conversation: { id: convDoc.id, ...data },
+                usuarioNombre,
+                usuarioFoto,
+                usuarioCorreo,
+                ultimoMensaje: data.ultimoMensaje || "Consulta iniciada",
+                fechaUltimoMensaje: data.fechaUltimoMensaje,
+                mensajesNoLeidos: data.mensajesNoLeidos || 0,
+              });
+            }
+          }
+
+          const uniqueUsers = Array.from(userMap.values());
+          uniqueUsers.sort((a, b) => {
+            const timeA = a.fechaUltimoMensaje?.toMillis ? a.fechaUltimoMensaje.toMillis() : 0;
+            const timeB = b.fechaUltimoMensaje?.toMillis ? b.fechaUltimoMensaje.toMillis() : 0;
+            return timeB - timeA;
           });
 
-          const finalUsers =
-            Array.from(usersMap.values());
-
-          // =================================================
-          // ORDENAR
-          // =================================================
-
-          finalUsers.sort((a, b) => {
-            const dateA =
-              a.fecha?.toDate
-                ? a.fecha.toDate().getTime()
-                : 0;
-
-            const dateB =
-              b.fecha?.toDate
-                ? b.fecha.toDate().getTime()
-                : 0;
-
-            return dateB - dateA;
-          });
-
-          setConversations(finalUsers);
+          setUsersList(uniqueUsers);
           setLoading(false);
-        } catch (error) {
-          console.error(
-            "❌ Error procesando usuarios:",
-            error
-          );
-
-          setError(
-            "No se pudieron cargar los usuarios."
-          );
-
+        } catch (err) {
+          console.error("Error cargando usuarios:", err);
+          setError("No se pudieron cargar los pacientes.");
           setLoading(false);
         }
       },
-      (firebaseError) => {
-        console.error(
-          "❌ Error cargando conversaciones:",
-          firebaseError
-        );
-
-        setError(
-          firebaseError.message ||
-            "No se pudieron cargar los usuarios."
-        );
-
-        setConversations([]);
+      (err) => {
+        console.error("Error escuchando conversaciones:", err);
+        setError("No se pudo conectar a la base de datos.");
         setLoading(false);
       }
     );
@@ -239,285 +139,177 @@ function SpecialistUsers() {
   }, [currentUser?.uid]);
 
   // =====================================================
-  // FILTRAR
+  // BÚSQUEDA
   // =====================================================
-
   const filteredUsers = useMemo(() => {
-    const text =
-      search.trim().toLowerCase();
+    return usersList.filter((u) => {
+      const term = search.toLowerCase();
+      return (
+        u.usuarioNombre.toLowerCase().includes(term) ||
+        (u.usuarioCorreo && u.usuarioCorreo.toLowerCase().includes(term))
+      );
+    });
+  }, [usersList, search]);
 
-    if (!text) {
-      return conversations;
-    }
-
-    return conversations.filter((user) =>
-      user.usuarioNombre
-        ?.toLowerCase()
-        .includes(text)
-    );
-  }, [conversations, search]);
-
-  // =====================================================
-  // ABRIR CHAT
-  // =====================================================
-
-  const openConversation = (user) => {
-    if (!user.conversationId) {
-      return;
-    }
-
-    navigate(
-      `/specialist-chat/${user.conversationId}`,
-      {
-        state: {
-          conversation: user,
-        },
-      }
-    );
-  };
-
-  // =====================================================
-  // FECHA
-  // =====================================================
-
-  const formatDate = (timestamp) => {
-    if (
-      !timestamp ||
-      typeof timestamp.toDate !==
-        "function"
-    ) {
-      return "";
-    }
-
+  const formatLastActivity = (timestamp) => {
+    if (!timestamp || typeof timestamp.toDate !== "function") return "";
     try {
-      return timestamp
-        .toDate()
-        .toLocaleDateString("es-NI", {
-          day: "2-digit",
-          month: "short",
-        });
+      return timestamp.toDate().toLocaleDateString("es-NI", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
     } catch {
       return "";
     }
   };
 
-  // =====================================================
-  // LOADING
-  // =====================================================
-
-  if (loading) {
-    return (
-      <SpecialistLayout>
-        <div className="specialist-users-loading">
-          <div>⏳</div>
-
-          <p>
-            Cargando usuarios...
-          </p>
-        </div>
-      </SpecialistLayout>
-    );
-  }
-
-  // =====================================================
-  // INTERFAZ
-  // =====================================================
-
   return (
     <SpecialistLayout>
-      <div className="specialist-users-page">
-
-        {/* HEADER */}
-
-        <header className="specialist-users-header">
-
+      <div className="specialist-users-wrapper">
+        {/* ===================================================
+            HEADER
+            =================================================== */}
+        <header className="users-page-header">
           <div>
-            <span>
-              PANEL DE PROFESIONALES
-            </span>
-
-            <h1>
-              👥 Usuarios
-            </h1>
-
-            <p>
-              Usuarios que han iniciado
-              una conversación contigo.
+            <div className="users-page-badge">
+              <span>Directorio Profesional</span>
+            </div>
+            <h1 className="users-page-title">Directorio de Pacientes</h1>
+            <p className="users-page-subtitle">
+              Consulta la información de las personas que han recibido orientación y acompañamiento contigo.
             </p>
           </div>
 
-          <div className="users-total">
-            <strong>
-              {conversations.length}
-            </strong>
-
-            <small>
-              usuarios
-            </small>
+          <div className="users-stats-box">
+            <div className="users-stat-num">{usersList.length}</div>
+            <span className="users-stat-text">
+              {usersList.length === 1 ? "Paciente Atendido" : "Pacientes Atendidos"}
+            </span>
           </div>
-
         </header>
 
-        {/* BUSCADOR */}
-
-        <section className="users-toolbar">
-
-          <div className="users-search">
-
-            <span>🔎</span>
-
+        {/* ===================================================
+            TOOLBAR: BÚSQUEDA
+            =================================================== */}
+        <div className="users-toolbar">
+          <div className="users-search-input-wrap">
+            <FaSearch className="users-search-icon" />
             <input
               type="text"
-              placeholder="Buscar usuario..."
+              placeholder="Buscar por nombre o correo de paciente..."
               value={search}
-              onChange={(event) =>
-                setSearch(
-                  event.target.value
-                )
-              }
+              onChange={(e) => setSearch(e.target.value)}
             />
-
+            {search && (
+              <button
+                type="button"
+                className="users-clear-btn"
+                onClick={() => setSearch("")}
+              >
+                ✕
+              </button>
+            )}
           </div>
+        </div>
 
-        </section>
-
-        {/* ERROR */}
-
-        {error && (
-          <div className="users-empty">
-
-            <div>⚠️</div>
-
-            <h2>
-              No se pudieron cargar los usuarios
-            </h2>
-
-            <p>
-              {error}
-            </p>
-
-          </div>
-        )}
-
-        {/* SIN USUARIOS */}
-
-        {!error &&
-          filteredUsers.length === 0 && (
-            <div className="users-empty">
-
-              <div>👥</div>
-
-              <h2>
+        {/* ===================================================
+            LISTADO DE PACIENTES
+            =================================================== */}
+        <main className="users-content-area">
+          {loading ? (
+            <div className="users-loading-box">
+              <div className="specialist-spinner"></div>
+              <p>Cargando lista de pacientes...</p>
+            </div>
+          ) : error ? (
+            <div className="users-empty-box">
+              <p className="users-error-text">⚠️ {error}</p>
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="users-empty-box">
+              <div className="users-empty-icon">
+                {search ? <FaSearch /> : <FaUsers />}
+              </div>
+              <h3>
                 {search
-                  ? "No encontramos usuarios"
-                  : "Todavía no tienes usuarios"}
-              </h2>
-
+                  ? "No encontramos pacientes con esa búsqueda"
+                  : "Todavía no tienes pacientes registrados"}
+              </h3>
               <p>
                 {search
-                  ? "Prueba con otro nombre."
-                  : "Cuando un usuario inicie una conversación contigo aparecerá aquí."}
+                  ? "Verifica la ortografía o intenta buscar con otro término."
+                  : "Cuando los usuarios de FeelSafe inicien una conversación contigo, aparecerán en este directorio."}
               </p>
-
             </div>
-          )}
-
-        {/* LISTA */}
-
-        {!error &&
-          filteredUsers.length > 0 && (
-            <section className="users-list">
-
+          ) : (
+            <div className="users-cards-grid">
               {filteredUsers.map((user) => (
-                <article
-                  key={user.id}
-                  className="specialist-user-card"
-                  onClick={() =>
-                    openConversation(user)
-                  }
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(event) => {
-                    if (
-                      event.key === "Enter" ||
-                      event.key === " "
-                    ) {
-                      openConversation(user);
-                    }
-                  }}
-                >
-
-                  {/* FOTO */}
-
-                  <div className="specialist-user-avatar">
-
-                    {user.usuarioFoto ? (
-                      <img
-                        src={user.usuarioFoto}
-                        alt={
-                          user.usuarioNombre ||
-                          "Usuario"
-                        }
-                        onError={(event) => {
-                          event.currentTarget.style.display =
-                            "none";
-                        }}
-                      />
-                    ) : (
-                      <span>
-                        {user.usuarioNombre
-                          ?.charAt(0)
-                          .toUpperCase() ||
-                          "U"}
-                      </span>
-                    )}
-
-                  </div>
-
-                  {/* INFORMACIÓN */}
-
-                  <div className="specialist-user-info">
-
-                    <div className="specialist-user-top">
-
-                      <h3>
-                        {user.usuarioNombre}
-                      </h3>
-
-                      <span>
-                        {formatDate(
-                          user.fecha
-                        )}
-                      </span>
-
+                <article key={user.id} className="patient-card">
+                  <div className="patient-card-header">
+                    <div className="patient-avatar">
+                      {user.usuarioFoto ? (
+                        <img
+                          src={user.usuarioFoto}
+                          alt={user.usuarioNombre}
+                        />
+                      ) : (
+                        <FaUserCircle className="patient-avatar-icon" />
+                      )}
                     </div>
-
-                    <p>
-                      {user.ultimoMensaje ||
-                        "Nueva conversación"}
-                    </p>
-
+                    <div className="patient-info">
+                      <h3 className="patient-name">{user.usuarioNombre}</h3>
+                      {user.usuarioCorreo && (
+                        <span className="patient-email">
+                          {user.usuarioCorreo}
+                        </span>
+                      )}
+                      <span className="patient-activity">
+                        <FaClock /> Última interacción:{" "}
+                        {formatLastActivity(user.fechaUltimoMensaje) || "Reciente"}
+                      </span>
+                    </div>
                   </div>
 
-                  {/* NO LEÍDOS */}
+                  <div className="patient-last-msg">
+                    <span className="last-msg-label">Último mensaje:</span>
+                    <p className="last-msg-text">"{user.ultimoMensaje}"</p>
+                  </div>
 
-                  {user.mensajesNoLeidos >
-                    0 && (
-                    <span className="user-unread">
-                      {user.mensajesNoLeidos}
-                    </span>
-                  )}
-
-                  <span className="user-arrow">
-                    →
-                  </span>
-
+                  <div className="patient-card-actions">
+                    <button
+                      type="button"
+                      className="patient-btn-chat"
+                      onClick={() =>
+                        navigate(`/specialist-chat/${user.conversationId}`, {
+                          state: { conversation: user.conversation },
+                        })
+                      }
+                    >
+                      <FaComments /> Abrir Chat
+                    </button>
+                    <button
+                      type="button"
+                      className="patient-btn-agenda"
+                      onClick={() =>
+                        navigate("/specialist/agenda", {
+                          state: {
+                            prefillUser: {
+                              id: user.id,
+                              nombre: user.usuarioNombre,
+                            },
+                          },
+                        })
+                      }
+                    >
+                      <FaCalendarPlus /> Agendar Cita
+                    </button>
+                  </div>
                 </article>
               ))}
-
-            </section>
+            </div>
           )}
-
+        </main>
       </div>
     </SpecialistLayout>
   );

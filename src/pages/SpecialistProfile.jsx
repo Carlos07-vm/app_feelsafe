@@ -1,16 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { onAuthStateChanged } from "firebase/auth";
-
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import {
-  doc,
-  getDoc,
-  updateDoc,
-} from "firebase/firestore";
+  FaUserMd,
+  FaCamera,
+  FaCheckCircle,
+  FaTimes,
+  FaSave,
+  FaBriefcase,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaEnvelope,
+  FaUserCircle,
+} from "react-icons/fa";
 
 import { auth, db } from "../services/firebase";
-
+import SpecialistLayout from "../components/SpecialistLayout";
 import "../styles/SpecialistProfile.css";
 
 function SpecialistProfile() {
@@ -19,7 +25,6 @@ function SpecialistProfile() {
 
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -30,902 +35,387 @@ function SpecialistProfile() {
   const [form, setForm] = useState({
     nombre: "",
     especialidad: "",
-    descripcion: "",
+    experiencia: "",
     telefono: "",
     ciudad: "",
+    descripcion: "",
   });
 
   // =====================================================
-  // AUTENTICACIÓN Y CARGAR PERFIL
+  // 1. CARGAR PERFIL
   // =====================================================
-
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (firebaseUser) => {
-        if (!firebaseUser) {
-          navigate("/specialist/login", {
-            replace: true,
-          });
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      setUser(firebaseUser);
+
+      try {
+        const specialistRef = doc(db, "specialists", firebaseUser.uid);
+        const specialistSnap = await getDoc(specialistRef);
+
+        if (!specialistSnap.exists()) {
+          setError("No se encontró el registro del especialista.");
+          setLoading(false);
           return;
         }
 
-        setUser(firebaseUser);
-
-        try {
-          const specialistRef = doc(
-            db,
-            "specialists",
-            firebaseUser.uid
-          );
-
-          const specialistSnap =
-            await getDoc(specialistRef);
-
-          if (!specialistSnap.exists()) {
-            setError(
-              "No existe el perfil del especialista."
-            );
-
-            setLoading(false);
-            return;
-          }
-
-          const data = specialistSnap.data();
-
-          setProfile({
-            uid: firebaseUser.uid,
-            ...data,
-          });
-
-          setForm({
-            nombre:
-              data.nombre ||
-              firebaseUser.displayName ||
-              "",
-
-            especialidad:
-              data.especialidad || "",
-
-            descripcion:
-              data.descripcion || "",
-
-            telefono:
-              data.telefono || "",
-
-            ciudad:
-              data.ciudad || "",
-          });
-        } catch (err) {
-          console.error(
-            "Error cargando perfil:",
-            err
-          );
-
-          setError(
-            "No se pudo cargar tu perfil."
-          );
-        } finally {
-          setLoading(false);
-        }
+        const data = specialistSnap.data();
+        setProfile({ uid: firebaseUser.uid, ...data });
+        setForm({
+          nombre: data.nombre || firebaseUser.displayName || "",
+          especialidad: data.especialidad || "",
+          experiencia: data.experiencia ? String(data.experiencia) : "",
+          telefono: data.telefono || "",
+          ciudad: data.ciudad || "",
+          descripcion: data.descripcion || "",
+        });
+      } catch (err) {
+        console.error("Error cargando perfil:", err);
+        setError("Error al cargar la información del perfil.");
+      } finally {
+        setLoading(false);
       }
-    );
+    });
 
     return () => unsubscribe();
   }, [navigate]);
 
   // =====================================================
-  // CAMBIAR CAMPOS
+  // COMPRESIÓN DE IMAGEN
   // =====================================================
+  const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+          const maxDim = 400;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
 
-    setForm((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
 
-    setMessage("");
-    setError("");
+          const base64 = canvas.toDataURL("image/jpeg", 0.7);
+          resolve(base64);
+        };
+        img.onerror = () => reject(new Error("Error procesando imagen."));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error("Error leyendo archivo."));
+      reader.readAsDataURL(file);
+    });
   };
 
   // =====================================================
-  // GUARDAR PERFIL
+  // CAMBIAR FOTO DE PERFIL
   // =====================================================
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.uid) return;
 
-  const handleSave = async (event) => {
-    event.preventDefault();
-
-    if (!user?.uid) {
-      setError(
-        "No hay un usuario autenticado."
-      );
+    if (!file.type.startsWith("image/")) {
+      setError("Por favor selecciona un archivo de imagen válido.");
       return;
     }
-
-    if (!form.nombre.trim()) {
-      setError(
-        "El nombre es obligatorio."
-      );
-      return;
-    }
-
-    if (!form.especialidad.trim()) {
-      setError(
-        "La especialidad es obligatoria."
-      );
-      return;
-    }
-
-    setSaving(true);
-    setMessage("");
-    setError("");
 
     try {
-      const specialistRef = doc(
-        db,
-        "specialists",
-        user.uid
-      );
+      setUploadingPhoto(true);
+      setError("");
+      setMessage("");
 
-      const updatedData = {
+      const base64 = await compressImage(file);
+
+      const specialistRef = doc(db, "specialists", user.uid);
+      await updateDoc(specialistRef, { fotoPerfil: base64 });
+
+      setProfile((prev) => ({ ...prev, fotoPerfil: base64 }));
+      setMessage("Foto de perfil actualizada correctamente.");
+    } catch (err) {
+      console.error("Error subiendo foto:", err);
+      setError("No se pudo actualizar la foto de perfil.");
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // =====================================================
+  // GUARDAR DATOS DEL FORMULARIO
+  // =====================================================
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setError("");
+    setMessage("");
+
+    if (!form.nombre.trim()) {
+      setError("El nombre completo es obligatorio.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      const specialistRef = doc(db, "specialists", user.uid);
+      await updateDoc(specialistRef, {
         nombre: form.nombre.trim(),
+        especialidad: form.especialidad.trim(),
+        experiencia: Number(form.experiencia) || 0,
+        telefono: form.telefono.trim(),
+        ciudad: form.ciudad.trim(),
+        descripcion: form.descripcion.trim(),
+      });
 
-        especialidad:
-          form.especialidad.trim(),
-
-        descripcion:
-          form.descripcion.trim(),
-
-        telefono:
-          form.telefono.trim(),
-
-        ciudad:
-          form.ciudad.trim(),
-      };
-
-      await updateDoc(
-        specialistRef,
-        updatedData
-      );
-
-      setProfile((previous) => ({
-        ...previous,
-        ...updatedData,
+      setProfile((prev) => ({
+        ...prev,
+        nombre: form.nombre.trim(),
+        especialidad: form.especialidad.trim(),
+        experiencia: Number(form.experiencia) || 0,
+        telefono: form.telefono.trim(),
+        ciudad: form.ciudad.trim(),
+        descripcion: form.descripcion.trim(),
       }));
 
-      setMessage(
-        "Perfil actualizado correctamente."
-      );
+      setMessage("¡Tu perfil profesional se ha actualizado con éxito!");
     } catch (err) {
-      console.error(
-        "Error guardando perfil:",
-        err
-      );
-
-      setError(
-        "No se pudo guardar el perfil."
-      );
+      console.error("Error guardando perfil:", err);
+      setError("No se pudieron guardar los cambios en el perfil.");
     } finally {
       setSaving(false);
     }
   };
 
-  // =====================================================
-  // ABRIR SELECTOR DE IMAGEN
-  // =====================================================
-
-  const handlePhotoClick = () => {
-    if (uploadingPhoto) {
-      return;
-    }
-
-    fileInputRef.current?.click();
-  };
-
-  // =====================================================
-  // COMPRIMIR IMAGEN
-  // =====================================================
-
-  const compressImage = (
-    file,
-    maxWidth = 800,
-    maxHeight = 800,
-    quality = 0.7
-  ) => {
-    return new Promise(
-      (resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onload = (event) => {
-          const image = new Image();
-
-          image.onload = () => {
-            let width = image.width;
-            let height = image.height;
-
-            // ---------------------------------------------
-            // CALCULAR NUEVAS DIMENSIONES
-            // ---------------------------------------------
-
-            if (
-              width > maxWidth ||
-              height > maxHeight
-            ) {
-              const widthRatio =
-                maxWidth / width;
-
-              const heightRatio =
-                maxHeight / height;
-
-              const ratio = Math.min(
-                widthRatio,
-                heightRatio
-              );
-
-              width = Math.round(
-                width * ratio
-              );
-
-              height = Math.round(
-                height * ratio
-              );
-            }
-
-            // ---------------------------------------------
-            // CREAR CANVAS
-            // ---------------------------------------------
-
-            const canvas =
-              document.createElement(
-                "canvas"
-              );
-
-            canvas.width = width;
-            canvas.height = height;
-
-            const context =
-              canvas.getContext("2d");
-
-            if (!context) {
-              reject(
-                new Error(
-                  "No se pudo procesar la imagen."
-                )
-              );
-              return;
-            }
-
-            // Fondo blanco para imágenes
-            // que tengan transparencia.
-            context.fillStyle = "#ffffff";
-
-            context.fillRect(
-              0,
-              0,
-              width,
-              height
-            );
-
-            context.drawImage(
-              image,
-              0,
-              0,
-              width,
-              height
-            );
-
-            // ---------------------------------------------
-            // CONVERTIR A JPEG
-            // ---------------------------------------------
-
-            let currentQuality =
-              quality;
-
-            let base64 =
-              canvas.toDataURL(
-                "image/jpeg",
-                currentQuality
-              );
-
-            // ---------------------------------------------
-            // REDUCIR SI ES MUY GRANDE
-            // ---------------------------------------------
-
-            // Aproximadamente 500 KB máximo.
-            const maxBase64Length =
-              500 * 1024;
-
-            while (
-              base64.length >
-                maxBase64Length &&
-              currentQuality > 0.3
-            ) {
-              currentQuality -= 0.05;
-
-              base64 =
-                canvas.toDataURL(
-                  "image/jpeg",
-                  currentQuality
-                );
-            }
-
-            // Si todavía es grande,
-            // reducimos las dimensiones.
-            if (
-              base64.length >
-              maxBase64Length
-            ) {
-              const smallerWidth =
-                Math.round(width * 0.8);
-
-              const smallerHeight =
-                Math.round(height * 0.8);
-
-              canvas.width =
-                smallerWidth;
-
-              canvas.height =
-                smallerHeight;
-
-              context.fillStyle =
-                "#ffffff";
-
-              context.fillRect(
-                0,
-                0,
-                smallerWidth,
-                smallerHeight
-              );
-
-              context.drawImage(
-                image,
-                0,
-                0,
-                smallerWidth,
-                smallerHeight
-              );
-
-              base64 =
-                canvas.toDataURL(
-                  "image/jpeg",
-                  0.6
-                );
-            }
-
-            resolve(base64);
-          };
-
-          image.onerror = () => {
-            reject(
-              new Error(
-                "No se pudo cargar la imagen."
-              )
-            );
-          };
-
-          image.src =
-            event.target.result;
-        };
-
-        reader.onerror = () => {
-          reject(
-            new Error(
-              "No se pudo leer el archivo."
-            )
-          );
-        };
-
-        reader.readAsDataURL(file);
-      }
-    );
-  };
-
-  // =====================================================
-  // CAMBIAR FOTO
-  // =====================================================
-
-  const handlePhotoChange = async (
-    event
-  ) => {
-    const file =
-      event.target.files?.[0];
-
-    if (!file || !user?.uid) {
-      return;
-    }
-
-    // ---------------------------------------------
-    // VALIDAR TIPO
-    // ---------------------------------------------
-
-    if (!file.type.startsWith("image/")) {
-      setError(
-        "Selecciona una imagen válida."
-      );
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
-      return;
-    }
-
-    // ---------------------------------------------
-    // VALIDAR TAMAÑO ORIGINAL
-    // ---------------------------------------------
-
-    if (
-      file.size >
-      10 * 1024 * 1024
-    ) {
-      setError(
-        "La imagen original no puede superar los 10 MB."
-      );
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-
-      return;
-    }
-
-    setUploadingPhoto(true);
-    setMessage("");
-    setError("");
-
-    try {
-      // ---------------------------------------------
-      // COMPRIMIR FOTO
-      // ---------------------------------------------
-
-      const compressedImage =
-        await compressImage(file);
-
-      if (!compressedImage) {
-        throw new Error(
-          "No se pudo comprimir la imagen."
-        );
-      }
-
-      // ---------------------------------------------
-      // VERIFICAR TAMAÑO FINAL
-      // ---------------------------------------------
-
-      const approximateSize =
-        Math.round(
-          (compressedImage.length * 3) /
-            4
-        );
-
-      console.log(
-        "Tamaño aproximado de imagen:",
-        approximateSize,
-        "bytes"
-      );
-
-      if (
-        approximateSize >
-        900 * 1024
-      ) {
-        throw new Error(
-          "La imagen comprimida sigue siendo demasiado grande."
-        );
-      }
-
-      // ---------------------------------------------
-      // REFERENCIA AL DOCUMENTO
-      // ---------------------------------------------
-
-      const specialistRef = doc(
-        db,
-        "specialists",
-        user.uid
-      );
-
-      // ---------------------------------------------
-      // GUARDAR DIRECTAMENTE EN FIRESTORE
-      // ---------------------------------------------
-
-      await updateDoc(
-        specialistRef,
-        {
-          fotoPerfil:
-            compressedImage,
-        }
-      );
-
-      // ---------------------------------------------
-      // ACTUALIZAR INTERFAZ
-      // ---------------------------------------------
-
-      setProfile((previous) => ({
-        ...previous,
-        fotoPerfil:
-          compressedImage,
-      }));
-
-      setMessage(
-        "Foto de perfil actualizada correctamente."
-      );
-    } catch (err) {
-      console.error(
-        "Error guardando foto:",
-        err
-      );
-
-      if (
-        err?.code ===
-        "permission-denied"
-      ) {
-        setError(
-          "Firebase no permite actualizar la foto. Revisa las reglas de Firestore."
-        );
-      } else {
-        setError(
-          err?.message ||
-            "No se pudo actualizar la foto."
-        );
-      }
-    } finally {
-      setUploadingPhoto(false);
-
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    }
-  };
-
-  // =====================================================
-  // LOADING
-  // =====================================================
-
   if (loading) {
     return (
-      <div className="specialist-profile-loading">
-        <div>⏳</div>
-
-        <p>
-          Cargando perfil...
-        </p>
-      </div>
+      <SpecialistLayout>
+        <div className="profile-loading-state">
+          <div className="specialist-spinner"></div>
+          <p>Cargando información de tu perfil...</p>
+        </div>
+      </SpecialistLayout>
     );
   }
 
-  // =====================================================
-  // INTERFAZ
-  // =====================================================
-
   return (
-    <div className="specialist-profile-page">
+    <SpecialistLayout>
+      <div className="specialist-profile-wrapper">
+        {/* ===================================================
+            HEADER
+            =================================================== */}
+        <header className="profile-page-header">
+          <div>
+            <div className="profile-page-badge">
+              <span>Identidad Profesional</span>
+            </div>
+            <h1 className="profile-page-title">Mi Perfil Profesional</h1>
+            <p className="profile-page-subtitle">
+              Personaliza tu presentación, especialidad y biografía para que los pacientes te conozcan mejor.
+            </p>
+          </div>
+        </header>
 
-      {/* =================================================
-          HEADER
-      ================================================= */}
+        {/* FEEDBACK BANNERS */}
+        {message && (
+          <div className="profile-alert success">
+            <FaCheckCircle /> {message}
+          </div>
+        )}
+        {error && (
+          <div className="profile-alert error">
+            <FaTimes /> {error}
+          </div>
+        )}
 
-      <header className="specialist-profile-header">
+        {/* ===================================================
+            GRID DE PERFIL: TARJETA VISUAL + FORMULARIO
+            =================================================== */}
+        <div className="profile-layout-grid">
+          {/* LADO IZQUIERDO: Tarjeta Resumen y Avatar */}
+          <aside className="profile-summary-card">
+            <div className="profile-avatar-container">
+              <div className="profile-avatar-large">
+                {profile?.fotoPerfil ? (
+                  <img
+                    src={profile.fotoPerfil}
+                    alt={profile.nombre || "Especialista"}
+                  />
+                ) : (
+                  <FaUserCircle className="profile-placeholder-icon" />
+                )}
+              </div>
 
-        <div>
-
-          <button
-            type="button"
-            className="profile-back-button"
-            onClick={() =>
-              navigate(
-                "/specialist/dashboard"
-              )
-            }
-          >
-            ← Volver al panel
-          </button>
-
-          <span className="profile-label">
-            PANEL DE PROFESIONALES
-          </span>
-
-          <h1>
-            Mi perfil
-          </h1>
-
-          <p>
-            Administra tu información
-            profesional.
-          </p>
-
-        </div>
-
-      </header>
-
-      {/* =================================================
-          CONTENIDO
-      ================================================= */}
-
-      <main className="specialist-profile-content">
-
-        {/* =================================================
-            FOTO
-        ================================================= */}
-
-        <section className="profile-photo-card">
-
-          <div className="profile-photo">
-
-            {profile?.fotoPerfil ? (
-              <img
-                src={
-                  profile.fotoPerfil
-                }
-                alt={
-                  profile.nombre ||
-                  "Especialista"
-                }
+              <label
+                htmlFor="profile-photo-input"
+                className="profile-photo-overlay-btn"
+                title="Cambiar foto de perfil"
+              >
+                <FaCamera />
+              </label>
+              <input
+                id="profile-photo-input"
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                onChange={handlePhotoChange}
+                style={{ display: "none" }}
+                disabled={uploadingPhoto}
               />
-            ) : (
-              <span>
-                {profile?.nombre
-                  ?.charAt(0)
-                  .toUpperCase() ||
-                  "E"}
-              </span>
+            </div>
+
+            {uploadingPhoto && (
+              <p className="photo-uploading-text">Subiendo foto...</p>
             )}
 
-          </div>
+            <h2 className="summary-name">
+              {profile?.nombre || user?.displayName || "Especialista"}
+            </h2>
+            <span className="summary-badge">
+              {profile?.especialidad || "Especialista en Salud Mental"}
+            </span>
 
-          <h2>
-            {profile?.nombre ||
-              "Especialista"}
-          </h2>
+            <div className="summary-info-list">
+              <div className="summary-info-item">
+                <FaEnvelope className="summary-info-icon" />
+                <span>{user?.email}</span>
+              </div>
+              {profile?.telefono && (
+                <div className="summary-info-item">
+                  <FaPhone className="summary-info-icon" />
+                  <span>{profile.telefono}</span>
+                </div>
+              )}
+              {profile?.ciudad && (
+                <div className="summary-info-item">
+                  <FaMapMarkerAlt className="summary-info-icon" />
+                  <span>{profile.ciudad}</span>
+                </div>
+              )}
+              {profile?.experiencia > 0 && (
+                <div className="summary-info-item">
+                  <FaBriefcase className="summary-info-icon" />
+                  <span>{profile.experiencia} años de experiencia</span>
+                </div>
+              )}
+            </div>
+          </aside>
 
-          <p>
-            {profile?.especialidad ||
-              "Especialista FeelSafe"}
-          </p>
-
-          <button
-            type="button"
-            onClick={handlePhotoClick}
-            disabled={
-              uploadingPhoto
-            }
-          >
-            {uploadingPhoto
-              ? "Guardando foto..."
-              : "Cambiar foto"}
-          </button>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={
-              handlePhotoChange
-            }
-            hidden
-          />
-
-        </section>
-
-        {/* =================================================
-            FORMULARIO
-        ================================================= */}
-
-        <section className="profile-form-card">
-
-          <div className="profile-form-header">
-
-            <div>
-
-              <span>
-                INFORMACIÓN PROFESIONAL
-              </span>
-
-              <h2>
-                Datos del especialista
-              </h2>
-
+          {/* LADO DERECHO: Formulario de edición */}
+          <main className="profile-form-container">
+            <div className="profile-card-header">
+              <FaUserMd className="profile-form-icon" />
+              <div>
+                <h2>Datos Profesionales</h2>
+                <p>Edita tu información pública visible para los usuarios.</p>
+              </div>
             </div>
 
-          </div>
+            <form onSubmit={handleSaveProfile}>
+              <div className="profile-fields-grid">
+                <div className="profile-field">
+                  <label>Nombre y Apellidos *</label>
+                  <input
+                    type="text"
+                    name="nombre"
+                    value={form.nombre}
+                    onChange={handleChange}
+                    placeholder="Ej. Dra. Sofía Ramírez"
+                    required
+                  />
+                </div>
 
-          {/* =================================================
-              MENSAJE
-          ================================================= */}
+                <div className="profile-field">
+                  <label>Especialidad / Enfoque *</label>
+                  <input
+                    type="text"
+                    name="especialidad"
+                    value={form.especialidad}
+                    onChange={handleChange}
+                    placeholder="Ej. Psicología Clínica, Manejo del Estrés..."
+                  />
+                </div>
 
-          {message && (
-            <div className="profile-success">
-              ✓ {message}
-            </div>
-          )}
+                <div className="profile-field">
+                  <label>Años de Experiencia</label>
+                  <input
+                    type="number"
+                    name="experiencia"
+                    value={form.experiencia}
+                    onChange={handleChange}
+                    placeholder="Ej. 5"
+                    min={0}
+                  />
+                </div>
 
-          {/* =================================================
-              ERROR
-          ================================================= */}
+                <div className="profile-field">
+                  <label>Teléfono de Contacto</label>
+                  <input
+                    type="tel"
+                    name="telefono"
+                    value={form.telefono}
+                    onChange={handleChange}
+                    placeholder="Ej. +505 8888 8888"
+                  />
+                </div>
 
-          {error && (
-            <div className="profile-error">
-              ⚠️ {error}
-            </div>
-          )}
+                <div className="profile-field full-width">
+                  <label>Ciudad / Ubicación</label>
+                  <input
+                    type="text"
+                    name="ciudad"
+                    value={form.ciudad}
+                    onChange={handleChange}
+                    placeholder="Ej. Managua, Nicaragua"
+                  />
+                </div>
 
-          <form
-            onSubmit={handleSave}
-          >
-
-            <div className="profile-form-grid">
-
-              {/* NOMBRE */}
-
-              <div className="profile-field">
-
-                <label>
-                  Nombre completo
-                </label>
-
-                <input
-                  type="text"
-                  name="nombre"
-                  value={
-                    form.nombre
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="Nombre completo"
-                />
-
+                <div className="profile-field full-width">
+                  <label>Descripción / Biografía Profesional</label>
+                  <textarea
+                    name="descripcion"
+                    value={form.descripcion}
+                    onChange={handleChange}
+                    rows={4}
+                    placeholder="Cuéntale a las personas sobre tu formación, tu enfoque terapéutico y cómo puedes acompañarlas en FeelSafe..."
+                  />
+                </div>
               </div>
 
-              {/* ESPECIALIDAD */}
-
-              <div className="profile-field">
-
-                <label>
-                  Especialidad
-                </label>
-
-                <input
-                  type="text"
-                  name="especialidad"
-                  value={
-                    form.especialidad
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="Ej. Psicología"
-                />
-
+              <div className="profile-form-footer">
+                <button
+                  type="submit"
+                  className="profile-save-btn"
+                  disabled={saving}
+                >
+                  <FaSave /> {saving ? "Guardando cambios..." : "Guardar Perfil"}
+                </button>
               </div>
-
-              {/* TELÉFONO */}
-
-              <div className="profile-field">
-
-                <label>
-                  Teléfono
-                </label>
-
-                <input
-                  type="tel"
-                  name="telefono"
-                  value={
-                    form.telefono
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="Número de teléfono"
-                />
-
-              </div>
-
-              {/* CIUDAD */}
-
-              <div className="profile-field">
-
-                <label>
-                  Ciudad
-                </label>
-
-                <input
-                  type="text"
-                  name="ciudad"
-                  value={
-                    form.ciudad
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="Ciudad"
-                />
-
-              </div>
-
-              {/* DESCRIPCIÓN */}
-
-              <div className="profile-field profile-field-full">
-
-                <label>
-                  Descripción profesional
-                </label>
-
-                <textarea
-                  name="descripcion"
-                  value={
-                    form.descripcion
-                  }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="Escribe una breve descripción sobre tu experiencia y especialidad..."
-                  rows="6"
-                />
-
-              </div>
-
-            </div>
-
-            {/* =================================================
-                CORREO
-            ================================================= */}
-
-            <div className="profile-email">
-
-              <span>
-                Correo electrónico
-              </span>
-
-              <strong>
-                {user?.email ||
-                  "No disponible"}
-              </strong>
-
-              <small>
-                El correo de acceso
-                no se modifica desde
-                este formulario.
-              </small>
-
-            </div>
-
-            {/* =================================================
-                BOTONES
-            ================================================= */}
-
-            <div className="profile-actions">
-
-              <button
-                type="button"
-                className="profile-cancel"
-                onClick={() =>
-                  navigate(
-                    "/specialist/dashboard"
-                  )
-                }
-              >
-                Cancelar
-              </button>
-
-              <button
-                type="submit"
-                className="profile-save"
-                disabled={saving}
-              >
-                {saving
-                  ? "Guardando..."
-                  : "Guardar cambios"}
-              </button>
-
-            </div>
-
-          </form>
-
-        </section>
-
-      </main>
-
-    </div>
+            </form>
+          </main>
+        </div>
+      </div>
+    </SpecialistLayout>
   );
 }
 
