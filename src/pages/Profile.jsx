@@ -1,7 +1,6 @@
 import "../styles/Profile.css";
 import MainLayout from "../layouts/MainLayout";
 import { useApp } from "../context/AppContext";
-import { translations } from "../constants/translations";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { signOut, updateProfile } from "firebase/auth";
@@ -15,13 +14,73 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../services/firebase";
 import { 
-  FaUserEdit, FaCamera, FaPen, FaPalette, FaGlobe, FaBell, FaLock, 
-  FaHeart, FaFileAlt, FaUser, FaInfoCircle, FaSignOutAlt, FaTrash, 
-  FaChevronRight, FaImage, FaEye, FaTimes, FaCheck
+  FaUser, FaCamera, FaPen, FaPalette, FaGlobe, FaBell, FaLock, 
+  FaHeart, FaFileAlt, FaInfoCircle, FaSignOutAlt, FaTrash, FaChevronRight,
+  FaImage, FaEye, FaTimes, FaCheck
 } from "react-icons/fa";
 
 // =========================================================
-// COMPRIMIR IMAGEN A BASE64 (Función de tu amigo)
+// 1. DICCIONARIO DE TRADUCCIONES
+// =========================================================
+const translations = {
+  es: {
+    account: "Cuenta",
+    editProfile: "Editar perfil",
+    changePhoto: "Cambiar foto",
+    updateDesc: "Actualizar descripción",
+    settings: "Configuración",
+    theme: "Tema",
+    themeLight: "Claro ☀️",
+    themeDark: "Oscuro 🌙",
+    language: "Idioma",
+    langEs: "Español 🇪🇸",
+    langEn: "Inglés 🇺🇸",
+    notifications: "Notificaciones",
+    privacy: "Privacidad",
+    application: "Aplicación",
+    quote: "Frase del día",
+    privacyPolicy: "Política de privacidad",
+    about: "Acerca de FeelSafe",
+    logout: "Cerrar sesión",
+    deleteAccount: "Eliminar cuenta",
+    streak: "Racha",
+    wellbeing: "Bienestar",
+    notes: "Notas",
+    noDesc: "Añade una descripción sobre ti para personalizar tu perfil.",
+    photoUpdated: "Foto de perfil actualizada correctamente.",
+    profileUpdated: "Perfil actualizado correctamente.",
+  },
+  en: {
+    account: "Account",
+    editProfile: "Edit Profile",
+    changePhoto: "Change Photo",
+    updateDesc: "Update Description",
+    settings: "Settings",
+    theme: "Theme",
+    themeLight: "Light ☀️",
+    themeDark: "Dark 🌙",
+    language: "Language",
+    langEs: "Spanish 🇪🇸",
+    langEn: "English 🇺🇸",
+    notifications: "Notifications",
+    privacy: "Privacy",
+    application: "Application",
+    quote: "Quote of the Day",
+    privacyPolicy: "Privacy Policy",
+    about: "About FeelSafe",
+    logout: "Log Out",
+    deleteAccount: "Delete Account",
+    streak: "Streak",
+    wellbeing: "Wellbeing",
+    notes: "Notes",
+    noDesc: "Add a description about yourself to customize your profile.",
+    photoUpdated: "Profile picture updated successfully.",
+    profileUpdated: "Profile updated successfully.",
+  }
+};
+
+// =========================================================
+// COMPRIMIR IMAGEN A BASE64
 // =========================================================
 const compressImage = (file, maxWidth = 400, quality = 0.75) => {
   return new Promise((resolve, reject) => {
@@ -60,15 +119,13 @@ const compressImage = (file, maxWidth = 400, quality = 0.75) => {
 };
 
 function Profile() {
-  const { user, updateUserProfile, theme, toggleTheme, language, toggleLanguage } = useApp();
+  const { 
+    user, updateUserProfile, theme, toggleTheme, language, toggleLanguage 
+  } = useApp();
+  
   const navigate = useNavigate();
   const t = translations[language] || translations.es;
 
-  // Referencias para los inputs ocultos de archivos
-  const fileInputRef = useRef(null);
-  const cameraInputRef = useRef(null);
-
-  // Estados
   const [profileImage, setProfileImage] = useState("");
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
@@ -78,7 +135,9 @@ function Profile() {
   const [statusMessage, setStatusMessage] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Sincronizar datos al cargar
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+
   useEffect(() => {
     const savedImage = localStorage.getItem("profileImage");
     const currentPhoto = user?.photoURL || user?.foto || user?.fotoPerfil || savedImage || "";
@@ -88,7 +147,7 @@ function Profile() {
     setEditDescription(user?.description || user?.descripcion || "");
   }, [user]);
 
-  // Función de Firebase de tu amigo: Sincronizar foto
+  // Sincronizar foto en todas las conversaciones con especialistas
   const syncPhotoInConversations = async (photoBase64, name) => {
     if (!user?.uid) return;
     try {
@@ -105,15 +164,24 @@ function Profile() {
       });
       await Promise.all(updates);
     } catch (err) {
-      console.error("Error sincronizando foto:", err);
+      console.error("Error sincronizando foto en conversaciones:", err);
     }
   };
 
-  // Función de Firebase: Procesar archivo de imagen
+  const handleLogout = async () => {
+    if (!window.confirm("¿Estás seguro de que deseas cerrar sesión?")) return;
+    try {
+      await signOut(auth);
+      navigate("/login");
+    } catch {
+      alert("No se pudo cerrar sesión. Intenta de nuevo.");
+    }
+  };
+
   const handleProcessFile = async (file) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      alert(language === 'es' ? "Selecciona un archivo de imagen válido." : "Select a valid image file.");
+      alert("Por favor selecciona un archivo de imagen válido.");
       return;
     }
 
@@ -138,10 +206,11 @@ function Profile() {
       await syncPhotoInConversations(base64, user?.displayName || user?.nombre);
 
       setShowPhotoMenu(false);
-      setStatusMessage(language === 'es' ? "Foto actualizada correctamente." : "Photo updated successfully.");
+      setStatusMessage(t.photoUpdated);
       setTimeout(() => setStatusMessage(""), 3500);
     } catch (err) {
       console.error("Error actualizando foto:", err);
+      alert("No se pudo procesar la imagen.");
     } finally {
       setSaving(false);
     }
@@ -165,16 +234,22 @@ function Profile() {
       setProfileImage("");
       localStorage.removeItem("profileImage");
 
-      await updateUserProfile({ foto: "", fotoPerfil: "", photoURL: "" });
+      await updateUserProfile({
+        foto: "",
+        fotoPerfil: "",
+        photoURL: "",
+      });
 
       if (auth.currentUser) {
-        try { await updateProfile(auth.currentUser, { photoURL: "" }); } catch {}
+        try {
+          await updateProfile(auth.currentUser, { photoURL: "" });
+        } catch {}
       }
 
       await syncPhotoInConversations("", user?.displayName || user?.nombre);
 
       setShowPhotoMenu(false);
-      setStatusMessage(language === 'es' ? "Foto eliminada." : "Photo deleted.");
+      setStatusMessage("Foto de perfil eliminada.");
       setTimeout(() => setStatusMessage(""), 3500);
     } catch (err) {
       console.error("Error eliminando foto:", err);
@@ -200,13 +275,15 @@ function Profile() {
       });
 
       if (auth.currentUser) {
-        try { await updateProfile(auth.currentUser, { displayName: cleanName }); } catch {}
+        try {
+          await updateProfile(auth.currentUser, { displayName: cleanName });
+        } catch {}
       }
 
       await syncPhotoInConversations(profileImage || "", cleanName);
 
       setShowEditProfile(false);
-      setStatusMessage(language === 'es' ? "Perfil actualizado correctamente." : "Profile updated successfully.");
+      setStatusMessage(t.profileUpdated);
       setTimeout(() => setStatusMessage(""), 3500);
     } catch (err) {
       console.error("Error guardando perfil:", err);
@@ -215,32 +292,36 @@ function Profile() {
     }
   };
 
-  const handleLogout = async () => {
-    const confirmMsg = language === 'es' ? "¿Estás seguro de que deseas cerrar sesión?" : "Are you sure you want to log out?";
-    if (!window.confirm(confirmMsg)) return;
-    try {
-      await signOut(auth);
-      navigate("/login");
-    } catch {
-      alert(language === 'es' ? "Error al cerrar sesión." : "Error logging out.");
-    }
-  };
-
   return (
     <MainLayout>
       <div className="profile-page">
         {/* INPUTS OCULTOS DE FOTO */}
-        <input type="file" accept="image/*" ref={fileInputRef} style={{ display: "none" }} onChange={handleSelectPhoto} />
-        <input type="file" accept="image/*" capture="user" ref={cameraInputRef} style={{ display: "none" }} onChange={handleCameraPhoto} />
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          onChange={handleSelectPhoto}
+        />
+        <input
+          type="file"
+          accept="image/*"
+          capture="user"
+          ref={cameraInputRef}
+          style={{ display: "none" }}
+          onChange={handleCameraPhoto}
+        />
 
         {/* MENSAJE DE ÉXITO */}
         {statusMessage && (
-          <div className="profile-status" style={{ marginBottom: "15px" }}>
+          <div className="profile-status-banner">
             <FaCheck /> {statusMessage}
           </div>
         )}
         
-        {/* Cabecera con portada y avatar flotante (Diseño tuyo) */}
+        {/* =================================================
+            CABECERA DEL PERFIL
+        ================================================= */}
         <div className="profile-header-card">
           <div className="profile-cover"></div>
           
@@ -252,121 +333,189 @@ function Profile() {
                 ) : user?.photoURL || user?.foto ? (
                   <img src={user.photoURL || user.foto} alt="Perfil" />
                 ) : (
-                  <div className="avatar-placeholder"><FaUser /></div>
+                  <span className="avatar-placeholder">👤</span>
                 )}
               </div>
-              <div className="camera-btn">
+              <button
+                className="camera-btn"
+                type="button"
+                aria-label="Cambiar foto de perfil"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPhotoMenu(true);
+                }}
+              >
                 <FaCamera />
-              </div>
+              </button>
             </div>
           </div>
 
           <div className="profile-header-info">
             <h2>{user?.displayName || user?.nombre || "Usuario"}</h2>
-            <span className="user-email">{user?.email}</span>
+            <span className="user-email">{user?.email || ""}</span>
             <p className="profile-description">
-              {user?.description || user?.descripcion || (language === 'es' ? "Añade una descripción sobre ti para personalizar tu perfil." : "Add a bio about yourself to customize your profile.")}
+              {user?.description || user?.descripcion || t.noDesc}
             </p>
           </div>
         </div>
 
-        {/* Estadísticas unificadas */}
+        {/* =================================================
+            ESTADÍSTICAS
+        ================================================= */}
         <div className="profile-stats-grid">
           <div className="stat-box">
-            <span className="stat-value">{user?.streak || 0}</span>
-            <span className="stat-label">{language === 'es' ? "Racha" : "Streak"}</span>
+            <span className="stat-value">{user?.streak ?? 0}</span>
+            <span className="stat-label">🔥 {t.streak}</span>
           </div>
           <div className="stat-box">
-            <span className="stat-value">{user?.wellbeing || 72}%</span>
-            <span className="stat-label">{language === 'es' ? "Bienestar" : "Wellbeing"}</span>
+            <span className="stat-value">{user?.wellbeing ?? 72}%</span>
+            <span className="stat-label">💚 {t.wellbeing}</span>
           </div>
           <div className="stat-box">
-            <span className="stat-value">{user?.notes?.length || 1}</span>
-            <span className="stat-label">{language === 'es' ? "Notas" : "Notes"}</span>
+            <span className="stat-value">{user?.notes?.length || 0}</span>
+            <span className="stat-label">📝 {t.notes}</span>
           </div>
         </div>
 
-        {/* Menú: Cuenta */}
+        {/* =================================================
+            MENÚS CON DICCIONARIO
+        ================================================= */}
         <div className="menu-group">
-          <h3 className="menu-title">{language === 'es' ? "Cuenta" : "Account"}</h3>
+          <h3 className="menu-title">{t.account}</h3>
           <div className="menu-card">
-            <button className="menu-item" onClick={() => setShowEditProfile(true)}>
-              <div className="menu-item-left">
-                <FaUserEdit className="menu-icon text-purple" />
-                <span>{language === 'es' ? "Editar perfil y descripción" : "Edit profile and description"}</span>
-              </div>
-              <span className="menu-arrow">›</span>
+            <button className="menu-item" type="button" onClick={() => setShowEditProfile(true)}>
+              <div className="menu-item-left"><FaUser className="menu-icon text-purple" /> <span>{t.editProfile}</span></div>
+              <FaChevronRight className="menu-arrow" />
             </button>
-
-            <button className="menu-item" onClick={() => setShowPhotoMenu(true)}>
-              <div className="menu-item-left">
-                <FaCamera className="menu-icon text-blue" />
-                <span>{language === 'es' ? "Cambio de foto" : "Change photo"}</span>
-              </div>
-              <span className="menu-arrow">›</span>
+            <button className="menu-item" type="button" onClick={() => setShowPhotoMenu(true)}>
+              <div className="menu-item-left"><FaCamera className="menu-icon text-blue" /> <span>{t.changePhoto}</span></div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
+            <button className="menu-item" type="button" onClick={() => setShowEditProfile(true)}>
+              <div className="menu-item-left"><FaPen className="menu-icon text-green" /> <span>{t.updateDesc}</span></div>
+              <FaChevronRight className="menu-arrow" />
             </button>
           </div>
         </div>
 
-        {/* Menú: Escenarios */}
         <div className="menu-group">
-          <h3 className="menu-title">{language === 'es' ? "Escenarios" : "Settings"}</h3>
+          <h3 className="menu-title">{t.settings}</h3>
           <div className="menu-card">
-            <button className="menu-item" onClick={toggleTheme} type="button">
-              <div className="menu-item-left">
-                <FaPalette className="menu-icon text-orange" />
-                <span>
-                  {language === 'es' ? "Tema: " : "Theme: "}
-                  <strong>{theme === "light" ? (language === 'es' ? "Luz ☀️" : "Light ☀️") : (language === 'es' ? "Oscuro 🌙" : "Dark 🌙")}</strong>
-                </span>
-              </div>
-              <span className="menu-arrow">›</span>
+            <button className="menu-item" type="button" onClick={toggleTheme}>
+              <div className="menu-item-left"><FaPalette className="menu-icon text-orange" /> <span>{t.theme}: {theme === 'light' ? t.themeLight : t.themeDark}</span></div>
+              <FaChevronRight className="menu-arrow" />
             </button>
-
-            <button className="menu-item" onClick={toggleLanguage} type="button">
-              <div className="menu-item-left">
-                <FaGlobe className="menu-icon text-blue" />
-                <span>
-                  {language === 'es' ? "Idioma: " : "Language: "}
-                  <strong>{language === 'es' ? "Español 🇪🇸" : "English 🇺🇸"}</strong>
-                </span>
-              </div>
-              <span className="menu-arrow">›</span>
+            <button className="menu-item" type="button" onClick={toggleLanguage}>
+              <div className="menu-item-left"><FaGlobe className="menu-icon text-blue" /> <span>{t.language}: {language === 'es' ? t.langEs : t.langEn}</span></div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
+            <button className="menu-item" type="button">
+              <div className="menu-item-left"><FaBell className="menu-icon text-yellow" /> <span>{t.notifications}</span></div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
+            <button className="menu-item" type="button">
+              <div className="menu-item-left"><FaLock className="menu-icon text-gray" /> <span>{t.privacy}</span></div>
+              <FaChevronRight className="menu-arrow" />
             </button>
           </div>
         </div>
 
-        {/* Menú: Aplicación */}
         <div className="menu-group">
-          <h3 className="menu-title">{language === 'es' ? "Aplicación" : "Application"}</h3>
+          <h3 className="menu-title">{t.application}</h3>
           <div className="menu-card">
             <button className="menu-item" type="button">
-              <div className="menu-item-left">
-                <FaHeart className="menu-icon text-pink" />
-                <span>{language === 'es' ? "Cita del día" : "Quote of the day"}</span>
-              </div>
-              <span className="menu-arrow">›</span>
+              <div className="menu-item-left"><FaHeart className="menu-icon text-pink" /> <span>{t.quote}</span></div>
+              <FaChevronRight className="menu-arrow" />
             </button>
-            <button className="menu-item card-danger" type="button" onClick={handleLogout}>
-              <div className="menu-item-left">
-                <FaSignOutAlt className="menu-icon text-red" />
-                <span className="text-red">{language === 'es' ? "Cerrar sesión" : "Log out"}</span>
-              </div>
-              <span className="menu-arrow">›</span>
+            <button className="menu-item" type="button">
+              <div className="menu-item-left"><FaFileAlt className="menu-icon text-gray" /> <span>{t.privacyPolicy}</span></div>
+              <FaChevronRight className="menu-arrow" />
+            </button>
+            <button className="menu-item" type="button">
+              <div className="menu-item-left"><FaInfoCircle className="menu-icon text-blue" /> <span>{t.about}</span></div>
+              <FaChevronRight className="menu-arrow" />
             </button>
           </div>
         </div>
 
-        {/* MODAL EDITAR PERFIL (Amigo) */}
+        <div className="menu-group">
+          <div className="menu-card card-danger">
+            <button className="menu-item text-red" type="button" onClick={handleLogout}>
+              <div className="menu-item-left"><FaSignOutAlt className="menu-icon" /> <span>{t.logout}</span></div>
+            </button>
+            <button className="menu-item text-red" type="button">
+              <div className="menu-item-left"><FaTrash className="menu-icon" /> <span>{t.deleteAccount}</span></div>
+            </button>
+          </div>
+        </div>
+
+        {/* =================================================
+            MODAL DE OPCIONES DE FOTO DE PERFIL
+        ================================================= */}
+        {showPhotoMenu && (
+          <div className="modal-overlay" onClick={() => setShowPhotoMenu(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>{t.changePhoto}</h2>
+              <div className="modal-options">
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  disabled={saving}
+                >
+                  <FaCamera style={{ marginRight: "8px" }} /> Tomar foto con la cámara
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={saving}
+                >
+                  <FaImage style={{ marginRight: "8px" }} /> Elegir de la galería
+                </button>
+                {profileImage && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPhotoMenu(false);
+                      setShowImagePreview(true);
+                    }}
+                  >
+                    <FaEye style={{ marginRight: "8px" }} /> Ver foto actual
+                  </button>
+                )}
+                {profileImage && (
+                  <button
+                    type="button"
+                    style={{ color: "#ef4444" }}
+                    onClick={handleDeletePhoto}
+                    disabled={saving}
+                  >
+                    <FaTrash style={{ marginRight: "8px" }} /> Eliminar foto
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                className="modal-cancel-btn"
+                onClick={() => setShowPhotoMenu(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================
+            MODAL EDITAR PERFIL
+        ================================================= */}
         {showEditProfile && (
           <div className="modal-overlay" onClick={() => setShowEditProfile(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h2>{language === 'es' ? "Editar Perfil" : "Edit Profile"}</h2>
+              <h2>{t.editProfile}</h2>
               <form onSubmit={handleSaveProfile}>
                 <input
                   type="text"
                   className="modal-input"
-                  placeholder={language === 'es' ? "Tu nombre" : "Your name"}
+                  placeholder="Tu nombre completo"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   required
@@ -374,16 +523,24 @@ function Profile() {
                 <textarea
                   className="modal-textarea"
                   rows={4}
-                  placeholder={language === 'es' ? "Escribe algo sobre ti..." : "Write something about yourself..."}
+                  placeholder="Escribe una breve descripción sobre ti..."
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
                 />
                 <div className="modal-actions">
-                  <button type="button" className="modal-cancel-btn" onClick={() => setShowEditProfile(false)}>
-                    {language === 'es' ? "Cancelar" : "Cancel"}
+                  <button
+                    type="button"
+                    className="modal-cancel-btn"
+                    onClick={() => setShowEditProfile(false)}
+                  >
+                    Cancelar
                   </button>
-                  <button type="submit" className="modal-save-btn" disabled={saving}>
-                    {saving ? (language === 'es' ? "Guardando..." : "Saving...") : (language === 'es' ? "Guardar cambios" : "Save changes")}
+                  <button
+                    type="submit"
+                    className="modal-save-btn"
+                    disabled={saving}
+                  >
+                    {saving ? "Guardando..." : "Guardar cambios"}
                   </button>
                 </div>
               </form>
@@ -391,48 +548,23 @@ function Profile() {
           </div>
         )}
 
-        {/* MODAL DE OPCIONES DE FOTO DE PERFIL (Amigo) */}
-        {showPhotoMenu && (
-          <div className="modal-overlay" onClick={() => setShowPhotoMenu(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <h2>{language === 'es' ? "Cambiar foto" : "Change photo"}</h2>
-              <div className="modal-options">
-                <button type="button" onClick={() => cameraInputRef.current?.click()} disabled={saving}>
-                  <FaCamera style={{ marginRight: "8px" }} /> {language === 'es' ? "Tomar foto" : "Take photo"}
-                </button>
-                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={saving}>
-                  <FaImage style={{ marginRight: "8px" }} /> {language === 'es' ? "Elegir de galería" : "Choose from gallery"}
-                </button>
-                {profileImage && (
-                  <>
-                    <button type="button" onClick={() => { setShowPhotoMenu(false); setShowImagePreview(true); }}>
-                      <FaEye style={{ marginRight: "8px" }} /> {language === 'es' ? "Ver foto" : "View photo"}
-                    </button>
-                    <button type="button" style={{ color: "#ef4444" }} onClick={handleDeletePhoto} disabled={saving}>
-                      <FaTrash style={{ marginRight: "8px" }} /> {language === 'es' ? "Eliminar foto" : "Delete photo"}
-                    </button>
-                  </>
-                )}
-              </div>
-              <button type="button" className="modal-cancel-btn" onClick={() => setShowPhotoMenu(false)}>
-                {language === 'es' ? "Cancelar" : "Cancel"}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL VISTA PREVIA DE FOTO (Amigo) */}
+        {/* =================================================
+            MODAL VISTA PREVIA DE FOTO
+        ================================================= */}
         {showImagePreview && (
           <div className="modal-overlay" onClick={() => setShowImagePreview(false)}>
             <div className="image-preview-container" onClick={(e) => e.stopPropagation()}>
-              <img src={profileImage} alt="Foto de perfil" />
-              <button type="button" className="close-preview-btn" onClick={() => setShowImagePreview(false)}>
-                <FaTimes /> {language === 'es' ? "Cerrar" : "Close"}
+              <img src={profileImage} alt="Foto de perfil grande" />
+              <button
+                type="button"
+                className="close-preview-btn"
+                onClick={() => setShowImagePreview(false)}
+              >
+                <FaTimes /> Cerrar
               </button>
             </div>
           </div>
         )}
-
       </div>
     </MainLayout>
   );
