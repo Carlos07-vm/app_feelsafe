@@ -1,279 +1,351 @@
-import { useState } from "react";
-import { signOut } from "firebase/auth";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
+import {
+  FaHome,
+  FaComments,
+  FaUsers,
+  FaCalendarAlt,
+  FaUserMd,
+  FaUserCog,
+  FaSignOutAlt,
+  FaBars,
+  FaTimes,
+  FaUserCircle,
+  FaCircle,
+} from "react-icons/fa";
 
-import { auth } from "../services/firebase";
-
+import { auth, db } from "../services/firebase";
+import logo from "../assets/logo.jpeg";
 import "../styles/SpecialistLayout.css";
 
 function SpecialistLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [specialist, setSpecialist] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  // =====================================================
+  // AUTENTICACIÓN Y DATOS DEL ESPECIALISTA
+  // =====================================================
+  useEffect(() => {
+    let unsubscribeConversations = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setSpecialist(null);
+        setUnreadCount(0);
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      // Cargar datos del perfil del especialista
+      try {
+        const specialistRef = doc(db, "specialists", user.uid);
+        const specialistSnap = await getDoc(specialistRef);
+        if (specialistSnap.exists()) {
+          setSpecialist({ uid: user.uid, email: user.email, ...specialistSnap.data() });
+        } else {
+          setSpecialist({
+            uid: user.uid,
+            email: user.email,
+            nombre: user.displayName || "Especialista",
+            especialidad: "Profesional FeelSafe",
+            fotoPerfil: user.photoURL || "",
+          });
+        }
+      } catch (err) {
+        console.error("Error cargando especialista en layout:", err);
+        setSpecialist({
+          uid: user.uid,
+          email: user.email,
+          nombre: user.displayName || "Especialista",
+          especialidad: "Profesional",
+        });
+      }
+
+      // Escuchar mensajes no leídos en tiempo real
+      const conversationsRef = collection(db, "conversaciones_especialistas");
+      const conversationsQuery = query(
+        conversationsRef,
+        where("especialistaId", "==", user.uid)
+      );
+
+      unsubscribeConversations = onSnapshot(
+        conversationsQuery,
+        (snapshot) => {
+          const total = snapshot.docs.reduce((sum, docItem) => {
+            const data = docItem.data();
+            return sum + Number(data.mensajesNoLeidos || 0);
+          }, 0);
+          setUnreadCount(total);
+        },
+        (error) => {
+          console.error("Error cargando no leídos:", error);
+        }
+      );
+    });
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeConversations) unsubscribeConversations();
+    };
+  }, [navigate]);
+
+  // =====================================================
+  // CERRAR MENÚ EN CAMBIO DE RUTA
+  // =====================================================
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   // =====================================================
   // CERRAR SESIÓN
   // =====================================================
-
   const handleLogout = async () => {
     if (loggingOut) return;
-
     try {
       setLoggingOut(true);
-
       await signOut(auth);
-
-      navigate("/login", {
-        replace: true,
-      });
+      navigate("/login", { replace: true });
     } catch (error) {
-      console.error(
-        "Error cerrando sesión:",
-        error
-      );
-
+      console.error("Error cerrando sesión:", error);
       setLoggingOut(false);
     }
   };
 
-  // =====================================================
-  // NAVEGACIÓN
-  // =====================================================
-
-  const navigationItems = [
+  const navPrincipal = [
     {
-      path: "/specialist/dashboard",
-      icon: "⌂",
+      to: "/specialist/dashboard",
+      icon: <FaHome />,
       label: "Inicio",
     },
     {
-      path: "/specialist/messages",
-      icon: "💬",
+      to: "/specialist/messages",
+      icon: <FaComments />,
       label: "Mensajes",
+      badge: unreadCount > 0 ? unreadCount : null,
     },
     {
-      path: "/specialist/users",
-      icon: "👥",
-      label: "Usuarios",
+      to: "/specialist/users",
+      icon: <FaUsers />,
+      label: "Pacientes",
     },
     {
-      path: "/specialist/agenda",
-      icon: "📅",
+      to: "/specialist/agenda",
+      icon: <FaCalendarAlt />,
       label: "Agenda",
     },
   ];
 
-  const secondaryItems = [
+  const navCuenta = [
     {
-      path: "/specialist/profile",
-      icon: "👤",
-      label: "Mi perfil",
+      to: "/specialist/profile",
+      icon: <FaUserMd />,
+      label: "Mi Perfil",
     },
     {
-      path: "/specialist/settings",
-      icon: "⚙",
+      to: "/specialist/settings",
+      icon: <FaUserCog />,
       label: "Configuración",
     },
   ];
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
-
-  // =====================================================
-  // INTERFAZ
-  // =====================================================
-
   return (
-    <div className="specialist-layout">
+    <div className={`specialist-layout ${sidebarOpen ? "sidebar-open" : ""}`}>
+      {/* Overlay para móvil */}
+      {sidebarOpen && (
+        <div
+          className="specialist-sidebar-overlay"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Cerrar menú"
+        />
+      )}
 
       {/* =================================================
-          SIDEBAR
+          SIDEBAR DEL ESPECIALISTA (Idéntico estilo FeelSafe)
       ================================================= */}
-
-      <aside className="specialist-layout-sidebar">
-
-        {/* LOGO */}
-
-        <div className="specialist-layout-logo">
-
-          <div className="specialist-layout-logo-icon">
-            ♡
-          </div>
-
-          <div className="specialist-layout-logo-text">
-
-            <strong>
-              FeelSafe
-            </strong>
-
-            <span>
-              Especialistas
-            </span>
-
-          </div>
-
+      <aside className={`specialist-sidebar ${sidebarOpen ? "open" : ""}`}>
+        {/* Botón cerrar en móvil */}
+        <div className="specialist-sidebar-close">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Cerrar menú"
+          >
+            <FaTimes />
+          </button>
         </div>
 
-        {/* NAVEGACIÓN PRINCIPAL */}
+        {/* Logo */}
+        <div className="specialist-sidebar-logo" onClick={() => navigate("/specialist/dashboard")}>
+          <img src={logo} alt="FeelSafe Logo" />
+          <h2>FeelSafe</h2>
+          <span className="specialist-badge-brand">Panel Profesional</span>
+        </div>
 
-        <nav className="specialist-layout-nav">
-
-          <div className="specialist-layout-section-label">
-            PRINCIPAL
+        {/* Info del Especialista */}
+        <div className="specialist-sidebar-user">
+          <div className="specialist-avatar-wrap">
+            {specialist?.fotoPerfil ? (
+              <img
+                src={specialist.fotoPerfil}
+                alt={specialist.nombre || "Especialista"}
+                className="specialist-user-image"
+              />
+            ) : (
+              <FaUserCircle className="specialist-user-icon" />
+            )}
+            <span className="specialist-status-dot" title="Disponible">
+              <FaCircle />
+            </span>
           </div>
 
-          {navigationItems.map((item) => (
-            <button
-              key={item.path}
-              type="button"
-              className={`specialist-layout-nav-item ${
-                isActive(item.path)
-                  ? "active"
-                  : ""
-              }`}
-              onClick={() =>
-                navigate(item.path)
+          <h3 className="specialist-user-name">
+            {specialist?.nombre || "Especialista"}
+          </h3>
+          <p className="specialist-user-specialty">
+            {specialist?.especialidad || "Especialista"}
+          </p>
+        </div>
+
+        {/* Menú de Navegación */}
+        <nav className="specialist-sidebar-menu">
+          <p className="specialist-menu-title">Principal</p>
+
+          {navPrincipal.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `specialist-menu-item ${isActive ? "active" : ""}`
               }
+              onClick={() => setSidebarOpen(false)}
             >
-
-              <span className="specialist-layout-nav-icon">
-                {item.icon}
-              </span>
-
-              <span className="specialist-layout-nav-label">
-                {item.label}
-              </span>
-
-            </button>
+              <span className="specialist-menu-icon">{item.icon}</span>
+              <span className="specialist-menu-text">{item.label}</span>
+              {item.badge && (
+                <span className="specialist-menu-badge">{item.badge}</span>
+              )}
+            </NavLink>
           ))}
 
-        </nav>
+          <p className="specialist-menu-title">Cuenta</p>
 
-        {/* CUENTA */}
-
-        <div className="specialist-layout-bottom">
-
-          <div className="specialist-layout-section-label">
-            CUENTA
-          </div>
-
-          {secondaryItems.map((item) => (
-            <button
-              key={item.path}
-              type="button"
-              className={`specialist-layout-nav-item ${
-                isActive(item.path)
-                  ? "active"
-                  : ""
-              }`}
-              onClick={() =>
-                navigate(item.path)
+          {navCuenta.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `specialist-menu-item ${isActive ? "active" : ""}`
               }
+              onClick={() => setSidebarOpen(false)}
             >
-
-              <span className="specialist-layout-nav-icon">
-                {item.icon}
-              </span>
-
-              <span className="specialist-layout-nav-label">
-                {item.label}
-              </span>
-
-            </button>
+              <span className="specialist-menu-icon">{item.icon}</span>
+              <span className="specialist-menu-text">{item.label}</span>
+            </NavLink>
           ))}
-
-          {/* CERRAR SESIÓN */}
 
           <button
             type="button"
-            className="specialist-layout-nav-item specialist-layout-logout"
+            className="specialist-menu-item specialist-logout-btn"
             onClick={handleLogout}
             disabled={loggingOut}
           >
-
-            <span className="specialist-layout-nav-icon">
-              ↪
+            <span className="specialist-menu-icon">
+              <FaSignOutAlt />
             </span>
-
-            <span className="specialist-layout-nav-label">
-              {loggingOut
-                ? "Saliendo..."
-                : "Cerrar sesión"}
+            <span className="specialist-menu-text">
+              {loggingOut ? "Cerrando..." : "Cerrar sesión"}
             </span>
-
           </button>
-
-        </div>
-
+        </nav>
       </aside>
 
       {/* =================================================
-          CONTENIDO
+          CONTENIDO PRINCIPAL
       ================================================= */}
+      <div className="specialist-main-wrapper">
+        {/* Topbar móvil / responsive */}
+        <header className="specialist-topbar">
+          <button
+            className="specialist-mobile-toggle"
+            type="button"
+            onClick={() => setSidebarOpen((prev) => !prev)}
+            aria-label="Abrir menú"
+          >
+            <FaBars />
+          </button>
 
-      <main className="specialist-layout-main">
+          <div className="specialist-topbar-title">
+            <span>FeelSafe</span> Especialistas
+          </div>
 
-        {children}
+          <div
+            className="specialist-topbar-user"
+            onClick={() => navigate("/specialist/profile")}
+          >
+            {specialist?.fotoPerfil ? (
+              <img
+                src={specialist.fotoPerfil}
+                alt={specialist.nombre || "Especialista"}
+                className="specialist-topbar-avatar"
+              />
+            ) : (
+              <div className="specialist-topbar-avatar-placeholder">
+                {(specialist?.nombre || "E").charAt(0).toUpperCase()}
+              </div>
+            )}
+            <span className="specialist-topbar-name">
+              {specialist?.nombre?.split(" ")[0] || "Especialista"}
+            </span>
+          </div>
+        </header>
 
-      </main>
+        {/* Renderizado de pantalla */}
+        <main className="specialist-content">
+          {children}
+        </main>
+      </div>
 
       {/* =================================================
-          NAVEGACIÓN MÓVIL
+          BARRA DE NAVEGACIÓN MÓVIL INFERIOR
       ================================================= */}
-
-      <nav className="specialist-mobile-nav">
-
-        {navigationItems.map((item) => (
-          <button
-            key={item.path}
-            type="button"
-            className={`specialist-mobile-nav-item ${
-              isActive(item.path)
-                ? "active"
-                : ""
-            }`}
-            onClick={() =>
-              navigate(item.path)
+      <nav className="specialist-mobile-bottom-bar">
+        {navPrincipal.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              `specialist-mobile-item ${isActive ? "active" : ""}`
             }
           >
-
-            <span className="specialist-mobile-nav-icon">
+            <span className="specialist-mobile-icon">
               {item.icon}
+              {item.badge && (
+                <span className="specialist-mobile-badge">{item.badge}</span>
+              )}
             </span>
-
-            <span>
-              {item.label}
-            </span>
-
-          </button>
+            <span className="specialist-mobile-label">{item.label}</span>
+          </NavLink>
         ))}
 
-        <button
-          type="button"
-          className={`specialist-mobile-nav-item ${
-            isActive("/specialist/profile")
-              ? "active"
-              : ""
-          }`}
-          onClick={() =>
-            navigate("/specialist/profile")
+        <NavLink
+          to="/specialist/profile"
+          className={({ isActive }) =>
+            `specialist-mobile-item ${isActive ? "active" : ""}`
           }
         >
-
-          <span className="specialist-mobile-nav-icon">
-            👤
+          <span className="specialist-mobile-icon">
+            <FaUserMd />
           </span>
-
-          <span>
-            Perfil
-          </span>
-
-        </button>
-
+          <span className="specialist-mobile-label">Perfil</span>
+        </NavLink>
       </nav>
-
     </div>
   );
 }

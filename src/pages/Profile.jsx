@@ -1,13 +1,22 @@
-﻿import "../styles/Profile.css";
+import "../styles/Profile.css";
 import MainLayout from "../layouts/MainLayout";
 import { useApp } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
-import { signOut } from "firebase/auth";
-import { auth } from "../services/firebase";
+import { signOut, updateProfile } from "firebase/auth";
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import { auth, db } from "../services/firebase";
 import { 
   FaUser, FaCamera, FaPen, FaPalette, FaGlobe, FaBell, FaLock, 
-  FaHeart, FaFileAlt, FaInfoCircle, FaSignOutAlt, FaTrash, FaChevronRight
+  FaHeart, FaFileAlt, FaInfoCircle, FaSignOutAlt, FaTrash, FaChevronRight,
+  FaImage, FaEye, FaTimes, FaCheck
 } from "react-icons/fa";
 
 // =========================================================
@@ -37,7 +46,9 @@ const translations = {
     streak: "Racha",
     wellbeing: "Bienestar",
     notes: "Notas",
-    noDesc: "Añade una descripción sobre ti para personalizar tu perfil."
+    noDesc: "Añade una descripción sobre ti para personalizar tu perfil.",
+    photoUpdated: "Foto de perfil actualizada correctamente.",
+    profileUpdated: "Perfil actualizado correctamente.",
   },
   en: {
     account: "Account",
@@ -62,8 +73,49 @@ const translations = {
     streak: "Streak",
     wellbeing: "Wellbeing",
     notes: "Notes",
-    noDesc: "Add a description about yourself to customize your profile."
+    noDesc: "Add a description about yourself to customize your profile.",
+    photoUpdated: "Profile picture updated successfully.",
+    profileUpdated: "Profile updated successfully.",
   }
+};
+
+// =========================================================
+// COMPRIMIR IMAGEN A BASE64
+// =========================================================
+const compressImage = (file, maxWidth = 400, quality = 0.75) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxWidth) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxWidth) / height);
+            height = maxWidth;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const base64 = canvas.toDataURL("image/jpeg", quality);
+        resolve(base64);
+      };
+      img.onerror = () => reject(new Error("Error al cargar la imagen."));
+      img.src = event.target.result;
+    };
+    reader.onerror = () => reject(new Error("Error al leer el archivo."));
+    reader.readAsDataURL(file);
+  });
 };
 
 function Profile() {
@@ -72,8 +124,6 @@ function Profile() {
   } = useApp();
   
   const navigate = useNavigate();
-
-  // 2. ACTIVAMOS EL DICCIONARIO (Dependiendo del idioma seleccionado)
   const t = translations[language] || translations.es;
 
   const [profileImage, setProfileImage] = useState("");
@@ -83,66 +133,191 @@ function Profile() {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
   useEffect(() => {
     const savedImage = localStorage.getItem("profileImage");
-    if (savedImage) setProfileImage(savedImage);
-    else setProfileImage(user?.photoURL || user?.foto || "");
+    const currentPhoto = user?.photoURL || user?.foto || user?.fotoPerfil || savedImage || "";
+    setProfileImage(currentPhoto);
     
     setEditName(user?.displayName || user?.nombre || "");
-    setEditDescription(user?.description || "");
+    setEditDescription(user?.description || user?.descripcion || "");
   }, [user]);
 
-  useEffect(() => {
-    if (profileImage) localStorage.setItem("profileImage", profileImage);
-  }, [profileImage]);
+  // Sincronizar foto en todas las conversaciones con especialistas
+  const syncPhotoInConversations = async (photoBase64, name) => {
+    if (!user?.uid) return;
+    try {
+      const q = query(
+        collection(db, "conversaciones_especialistas"),
+        where("usuarioId", "==", user.uid)
+      );
+      const snapshot = await getDocs(q);
+      const updates = snapshot.docs.map((docSnap) => {
+        return updateDoc(doc(db, "conversaciones_especialistas", docSnap.id), {
+          usuarioFoto: photoBase64,
+          ...(name ? { usuarioNombre: name } : {}),
+        });
+      });
+      await Promise.all(updates);
+    } catch (err) {
+      console.error("Error sincronizando foto en conversaciones:", err);
+    }
+  };
 
   const handleLogout = async () => {
     if (!window.confirm("¿Estás seguro de que deseas cerrar sesión?")) return;
     try {
       await signOut(auth);
       navigate("/login");
-    } catch (error) {
+    } catch {
       alert("No se pudo cerrar sesión. Intenta de nuevo.");
+    }
+  };
+
+  const handleProcessFile = async (file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Por favor selecciona un archivo de imagen válido.");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      const base64 = await compressImage(file, 400, 0.75);
+      setProfileImage(base64);
+      localStorage.setItem("profileImage", base64);
+
+      await updateUserProfile({
+        foto: base64,
+        fotoPerfil: base64,
+        photoURL: base64,
+      });
+
+      if (auth.currentUser) {
+        try {
+          await updateProfile(auth.currentUser, { photoURL: base64 });
+        } catch {}
+      }
+
+      await syncPhotoInConversations(base64, user?.displayName || user?.nombre);
+
+      setShowPhotoMenu(false);
+      setStatusMessage(t.photoUpdated);
+      setTimeout(() => setStatusMessage(""), 3500);
+    } catch (err) {
+      console.error("Error actualizando foto:", err);
+      alert("No se pudo procesar la imagen.");
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleSelectPhoto = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const image = reader.result;
-      setProfileImage(image);
-      await updateUserProfile({ foto: image, photoURL: image });
+    await handleProcessFile(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleCameraPhoto = async (e) => {
+    const file = e.target.files?.[0];
+    await handleProcessFile(file);
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
+  };
+
+  const handleDeletePhoto = async () => {
+    try {
+      setSaving(true);
+      setProfileImage("");
+      localStorage.removeItem("profileImage");
+
+      await updateUserProfile({
+        foto: "",
+        fotoPerfil: "",
+        photoURL: "",
+      });
+
+      if (auth.currentUser) {
+        try {
+          await updateProfile(auth.currentUser, { photoURL: "" });
+        } catch {}
+      }
+
+      await syncPhotoInConversations("", user?.displayName || user?.nombre);
+
       setShowPhotoMenu(false);
-    };
-    reader.readAsDataURL(file);
+      setStatusMessage("Foto de perfil eliminada.");
+      setTimeout(() => setStatusMessage(""), 3500);
+    } catch (err) {
+      console.error("Error eliminando foto:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDeletePhoto = () => {
-    setProfileImage("");
-    updateUserProfile({ foto: "", photoURL: "" });
-    localStorage.removeItem("profileImage");
-    setShowPhotoMenu(false);
-  };
-
-  const handleSaveProfile = async () => {
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
     if (!editName.trim()) return;
-    await updateUserProfile({
-      displayName: editName.trim(),
-      nombre: editName.trim(),
-      description: editDescription.trim(),
-    });
-    setShowEditProfile(false);
+
+    try {
+      setSaving(true);
+      const cleanName = editName.trim();
+      const cleanDesc = editDescription.trim();
+
+      await updateUserProfile({
+        displayName: cleanName,
+        nombre: cleanName,
+        description: cleanDesc,
+        descripcion: cleanDesc,
+      });
+
+      if (auth.currentUser) {
+        try {
+          await updateProfile(auth.currentUser, { displayName: cleanName });
+        } catch {}
+      }
+
+      await syncPhotoInConversations(profileImage || "", cleanName);
+
+      setShowEditProfile(false);
+      setStatusMessage(t.profileUpdated);
+      setTimeout(() => setStatusMessage(""), 3500);
+    } catch (err) {
+      console.error("Error guardando perfil:", err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <MainLayout>
       <div className="profile-page">
+        {/* INPUTS OCULTOS DE FOTO */}
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          onChange={handleSelectPhoto}
+        />
+        <input
+          type="file"
+          accept="image/*"
+          capture="user"
+          ref={cameraInputRef}
+          style={{ display: "none" }}
+          onChange={handleCameraPhoto}
+        />
+
+        {/* MENSAJE DE ÉXITO */}
+        {statusMessage && (
+          <div className="profile-status-banner">
+            <FaCheck /> {statusMessage}
+          </div>
+        )}
         
         {/* =================================================
             CABECERA DEL PERFIL
@@ -155,13 +330,21 @@ function Profile() {
               <div className="avatar-img-container">
                 {profileImage ? (
                   <img src={profileImage} alt="Perfil" />
-                ) : user?.photoURL ? (
-                  <img src={user.photoURL} alt="Perfil" />
+                ) : user?.photoURL || user?.foto ? (
+                  <img src={user.photoURL || user.foto} alt="Perfil" />
                 ) : (
                   <span className="avatar-placeholder">👤</span>
                 )}
               </div>
-              <button className="camera-btn" type="button" onClick={(e) => { e.stopPropagation(); setShowPhotoMenu(true); }}>
+              <button
+                className="camera-btn"
+                type="button"
+                aria-label="Cambiar foto de perfil"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPhotoMenu(true);
+                }}
+              >
                 <FaCamera />
               </button>
             </div>
@@ -171,7 +354,7 @@ function Profile() {
             <h2>{user?.displayName || user?.nombre || "Usuario"}</h2>
             <span className="user-email">{user?.email || ""}</span>
             <p className="profile-description">
-              {user?.description || t.noDesc}
+              {user?.description || user?.descripcion || t.noDesc}
             </p>
           </div>
         </div>
@@ -266,6 +449,122 @@ function Profile() {
           </div>
         </div>
 
+        {/* =================================================
+            MODAL DE OPCIONES DE FOTO DE PERFIL
+        ================================================= */}
+        {showPhotoMenu && (
+          <div className="modal-overlay" onClick={() => setShowPhotoMenu(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>{t.changePhoto}</h2>
+              <div className="modal-options">
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  disabled={saving}
+                >
+                  <FaCamera style={{ marginRight: "8px" }} /> Tomar foto con la cámara
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={saving}
+                >
+                  <FaImage style={{ marginRight: "8px" }} /> Elegir de la galería
+                </button>
+                {profileImage && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPhotoMenu(false);
+                      setShowImagePreview(true);
+                    }}
+                  >
+                    <FaEye style={{ marginRight: "8px" }} /> Ver foto actual
+                  </button>
+                )}
+                {profileImage && (
+                  <button
+                    type="button"
+                    style={{ color: "#ef4444" }}
+                    onClick={handleDeletePhoto}
+                    disabled={saving}
+                  >
+                    <FaTrash style={{ marginRight: "8px" }} /> Eliminar foto
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                className="modal-cancel-btn"
+                onClick={() => setShowPhotoMenu(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================
+            MODAL EDITAR PERFIL
+        ================================================= */}
+        {showEditProfile && (
+          <div className="modal-overlay" onClick={() => setShowEditProfile(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>{t.editProfile}</h2>
+              <form onSubmit={handleSaveProfile}>
+                <input
+                  type="text"
+                  className="modal-input"
+                  placeholder="Tu nombre completo"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                />
+                <textarea
+                  className="modal-textarea"
+                  rows={4}
+                  placeholder="Escribe una breve descripción sobre ti..."
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                />
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="modal-cancel-btn"
+                    onClick={() => setShowEditProfile(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="modal-save-btn"
+                    disabled={saving}
+                  >
+                    {saving ? "Guardando..." : "Guardar cambios"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================
+            MODAL VISTA PREVIA DE FOTO
+        ================================================= */}
+        {showImagePreview && (
+          <div className="modal-overlay" onClick={() => setShowImagePreview(false)}>
+            <div className="image-preview-container" onClick={(e) => e.stopPropagation()}>
+              <img src={profileImage} alt="Foto de perfil grande" />
+              <button
+                type="button"
+                className="close-preview-btn"
+                onClick={() => setShowImagePreview(false)}
+              >
+                <FaTimes /> Cerrar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </MainLayout>
   );

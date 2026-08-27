@@ -1,473 +1,341 @@
-/* =====================================================
-   PÁGINA
-===================================================== */
+/* =========================================================
+   FEELSAFE - SPECIALIST CHAT
+   Estilo de sala de chat unificada con la identidad FeelSafe
+   ========================================================= */
 
-.specialist-chat-page {
-
-  max-width: 1000px;
-
-  height: calc(100vh - 100px);
-
-  margin: auto;
-
+.specialist-chat-container {
+  max-width: 950px;
+  margin: 0 auto;
+  height: calc(100vh - 120px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   display: flex;
-
   flex-direction: column;
-
-  background: #f8f7fc;
-
-  border-radius: 24px;
-
   overflow: hidden;
-
-  box-shadow:
-    0 15px 40px
-    rgba(91, 60, 196, .10);
-
+  font-family: var(--font-body);
 }
 
-
-/* =====================================================
-   HEADER
-===================================================== */
-
-.specialist-chat-header {
-
-  min-height: 75px;
-
+/* =========================================================
+   HEADER DEL CHAT
+   ========================================================= */
+.chat-room-header {
   display: flex;
-
   align-items: center;
-
-  gap: 14px;
-
-  padding: 12px 20px;
-
-  background: white;
-
-  border-bottom: 1px solid #eeeaf7;
-
+  gap: 16px;
+  padding: 16px 22px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
 }
 
-
-/* =====================================================
-   BOTÓN ATRÁS
-===================================================== */
-
-.specialist-back-button {
-
-  width: 40px;
-
-  height: 40px;
-
-  border: none;
-
+.chat-back-btn {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-
-  background: #f0ecff;
-
-  color: #6d4c8f;
-
-  font-size: 22px;
-
-  cursor: pointer;
-
-}
-
-
-.specialist-back-button:hover {
-
-  background: #e4ddff;
-
-}
-
-
-/* =====================================================
-   AVATAR
-===================================================== */
-
-.specialist-user-avatar {
-
-  width: 50px;
-
-  height: 50px;
-
-  flex-shrink: 0;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
-  overflow: hidden;
-
-  border-radius: 50%;
-
-  background: #eee9ff;
-
-  font-size: 22px;
-
-}
-
-
-.specialist-user-avatar img {
-
-  width: 100%;
-
-  height: 100%;
-
-  object-fit: cover;
-
-}
-
-
-/* =====================================================
-   INFORMACIÓN
-===================================================== */
-
-.specialist-user-info h2 {
-
-  margin: 0 0 4px;
-
-  color: #2d1b46;
-
   font-size: 1rem;
-
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
-
-.specialist-user-info span {
-
-  color: #22a06b;
-
-  font-size: .8rem;
-
-}
-
-
-/* =====================================================
-   MENSAJES
-===================================================== */
-
-.specialist-messages {
-
-  flex: 1;
-
-  padding: 25px;
-
-  overflow-y: auto;
-
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 10px;
-
-}
-
-
-/* =====================================================
-   FILAS
-===================================================== */
-
-.specialist-message-row {
-
-  display: flex;
-
-  width: 100%;
-
-}
-
-
-.specialist-message-left {
-
-  justify-content: flex-start;
-
-}
-
-
-.specialist-message-right {
-
-  justify-content: flex-end;
-
-}
-
-
-/* =====================================================
-   BURBUJAS
-===================================================== */
-
-.specialist-message-bubble {
-
-  max-width: 70%;
-
-  padding: 11px 14px;
-
-  border-radius: 18px;
-
-}
-
-
-/* USUARIO → IZQUIERDA */
-
-.user-bubble {
-
-  background: white;
-
-  color: #2d1b46;
-
-  border:
-    1px solid #e7e2f2;
-
-  border-bottom-left-radius: 5px;
-
-}
-
-
-/* ESPECIALISTA → DERECHA */
-
-.specialist-bubble {
-
-  background:
-    linear-gradient(
-      135deg,
-      #6d4c8f,
-      #7b61ff
-    );
-
+.chat-back-btn:hover {
+  background: var(--primary);
   color: white;
-
-  border-bottom-right-radius: 5px;
-
+  border-color: var(--primary);
 }
 
-
-/* =====================================================
-   TEXTO
-===================================================== */
-
-.specialist-message-text {
-
-  line-height: 1.5;
-
-  white-space: pre-wrap;
-
-  word-break: break-word;
-
-}
-
-
-/* =====================================================
-   HORA
-===================================================== */
-
-.specialist-message-time {
-
-  margin-top: 5px;
-
-  text-align: right;
-
-  font-size: .68rem;
-
-  opacity: .65;
-
-}
-
-
-/* =====================================================
-   INPUT
-===================================================== */
-
-.specialist-chat-input {
-
+.chat-patient-info {
   display: flex;
-
   align-items: center;
-
-  gap: 10px;
-
-  padding: 15px;
-
-  background: white;
-
-  border-top: 1px solid #eeeaf7;
-
+  gap: 14px;
 }
 
-
-.specialist-chat-input textarea {
-
-  flex: 1;
-
-  min-height: 22px;
-
-  max-height: 100px;
-
-  resize: none;
-
-  padding: 13px 16px;
-
-  border:
-    1px solid #e2deed;
-
-  border-radius: 16px;
-
-  outline: none;
-
-  font-family: inherit;
-
-  font-size: .95rem;
-
-}
-
-
-.specialist-chat-input textarea:focus {
-
-  border-color: #7b61ff;
-
-  box-shadow:
-    0 0 0 3px
-    rgba(123, 97, 255, .10);
-
-}
-
-
-.specialist-chat-input button {
-
-  width: 48px;
-
-  height: 48px;
-
-  border: none;
-
+.chat-patient-avatar {
+  position: relative;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-
-  background:
-    linear-gradient(
-      135deg,
-      #6d4c8f,
-      #7b61ff
-    );
-
-  color: white;
-
-  font-size: 20px;
-
-  cursor: pointer;
-
-}
-
-
-.specialist-chat-input button:disabled {
-
-  opacity: .45;
-
-  cursor: not-allowed;
-
-}
-
-
-/* =====================================================
-   ESTADOS
-===================================================== */
-
-.specialist-chat-loading,
-.specialist-chat-error {
-
-  min-height: 60vh;
-
+  overflow: hidden;
+  background: var(--primary-light);
   display: flex;
-
-  flex-direction: column;
-
   align-items: center;
-
   justify-content: center;
-
-  text-align: center;
-
+  flex-shrink: 0;
+  border: 1.5px solid var(--primary-light);
 }
 
-
-.specialist-chat-error button {
-
-  margin-top: 15px;
-
-  padding: 12px 20px;
-
-  border: none;
-
-  border-radius: 12px;
-
-  background: #7b61ff;
-
-  color: white;
-
-  cursor: pointer;
-
+.chat-patient-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
+.chat-avatar-icon {
+  font-size: 44px;
+  color: var(--primary);
+}
 
-/* =====================================================
-   CHAT VACÍO
-===================================================== */
+.chat-patient-status {
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  color: #10b981;
+  font-size: 10px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+}
 
-.specialist-empty-chat {
+.chat-patient-name {
+  font-family: var(--font-title);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
 
+.chat-patient-status-text {
+  font-size: 0.78rem;
+  color: var(--text-light);
+}
+
+/* =========================================================
+   CUERPO DE MENSAJES
+   ========================================================= */
+.chat-messages-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--background);
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-bubbles-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: auto;
+}
+
+.chat-bubble-row {
+  display: flex;
+  width: 100%;
+}
+
+.chat-bubble-row.specialist-row {
+  justify-content: flex-end;
+}
+
+.chat-bubble-row.patient-row {
+  justify-content: flex-start;
+}
+
+.chat-bubble {
+  max-width: 70%;
+  padding: 12px 18px;
+  border-radius: 18px;
+  position: relative;
+  word-wrap: break-word;
+  line-height: 1.5;
+}
+
+/* Burbuja del Especialista */
+.specialist-bubble {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 4px 15px rgba(109, 76, 143, 0.18);
+}
+
+/* Burbuja del Paciente */
+.patient-bubble {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.bubble-text {
+  margin: 0;
+  font-size: 0.92rem;
+  white-space: pre-wrap;
+}
+
+.bubble-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.bubble-time {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.specialist-bubble .bubble-time {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.patient-bubble .bubble-time {
+  color: var(--text-muted);
+}
+
+.bubble-read-receipt {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.bubble-read-receipt.read {
+  color: #a7f3d0;
+}
+
+/* =========================================================
+   ESTADO VACÍO Y CARGA EN CHAT
+   ========================================================= */
+.chat-loading-state,
+.chat-empty-state {
   margin: auto;
-
   text-align: center;
-
-  color: #6b7280;
-
+  padding: 30px 20px;
+  max-width: 420px;
 }
 
-
-.specialist-empty-chat div {
-
-  font-size: 45px;
-
-  margin-bottom: 15px;
-
+.chat-empty-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  margin: 0 auto 14px;
 }
 
-
-.specialist-empty-chat h3 {
-
-  margin-bottom: 8px;
-
-  color: #2d1b46;
-
+.chat-empty-state h3 {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
 }
 
+.chat-empty-state p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
 
-/* =====================================================
+.chat-error-text {
+  color: #ef4444;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.chat-action-btn {
+  padding: 10px 20px;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* =========================================================
+   INPUT BAR
+   ========================================================= */
+.chat-input-bar {
+  padding: 14px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.chat-input-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-textarea {
+  flex: 1;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 0.92rem;
+  color: var(--text);
+  outline: none;
+  resize: none;
+  max-height: 100px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+
+.chat-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(109, 76, 143, 0.12);
+  background: var(--surface);
+}
+
+.chat-send-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(109, 76, 143, 0.25);
+}
+
+.chat-send-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  background: var(--primary-dark);
+}
+
+.chat-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* =========================================================
    RESPONSIVE
-===================================================== */
-
-@media (max-width: 700px) {
-
-  .specialist-chat-page {
-
-    height: calc(100vh - 70px);
-
+   ========================================================= */
+@media (max-width: 768px) {
+  .specialist-chat-container {
+    height: calc(100vh - 150px);
     border-radius: 0;
-
+    border: none;
   }
 
-
-  .specialist-messages {
-
-    padding: 15px;
-
+  .chat-bubble {
+    max-width: 85%;
   }
 
-
-  .specialist-message-bubble {
-
-    max-width: 82%;
-
+  .chat-messages-body {
+    padding: 16px;
   }
-
 }

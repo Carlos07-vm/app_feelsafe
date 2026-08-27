@@ -1,23 +1,24 @@
-import { useEffect, useState } from "react";
-
+import { useEffect, useState, useMemo } from "react";
 import {
   collection,
   onSnapshot,
   query,
   where,
-  doc,
-  getDoc,
 } from "firebase/firestore";
-
 import { onAuthStateChanged } from "firebase/auth";
-
 import { useNavigate } from "react-router-dom";
+import {
+  FaComments,
+  FaSearch,
+  FaClock,
+  FaUserCircle,
+  FaCommentDots,
+  FaPaperPlane,
+} from "react-icons/fa";
 
 import SpecialistLayout from "../components/SpecialistLayout";
-
 import { db, auth } from "../services/firebase";
-
-import "../styles/SpecialistConversations.css";
+import "../styles/SpecialistMessages.css";
 
 function SpecialistMessages() {
   const navigate = useNavigate();
@@ -25,267 +26,64 @@ function SpecialistMessages() {
   const [currentUser, setCurrentUser] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("all"); // "all", "unread"
 
   // =====================================================
-  // AUTENTICACIÓN
+  // 1. AUTENTICACIÓN
   // =====================================================
-
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (firebaseUser) => {
-        if (firebaseUser) {
-          console.log("=================================");
-          console.log("ESPECIALISTA AUTENTICADO");
-          console.log("UID:", firebaseUser.uid);
-          console.log("EMAIL:", firebaseUser.email);
-          console.log("=================================");
-
-          setCurrentUser(firebaseUser);
-        } else {
-          console.log("NO HAY USUARIO AUTENTICADO");
-
-          setCurrentUser(null);
-          setConversations([]);
-          setLoading(false);
-
-          navigate("/specialist/login", {
-            replace: true,
-          });
-        }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setCurrentUser(firebaseUser);
+      } else {
+        setCurrentUser(null);
+        setConversations([]);
+        setLoading(false);
+        navigate("/login", { replace: true });
       }
-    );
+    });
 
     return () => unsubscribe();
   }, [navigate]);
 
   // =====================================================
-  // CARGAR CONVERSACIONES
+  // 2. CARGAR CONVERSACIONES EN TIEMPO REAL
   // =====================================================
-
   useEffect(() => {
-    if (!currentUser?.uid) {
-      return;
-    }
-
-    console.log("=================================");
-    console.log("BUSCANDO CONVERSACIONES");
-    console.log(
-      "ESPECIALISTA:",
-      currentUser.uid
-    );
-    console.log("=================================");
+    if (!currentUser?.uid) return;
 
     setLoading(true);
-    setError(null);
 
-    const conversationsRef = collection(
-      db,
-      "conversaciones_especialistas"
-    );
-
+    const conversationsRef = collection(db, "conversaciones_especialistas");
     const conversationsQuery = query(
       conversationsRef,
-      where(
-        "especialistaId",
-        "==",
-        currentUser.uid
-      )
+      where("especialistaId", "==", currentUser.uid)
     );
 
     const unsubscribe = onSnapshot(
       conversationsQuery,
-      async (snapshot) => {
-        console.log(
-          "CONVERSACIONES ENCONTRADAS:",
-          snapshot.size
-        );
+      (snapshot) => {
+        const loadedConversations = snapshot.docs.map((conversationDoc) => ({
+          id: conversationDoc.id,
+          ...conversationDoc.data(),
+        }));
 
-        try {
-          const loadedConversations =
-            await Promise.all(
-              snapshot.docs.map(
-                async (conversationDoc) => {
-                  const data =
-                    conversationDoc.data();
+        loadedConversations.sort((a, b) => {
+          const timeA = a.fechaUltimoMensaje?.toMillis
+            ? a.fechaUltimoMensaje.toMillis()
+            : 0;
+          const timeB = b.fechaUltimoMensaje?.toMillis
+            ? b.fechaUltimoMensaje.toMillis()
+            : 0;
+          return timeB - timeA;
+        });
 
-                  console.log(
-                    "CONVERSACIÓN:",
-                    conversationDoc.id,
-                    data
-                  );
-
-                  // =====================================
-                  // DATOS DE LA CONVERSACIÓN
-                  // =====================================
-
-                  let usuarioNombre =
-                    data.usuarioNombre ||
-                    "Usuario";
-
-                  let usuarioFoto =
-                    data.usuarioFoto ||
-                    "";
-
-                  const usuarioId =
-                    data.usuarioId || "";
-
-                  // =====================================
-                  // BUSCAR PERFIL REAL DEL USUARIO
-                  // =====================================
-
-                  if (usuarioId) {
-                    try {
-                      console.log(
-                        "BUSCANDO PERFIL:",
-                        usuarioId
-                      );
-
-                      /*
-                       * IMPORTANTE:
-                       * Los usuarios normales están
-                       * guardados en:
-                       *
-                       * usuarios/{uid}
-                       */
-
-                      const userRef = doc(
-                        db,
-                        "usuarios",
-                        usuarioId
-                      );
-
-                      const userSnapshot =
-                        await getDoc(userRef);
-
-                      if (
-                        userSnapshot.exists()
-                      ) {
-                        const userData =
-                          userSnapshot.data();
-
-                        console.log(
-                          "PERFIL DEL USUARIO:",
-                          userData
-                        );
-
-                        // =================================
-                        // NOMBRE ACTUALIZADO
-                        // =================================
-
-                        usuarioNombre =
-                          userData.nombre ||
-                          userData.nombreCompleto ||
-                          userData.displayName ||
-                          usuarioNombre;
-
-                        // =================================
-                        // FOTO ACTUALIZADA
-                        // =================================
-
-                        usuarioFoto =
-                          userData.foto ||
-                          userData.fotoPerfil ||
-                          userData.photoURL ||
-                          usuarioFoto ||
-                          "";
-
-                        console.log(
-                          "FOTO DEL USUARIO:",
-                          usuarioFoto
-                        );
-                      } else {
-                        console.warn(
-                          "NO EXISTE EL PERFIL:",
-                          usuarioId
-                        );
-                      }
-                    } catch (profileError) {
-                      console.error(
-                        "ERROR OBTENIENDO PERFIL:",
-                        profileError
-                      );
-                    }
-                  } else {
-                    console.warn(
-                      "La conversación no tiene usuarioId:",
-                      conversationDoc.id
-                    );
-                  }
-
-                  // =====================================
-                  // RETORNAR CONVERSACIÓN
-                  // =====================================
-
-                  return {
-                    id: conversationDoc.id,
-
-                    ...data,
-
-                    usuarioId,
-
-                    usuarioNombre,
-
-                    usuarioFoto,
-                  };
-                }
-              )
-            );
-
-          // ===========================================
-          // ORDENAR POR ÚLTIMO MENSAJE
-          // ===========================================
-
-          loadedConversations.sort(
-            (a, b) => {
-              const dateA =
-                a.fechaUltimoMensaje?.toDate
-                  ? a.fechaUltimoMensaje
-                      .toDate()
-                      .getTime()
-                  : 0;
-
-              const dateB =
-                b.fechaUltimoMensaje?.toDate
-                  ? b.fechaUltimoMensaje
-                      .toDate()
-                      .getTime()
-                  : 0;
-
-              return dateB - dateA;
-            }
-          );
-
-          setConversations(
-            loadedConversations
-          );
-
-          setLoading(false);
-        } catch (error) {
-          console.error(
-            "ERROR PROCESANDO CONVERSACIONES:",
-            error
-          );
-
-          setError(
-            "No se pudieron procesar las conversaciones."
-          );
-
-          setLoading(false);
-        }
+        setConversations(loadedConversations);
+        setLoading(false);
       },
-      (firebaseError) => {
-        console.error(
-          "ERROR CARGANDO CONVERSACIONES:",
-          firebaseError
-        );
-
-        setError(
-          firebaseError.message ||
-            "No se pudieron cargar las conversaciones."
-        );
-
+      (err) => {
+        console.error("Error cargando conversaciones:", err);
         setConversations([]);
         setLoading(false);
       }
@@ -295,350 +93,233 @@ function SpecialistMessages() {
   }, [currentUser?.uid]);
 
   // =====================================================
+  // FILTRADO Y BÚSQUEDA
+  // =====================================================
+  const filteredConversations = useMemo(() => {
+    return conversations.filter((c) => {
+      const matchSearch =
+        (c.usuarioNombre || "Usuario")
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        (c.ultimoMensaje || "")
+          .toLowerCase()
+          .includes(search.toLowerCase());
+
+      if (!matchSearch) return false;
+
+      if (filter === "unread") {
+        return (c.mensajesNoLeidos || 0) > 0;
+      }
+
+      return true;
+    });
+  }, [conversations, search, filter]);
+
+  const totalUnread = useMemo(() => {
+    return conversations.reduce(
+      (sum, c) => sum + Number(c.mensajesNoLeidos || 0),
+      0
+    );
+  }, [conversations]);
+
+  // =====================================================
   // ABRIR CONVERSACIÓN
   // =====================================================
-
-  const openConversation = (
-    conversation
-  ) => {
-    console.log("=================================");
-    console.log(
-      "ABRIENDO CONVERSACIÓN"
-    );
-    console.log(
-      "ID:",
-      conversation.id
-    );
-    console.log(
-      "Usuario:",
-      conversation.usuarioId
-    );
-    console.log(
-      "Especialista:",
-      conversation.especialistaId
-    );
-    console.log(
-      "Foto:",
-      conversation.usuarioFoto
-    );
-    console.log("=================================");
-
-    navigate(
-      `/specialist-chat/${conversation.id}`,
-      {
-        state: {
-          conversation,
-        },
-      }
-    );
+  const openConversation = (conversation) => {
+    navigate(`/specialist-chat/${conversation.id}`, {
+      state: { conversation },
+    });
   };
 
-  // =====================================================
-  // FORMATEAR FECHA
-  // =====================================================
-
-  const formatDate = (
-    timestamp
-  ) => {
-    if (
-      !timestamp ||
-      typeof timestamp.toDate !==
-        "function"
-    ) {
+  const formatTime = (timestamp) => {
+    if (!timestamp || typeof timestamp.toDate !== "function") {
       return "";
     }
-
     try {
-      return timestamp
-        .toDate()
-        .toLocaleTimeString(
-          "es-NI",
-          {
-            hour: "2-digit",
-            minute: "2-digit",
-          }
-        );
+      const date = timestamp.toDate();
+      const now = new Date();
+      const isToday = date.toDateString() === now.toDateString();
+
+      if (isToday) {
+        return date.toLocaleTimeString("es-NI", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+      return date.toLocaleDateString("es-NI", {
+        day: "2-digit",
+        month: "short",
+      });
     } catch {
       return "";
     }
   };
 
-  // =====================================================
-  // LOADING
-  // =====================================================
-
-  if (loading) {
-    return (
-      <SpecialistLayout>
-        <div className="specialist-loading">
-          <div className="specialist-loading-icon">
-            ⏳
-          </div>
-
-          <p>
-            Cargando conversaciones...
-          </p>
-        </div>
-      </SpecialistLayout>
-    );
-  }
-
-  // =====================================================
-  // INTERFAZ
-  // =====================================================
-
   return (
     <SpecialistLayout>
-
-      <div className="specialist-conversations-page">
-
-        {/* =================================================
-            ENCABEZADO
-        ================================================= */}
-
-        <div className="specialist-page-header">
-
+      <div className="specialist-messages-wrapper">
+        {/* ===================================================
+            HEADER DE MENSAJES
+            =================================================== */}
+        <header className="messages-page-header">
           <div>
-
-            <span className="specialist-label">
-              PANEL DE PROFESIONALES
-            </span>
-
-            <h1>
-              💬 Mis mensajes
-            </h1>
-
-            <p>
-              Aquí puedes ver y responder
-              las conversaciones de tus
-              usuarios.
+            <div className="messages-page-badge">
+              <span>Bandeja de Entrada</span>
+            </div>
+            <h1 className="messages-page-title">Mensajes de Pacientes</h1>
+            <p className="messages-page-subtitle">
+              Responde las consultas y acompaña en tiempo real a las personas que te han contactado.
             </p>
-
           </div>
 
-          <div className="conversation-counter">
-
-            <strong>
-              {conversations.length}
-            </strong>
-
-            <span>
-              conversaciones
+          <div className="messages-counter-card">
+            <div className="counter-num">{conversations.length}</div>
+            <span className="counter-label">
+              {conversations.length === 1 ? "Conversación" : "Conversaciones"}
             </span>
+            {totalUnread > 0 && (
+              <span className="counter-unread-chip">
+                {totalUnread} sin leer
+              </span>
+            )}
+          </div>
+        </header>
 
+        {/* ===================================================
+            TOOLBAR: BÚSQUEDA Y FILTROS
+            =================================================== */}
+        <div className="messages-toolbar">
+          <div className="messages-search-box">
+            <FaSearch className="messages-search-icon" />
+            <input
+              type="text"
+              placeholder="Buscar por nombre de paciente o mensaje..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button
+                type="button"
+                className="messages-clear-btn"
+                onClick={() => setSearch("")}
+              >
+                ✕
+              </button>
+            )}
           </div>
 
+          <div className="messages-filter-pills">
+            <button
+              type="button"
+              className={`filter-pill ${filter === "all" ? "active" : ""}`}
+              onClick={() => setFilter("all")}
+            >
+              Todas ({conversations.length})
+            </button>
+            <button
+              type="button"
+              className={`filter-pill ${filter === "unread" ? "active" : ""}`}
+              onClick={() => setFilter("unread")}
+            >
+              No leídas ({conversations.filter((c) => (c.mensajesNoLeidos || 0) > 0).length})
+            </button>
+          </div>
         </div>
 
-        {/* =================================================
-            ERROR
-        ================================================= */}
-
-        {error && (
-          <div
-            className="no-conversations"
-            style={{
-              border:
-                "1px solid #ffcccc",
-            }}
-          >
-
-            <div className="no-conversations-icon">
-              ⚠️
-            </div>
-
-            <h2>
-              No se pudieron cargar
-              los mensajes
-            </h2>
-
-            <p>
-              {error}
-            </p>
-
-          </div>
-        )}
-
-        {/* =================================================
-            SIN CONVERSACIONES
-        ================================================= */}
-
-        {!error &&
-          conversations.length === 0 && (
-            <div className="no-conversations">
-
-              <div className="no-conversations-icon">
-                💬
-              </div>
-
-              <h2>
-                Aún no tienes conversaciones
-              </h2>
-
-              <p>
-                Cuando un usuario te
-                escriba, la conversación
-                aparecerá aquí.
-              </p>
-
-              <small
-                style={{
-                  display: "block",
-                  marginTop: "15px",
-                  opacity: 0.6,
-                }}
-              >
-                Especialista conectado:{" "}
-                {currentUser?.uid}
-              </small>
-
-            </div>
-          )}
-
-        {/* =================================================
+        {/* ===================================================
             LISTA DE CONVERSACIONES
-        ================================================= */}
-
-        {!error &&
-          conversations.length > 0 && (
-
-            <div className="conversations-list">
-
-              {conversations.map(
-                (conversation) => (
-
-                  <div
-                    key={
-                      conversation.id
-                    }
-                    className="conversation-card"
-                    onClick={() =>
-                      openConversation(
-                        conversation
-                      )
-                    }
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(
-                      event
-                    ) => {
-
-                      if (
-                        event.key ===
-                          "Enter" ||
-                        event.key === " "
-                      ) {
-                        openConversation(
-                          conversation
-                        );
-                      }
-
-                    }}
-                  >
-
-                    {/* =================================
-                        FOTO DEL USUARIO
-                    ================================= */}
-
-                    <div className="conversation-avatar">
-
-                      {conversation.usuarioFoto ? (
-
-                        <img
-                          src={
-                            conversation.usuarioFoto
-                          }
-                          alt={
-                            conversation.usuarioNombre ||
-                            "Usuario"
-                          }
-                          onError={(
-                            event
-                          ) => {
-                            event.currentTarget.style.display =
-                              "none";
-                          }}
-                        />
-
-                      ) : (
-
-                        <span>
-                          {conversation.usuarioNombre
-                            ?.charAt(
-                              0
-                            )
-                            .toUpperCase() ||
-                            "👤"}
-                        </span>
-
-                      )}
-
-                    </div>
-
-                    {/* =================================
-                        INFORMACIÓN
-                    ================================= */}
-
-                    <div className="conversation-content">
-
-                      <div className="conversation-top">
-
-                        <h3>
-                          {
-                            conversation.usuarioNombre ||
-                            "Usuario"
-                          }
-                        </h3>
-
-                        <span className="conversation-time">
-
-                          {formatDate(
-                            conversation.fechaUltimoMensaje
-                          )}
-
-                        </span>
-
-                      </div>
-
-                      <div className="conversation-bottom">
-
-                        <p>
-                          {
-                            conversation.ultimoMensaje ||
-                            "Nueva conversación"
-                          }
-                        </p>
-
-                        {Number(
-                          conversation.mensajesNoLeidos ||
-                            0
-                        ) > 0 && (
-
-                          <span className="unread-badge">
-
-                            {
-                              conversation.mensajesNoLeidos
-                            }
-
-                          </span>
-
-                        )}
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                )
-              )}
-
+            =================================================== */}
+        <main className="messages-list-container">
+          {loading ? (
+            <div className="messages-loading-state">
+              <div className="specialist-spinner"></div>
+              <p>Cargando tus mensajes...</p>
             </div>
+          ) : filteredConversations.length === 0 ? (
+            <div className="messages-empty-state">
+              <div className="messages-empty-icon">
+                {search ? <FaSearch /> : <FaComments />}
+              </div>
+              <h3>
+                {search
+                  ? "No se encontraron conversaciones"
+                  : filter === "unread"
+                  ? "No tienes mensajes sin leer"
+                  : "Bandeja de entrada vacía"}
+              </h3>
+              <p>
+                {search
+                  ? "Intenta buscar con otro nombre de paciente."
+                  : filter === "unread"
+                  ? "Estás al día con todas las consultas."
+                  : "Cuando un usuario inicie un chat contigo, aparecerá en esta lista."}
+              </p>
+            </div>
+          ) : (
+            <div className="messages-cards-list">
+              {filteredConversations.map((conv) => {
+                const hasUnread = (conv.mensajesNoLeidos || 0) > 0;
 
+                return (
+                  <article
+                    key={conv.id}
+                    className={`message-card-item ${hasUnread ? "unread" : ""}`}
+                    onClick={() => openConversation(conv)}
+                  >
+                    <div className="message-card-avatar">
+                      {conv.usuarioFoto ? (
+                        <img
+                          src={conv.usuarioFoto}
+                          alt={conv.usuarioNombre || "Usuario"}
+                        />
+                      ) : (
+                        <FaUserCircle className="avatar-icon" />
+                      )}
+                      {hasUnread && <span className="unread-dot-badge"></span>}
+                    </div>
+
+                    <div className="message-card-content">
+                      <div className="message-card-top">
+                        <h3 className="message-card-name">
+                          {conv.usuarioNombre || "Usuario FeelSafe"}
+                        </h3>
+                        <span className="message-card-time">
+                          <FaClock /> {formatTime(conv.fechaUltimoMensaje) || "Hoy"}
+                        </span>
+                      </div>
+
+                      <div className="message-card-bottom">
+                        <p className="message-card-snippet">
+                          {conv.ultimoMensaje || "Nueva consulta iniciada"}
+                        </p>
+                        {hasUnread && (
+                          <span className="message-card-badge">
+                            {conv.mensajesNoLeidos}{" "}
+                            {conv.mensajesNoLeidos === 1 ? "nuevo" : "nuevos"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="message-card-action">
+                      <button
+                        type="button"
+                        className="message-open-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openConversation(conv);
+                        }}
+                      >
+                        <FaPaperPlane /> Responder
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
           )}
-
+        </main>
       </div>
-
     </SpecialistLayout>
   );
 }

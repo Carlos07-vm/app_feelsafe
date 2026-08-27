@@ -1,19 +1,28 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 import {
   createUserWithEmailAndPassword,
   updateProfile,
 } from "firebase/auth";
-
 import {
   doc,
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
+import {
+  FaUserMd,
+  FaCheckCircle,
+  FaArrowRight,
+  FaEnvelope,
+  FaLock,
+  FaUser,
+  FaPhone,
+  FaBriefcase,
+  FaAward,
+} from "react-icons/fa";
 
 import { auth, db } from "../services/firebase";
-
+import logo from "../assets/logo.jpeg";
 import "../styles/SpecialistRegister.css";
 
 function SpecialistRegister() {
@@ -24,7 +33,7 @@ function SpecialistRegister() {
     correo: "",
     password: "",
     confirmarPassword: "",
-    especialidad: "",
+    especialidad: "Psicología Clínica",
     experiencia: "",
     telefono: "",
     descripcion: "",
@@ -36,22 +45,13 @@ function SpecialistRegister() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
     setSuccess("");
-
-    // ==============================
-    // VALIDACIONES
-    // ==============================
 
     if (
       !formData.nombre.trim() ||
@@ -60,549 +60,266 @@ function SpecialistRegister() {
       !formData.confirmarPassword ||
       !formData.especialidad
     ) {
-      setError(
-        "Completa todos los campos obligatorios."
-      );
+      setError("Por favor completa todos los campos obligatorios.");
       return;
     }
 
     if (formData.password.length < 6) {
-      setError(
-        "La contraseña debe tener al menos 6 caracteres."
-      );
+      setError("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
 
-    if (
-      formData.password !==
-      formData.confirmarPassword
-    ) {
-      setError(
-        "Las contraseñas no coinciden."
-      );
+    if (formData.password !== formData.confirmarPassword) {
+      setError("Las contraseñas no coinciden.");
       return;
     }
 
     try {
       setLoading(true);
 
-      console.log(
-        "1️⃣ Creando especialista en Firebase Authentication..."
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.correo.trim(),
+        formData.password
       );
-
-      // ==============================
-      // CREAR CUENTA AUTH
-      // ==============================
-
-      const userCredential =
-        await createUserWithEmailAndPassword(
-          auth,
-          formData.correo.trim(),
-          formData.password
-        );
 
       const user = userCredential.user;
 
-      console.log(
-        "✅ Usuario creado:",
-        user.uid
-      );
-
-      // ==============================
-      // ACTUALIZAR PERFIL AUTH
-      // ==============================
-
       await updateProfile(user, {
-        displayName:
-          formData.nombre.trim(),
+        displayName: formData.nombre.trim(),
       });
 
-      console.log(
-        "✅ Perfil de Authentication actualizado"
-      );
-
-      // ==============================
-      // CREAR ESPECIALISTA EN FIRESTORE
-      // ==============================
-
-      const specialistRef = doc(
-        db,
-        "specialists",
-        user.uid
-      );
-
+      const specialistRef = doc(db, "specialists", user.uid);
       await setDoc(specialistRef, {
         uid: user.uid,
-
-        nombre:
-          formData.nombre.trim(),
-
-        correo:
-          formData.correo.trim(),
-
-        especialidad:
-          formData.especialidad,
-
-        experiencia:
-          Number(formData.experiencia) || 0,
-
-        telefono:
-          formData.telefono.trim(),
-
-        descripcion:
-          formData.descripcion.trim(),
-
+        nombre: formData.nombre.trim(),
+        correo: formData.correo.trim(),
+        especialidad: formData.especialidad,
+        experiencia: Number(formData.experiencia) || 0,
+        telefono: formData.telefono.trim(),
+        descripcion: formData.descripcion.trim(),
         fotoPerfil: "",
-
-        tipoCuenta:
-          "especialista",
-
-        estado:
-          "Activo",
-
+        tipoCuenta: "especialista",
+        estado: "Activo",
         disponible: true,
-
-        correoVerificado:
-          false,
-
-        fechaRegistro:
-          serverTimestamp(),
-
-        ultimoAcceso:
-          serverTimestamp(),
+        correoVerificado: false,
+        fechaRegistro: serverTimestamp(),
+        ultimoAcceso: serverTimestamp(),
       });
 
-      console.log(
-        "✅ Especialista guardado en Firestore"
-      );
-
-      // ==============================
-      // ÉXITO
-      // ==============================
-
-      setSuccess(
-        "¡Cuenta profesional creada correctamente!"
-      );
-
+      setSuccess("¡Cuenta profesional creada exitosamente! Redirigiendo...");
       setTimeout(() => {
-        navigate(
-          "/specialist/dashboard"
-        );
+        navigate("/specialist/dashboard");
       }, 1500);
-
-    } catch (error) {
-
-      console.error(
-        "❌ ERROR:",
-        error
-      );
-
-      console.error(
-        "Código:",
-        error.code
-      );
-
-      console.error(
-        "Mensaje:",
-        error.message
-      );
-
-      // ==============================
-      // ERRORES AUTH
-      // ==============================
-
-      if (
-        error.code ===
-        "auth/email-already-in-use"
-      ) {
-        setError(
-          "Este correo ya está registrado. Utiliza otro correo o inicia sesión."
-        );
-
-      } else if (
-        error.code ===
-        "auth/invalid-email"
-      ) {
-        setError(
-          "El correo electrónico no es válido."
-        );
-
-      } else if (
-        error.code ===
-        "auth/weak-password"
-      ) {
-        setError(
-          "La contraseña es demasiado débil."
-        );
-
-      // ==============================
-      // ERROR FIRESTORE
-      // ==============================
-
-      } else if (
-        error.code ===
-        "permission-denied"
-      ) {
-        setError(
-          "Firebase Authentication creó la cuenta, pero Firestore no permitió guardar el especialista. Revisa las reglas de Firestore."
-        );
-
+    } catch (err) {
+      console.error("Error en registro:", err);
+      if (err.code === "auth/email-already-in-use") {
+        setError("Este correo electrónico ya está registrado. Por favor inicia sesión.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("El correo electrónico ingresado no es válido.");
+      } else if (err.code === "auth/weak-password") {
+        setError("La contraseña es muy débil. Usa al menos 6 caracteres.");
       } else {
-
-        setError(
-          "No se pudo completar el registro. Revisa la consola."
-        );
+        setError("Ocurrió un error al registrar tu cuenta. Intenta de nuevo.");
       }
-
     } finally {
-
       setLoading(false);
-
     }
   };
 
   return (
-    <div className="specialist-register">
-
-      {/* ==============================
-          PANEL IZQUIERDO
-      ============================== */}
-
-      <div className="specialist-register-left">
-
-        <div className="specialist-brand">
-
-          <div className="brand-icon">
-            ♡
-          </div>
-
+    <div className="specialist-register-container">
+      {/* LADO IZQUIERDO: Hero Institucional FeelSafe */}
+      <div className="register-hero-side">
+        <div className="register-hero-logo" onClick={() => navigate("/")}>
+          <img src={logo} alt="FeelSafe Logo" />
           <div>
             <h2>FeelSafe</h2>
-            <span>
-              Especialistas
-            </span>
+            <span>Red de Especialistas</span>
           </div>
-
         </div>
 
-        <div className="register-hero">
-
-          <span className="hero-badge">
-            ✦ Profesionales de la salud mental
-          </span>
-
+        <div className="register-hero-center">
+          <div className="hero-pill-badge">
+            <FaAward /> Únete como Profesional
+          </div>
           <h1>
-            Ayuda a las personas a
-            <span>
-              sentirse mejor.
-            </span>
+            Acompaña y transforma vidas en <span>FeelSafe</span>
           </h1>
-
           <p>
-            Únete a FeelSafe y brinda
-            acompañamiento profesional
-            a personas que necesitan
-            orientación y apoyo.
+            Sé parte de nuestra comunidad de profesionales de la salud mental. Conecta con personas que buscan orientación, gestiona tus consultas y brinda apoyo seguro.
           </p>
 
-          <div className="hero-features">
-
-            <div>
-              <strong>✓</strong>
-              <span>
-                Comunicación segura
-              </span>
+          <div className="hero-perks-list">
+            <div className="perk-item">
+              <FaCheckCircle className="perk-icon" />
+              <span>Gestión integral de citas y agenda personalizada</span>
             </div>
-
-            <div>
-              <strong>✓</strong>
-              <span>
-                Chat en tiempo real
-              </span>
+            <div className="perk-item">
+              <FaCheckCircle className="perk-icon" />
+              <span>Chat seguro y directo en tiempo real con pacientes</span>
             </div>
-
-            <div>
-              <strong>✓</strong>
-              <span>
-                Gestión de conversaciones
-              </span>
+            <div className="perk-item">
+              <FaCheckCircle className="perk-icon" />
+              <span>Perfil profesional verificado y visibilidad en FeelSafe</span>
             </div>
-
           </div>
-
         </div>
-
       </div>
 
-      {/* ==============================
-          FORMULARIO
-      ============================== */}
-
-      <div className="specialist-register-right">
-
-        <div className="register-card">
-
-          <div className="register-title">
-
-            <span>
-              CUENTA PROFESIONAL
-            </span>
-
-            <h1>
-              Crear cuenta de especialista
-            </h1>
-
-            <p>
-              Completa tus datos profesionales
-              para comenzar.
-            </p>
-
+      {/* LADO DERECHO: Formulario de Registro */}
+      <div className="register-form-side">
+        <div className="register-card-box">
+          <div className="form-header-group">
+            <span className="form-subtitle">REGISTRO DE PROFESIONAL</span>
+            <h1>Crear Cuenta de Especialista</h1>
+            <p>Completa tus datos profesionales para unirte a FeelSafe.</p>
           </div>
 
-          {/* MENSAJE ERROR */}
+          {error && <div className="auth-alert error">⚠️ {error}</div>}
+          {success && <div className="auth-alert success">✓ {success}</div>}
 
-          {error && (
-            <div className="register-message error">
-              {error}
-            </div>
-          )}
+          <form onSubmit={handleSubmit} className="auth-register-form">
+            <div className="auth-fields-grid">
+              <div className="auth-field full">
+                <label>Nombre y Apellidos *</label>
+                <div className="auth-input-wrap">
+                  <FaUser className="input-icon" />
+                  <input
+                    type="text"
+                    name="nombre"
+                    value={formData.nombre}
+                    onChange={handleChange}
+                    placeholder="Ej. Dra. Carmen Morales"
+                    required
+                  />
+                </div>
+              </div>
 
-          {/* MENSAJE ÉXITO */}
+              <div className="auth-field full">
+                <label>Correo Electrónico *</label>
+                <div className="auth-input-wrap">
+                  <FaEnvelope className="input-icon" />
+                  <input
+                    type="email"
+                    name="correo"
+                    value={formData.correo}
+                    onChange={handleChange}
+                    placeholder="correo@ejemplo.com"
+                    required
+                  />
+                </div>
+              </div>
 
-          {success && (
-            <div className="register-message success">
-              {success}
-            </div>
-          )}
+              <div className="auth-field">
+                <label>Contraseña *</label>
+                <div className="auth-input-wrap">
+                  <FaLock className="input-icon" />
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                  />
+                </div>
+              </div>
 
-          <form onSubmit={handleSubmit}>
+              <div className="auth-field">
+                <label>Confirmar Contraseña *</label>
+                <div className="auth-input-wrap">
+                  <FaLock className="input-icon" />
+                  <input
+                    type="password"
+                    name="confirmarPassword"
+                    value={formData.confirmarPassword}
+                    onChange={handleChange}
+                    placeholder="Repite tu contraseña"
+                    required
+                  />
+                </div>
+              </div>
 
-            {/* NOMBRE */}
+              <div className="auth-field">
+                <label>Especialidad Principal *</label>
+                <div className="auth-input-wrap">
+                  <FaUserMd className="input-icon" />
+                  <select
+                    name="especialidad"
+                    value={formData.especialidad}
+                    onChange={handleChange}
+                  >
+                    <option value="Psicología Clínica">Psicología Clínica</option>
+                    <option value="Terapia Cognitivo-Conductual">Terapia Cognitivo-Conductual</option>
+                    <option value="Psicoterapia y Manejo de Ansiedad">Psicoterapia y Manejo de Ansiedad</option>
+                    <option value="Terapia Familiar y de Pareja">Terapia Familiar y de Pareja</option>
+                    <option value="Mindfulness y Bienestar Emocional">Mindfulness y Bienestar Emocional</option>
+                    <option value="Psicología Educativa">Psicología Educativa</option>
+                  </select>
+                </div>
+              </div>
 
-            <div className="form-group">
+              <div className="auth-field">
+                <label>Años de Experiencia</label>
+                <div className="auth-input-wrap">
+                  <FaBriefcase className="input-icon" />
+                  <input
+                    type="number"
+                    name="experiencia"
+                    value={formData.experiencia}
+                    onChange={handleChange}
+                    placeholder="Ej. 4"
+                    min={0}
+                  />
+                </div>
+              </div>
 
-              <label>
-                Nombre completo *
-              </label>
+              <div className="auth-field full">
+                <label>Teléfono de Contacto</label>
+                <div className="auth-input-wrap">
+                  <FaPhone className="input-icon" />
+                  <input
+                    type="tel"
+                    name="telefono"
+                    value={formData.telefono}
+                    onChange={handleChange}
+                    placeholder="Ej. +505 8888 8888"
+                  />
+                </div>
+              </div>
 
-              <input
-                type="text"
-                name="nombre"
-                placeholder="Ej. María López"
-                value={formData.nombre}
-                onChange={handleChange}
-              />
-
-            </div>
-
-            {/* CORREO */}
-
-            <div className="form-group">
-
-              <label>
-                Correo electrónico *
-              </label>
-
-              <input
-                type="email"
-                name="correo"
-                placeholder="especialista@email.com"
-                value={formData.correo}
-                onChange={handleChange}
-              />
-
-            </div>
-
-            {/* CONTRASEÑAS */}
-
-            <div className="form-row">
-
-              <div className="form-group">
-
-                <label>
-                  Contraseña *
-                </label>
-
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Mínimo 6 caracteres"
-                  value={formData.password}
+              <div className="auth-field full">
+                <label>Biografía / Presentación Profesional</label>
+                <textarea
+                  name="descripcion"
+                  value={formData.descripcion}
                   onChange={handleChange}
+                  rows={3}
+                  placeholder="Describe brevemente tu enfoque, trayectoria o mensaje para tus pacientes..."
                 />
-
               </div>
-
-              <div className="form-group">
-
-                <label>
-                  Confirmar contraseña *
-                </label>
-
-                <input
-                  type="password"
-                  name="confirmarPassword"
-                  placeholder="Repite la contraseña"
-                  value={
-                    formData.confirmarPassword
-                  }
-                  onChange={handleChange}
-                />
-
-              </div>
-
             </div>
-
-            {/* ESPECIALIDAD + EXPERIENCIA */}
-
-            <div className="form-row">
-
-              <div className="form-group">
-
-                <label>
-                  Especialidad *
-                </label>
-
-                <select
-                  name="especialidad"
-                  value={
-                    formData.especialidad
-                  }
-                  onChange={handleChange}
-                >
-
-                  <option value="">
-                    Selecciona una especialidad
-                  </option>
-
-                  <option value="Psicología">
-                    Psicología
-                  </option>
-
-                  <option value="Psicología clínica">
-                    Psicología clínica
-                  </option>
-
-                  <option value="Psiquiatría">
-                    Psiquiatría
-                  </option>
-
-                  <option value="Orientación psicológica">
-                    Orientación psicológica
-                  </option>
-
-                  <option value="Terapia familiar">
-                    Terapia familiar
-                  </option>
-
-                  <option value="Otra">
-                    Otra
-                  </option>
-
-                </select>
-
-              </div>
-
-              <div className="form-group">
-
-                <label>
-                  Años de experiencia
-                </label>
-
-                <input
-                  type="number"
-                  name="experiencia"
-                  min="0"
-                  placeholder="Ej. 5"
-                  value={
-                    formData.experiencia
-                  }
-                  onChange={handleChange}
-                />
-
-              </div>
-
-            </div>
-
-            {/* TELÉFONO */}
-
-            <div className="form-group">
-
-              <label>
-                Teléfono
-              </label>
-
-              <input
-                type="tel"
-                name="telefono"
-                placeholder="Ej. 8888-8888"
-                value={
-                  formData.telefono
-                }
-                onChange={handleChange}
-              />
-
-            </div>
-
-            {/* DESCRIPCIÓN */}
-
-            <div className="form-group">
-
-              <label>
-                Descripción profesional
-              </label>
-
-              <textarea
-                name="descripcion"
-                rows="4"
-                placeholder="Cuéntanos sobre tu experiencia profesional..."
-                value={
-                  formData.descripcion
-                }
-                onChange={handleChange}
-              />
-
-            </div>
-
-            {/* BOTÓN */}
 
             <button
               type="submit"
-              className="specialist-register-button"
+              className="register-submit-btn"
               disabled={loading}
             >
-
-              {loading
-                ? "Creando cuenta..."
-                : "Crear cuenta profesional"}
-
+              {loading ? "Creando cuenta profesional..." : "Registrarme como Especialista"}
             </button>
-
           </form>
 
-          <div className="register-footer">
-
-            <span>
-              ¿Ya tienes una cuenta?
-            </span>
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  "/login"
-                )
-              }
-            >
-              Iniciar sesión
-            </button>
-
+          <div className="register-footer-links">
+            <p>
+              ¿Ya tienes cuenta profesional?{" "}
+              <Link to="/login" className="login-link">
+                Inicia sesión aquí <FaArrowRight />
+              </Link>
+            </p>
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }

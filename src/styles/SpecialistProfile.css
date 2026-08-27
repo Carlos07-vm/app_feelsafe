@@ -1,275 +1,344 @@
-.specialist-profile-page {
-  min-height: 100vh;
-  padding: 35px;
-  background: #f7f5fc;
-  color: #29233d;
+/* =========================================================
+   FEELSAFE - SPECIALIST PROFILE
+   Estilos unificados con el sistema visual FeelSafe
+   ========================================================= */
+
+.specialist-profile-wrapper {
+  max-width: 1150px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  font-family: var(--font-body);
 }
 
-.specialist-profile-header {
-  max-width: 1100px;
-  margin: 0 auto 30px;
+/* =========================================================
+   HEADER
+   ========================================================= */
+.profile-page-header {
+  padding-bottom: 4px;
 }
 
-.profile-back-button {
-  border: none;
-  background: transparent;
-  padding: 0;
-  margin-bottom: 15px;
-  color: #7357c8;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.profile-label {
-  display: block;
-  color: #8b78c9;
-  font-size: 12px;
+.profile-page-badge {
+  display: inline-block;
+  background: var(--surface-soft);
+  color: var(--primary);
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
 }
 
-.specialist-profile-header h1 {
-  margin: 6px 0;
-  font-size: 32px;
+.profile-page-title {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
 }
 
-.specialist-profile-header p {
+.profile-page-subtitle {
+  font-size: 0.92rem;
+  color: var(--text-light);
   margin: 0;
-  color: #817b90;
+  max-width: 600px;
 }
 
-.specialist-profile-content {
-  max-width: 1100px;
-  margin: auto;
+/* =========================================================
+   ALERTAS
+   ========================================================= */
+.profile-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.profile-alert.success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.profile-alert.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* =========================================================
+   LAYOUT GRID (SUMMARY + FORM)
+   ========================================================= */
+.profile-layout-grid {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 25px;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
   align-items: start;
 }
 
-.profile-photo-card,
-.profile-form-card {
-  background: white;
-  border: 1px solid #ebe7f3;
-  border-radius: 22px;
-  box-shadow: 0 8px 25px rgba(70, 55, 110, 0.07);
-}
-
-.profile-photo-card {
-  padding: 28px 20px;
+/* =========================================================
+   TARJETA RESUMEN (IZQUIERDA)
+   ========================================================= */
+.profile-summary-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 32px 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
 }
 
-.profile-photo {
-  width: 120px;
-  height: 120px;
-  margin: 0 auto 18px;
+.profile-avatar-container {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.profile-avatar-large {
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   overflow: hidden;
+  background: var(--primary-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e8e1fa;
-  color: #7357c8;
-  font-size: 45px;
-  font-weight: 700;
+  border: 4px solid var(--surface-soft);
+  box-shadow: 0 8px 25px rgba(109, 76, 143, 0.2);
 }
 
-.profile-photo img {
+.profile-avatar-large img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.profile-photo-card h2 {
-  margin: 0;
-  font-size: 20px;
+.profile-placeholder-icon {
+  font-size: 110px;
+  color: var(--primary);
 }
 
-.profile-photo-card p {
-  margin: 7px 0 20px;
-  color: #817b90;
-}
-
-.profile-photo-card button {
-  border: none;
-  border-radius: 12px;
-  padding: 11px 18px;
-  background: #7357c8;
+.profile-photo-overlay-btn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary);
   color: white;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
   cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s, background 0.2s;
+  border: 2px solid white;
 }
 
-.profile-photo-card button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.profile-photo-overlay-btn:hover {
+  transform: scale(1.1);
+  background: var(--primary-dark);
 }
 
-.profile-form-card {
-  padding: 30px;
+.photo-uploading-text {
+  font-size: 0.8rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin: 0 0 10px;
 }
 
-.profile-form-header span {
-  color: #8b78c9;
-  font-size: 11px;
+.summary-name {
+  font-family: var(--font-title);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 6px;
+}
+
+.summary-badge {
+  display: inline-block;
+  background: var(--surface-soft);
+  color: var(--primary);
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 1.4px;
+  padding: 4px 12px;
+  border-radius: 50px;
+  margin-bottom: 22px;
 }
 
-.profile-form-header h2 {
-  margin: 5px 0 25px;
-  font-size: 23px;
+.summary-info-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+  text-align: left;
 }
 
-.profile-form-grid {
+.summary-info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.86rem;
+  color: var(--text-light);
+}
+
+.summary-info-icon {
+  color: var(--primary);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   FORMULARIO DE EDICIÓN (DERECHA)
+   ========================================================= */
+.profile-form-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 30px;
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-form-icon {
+  font-size: 1.8rem;
+  color: var(--primary);
+}
+
+.profile-card-header h2 {
+  font-family: var(--font-title);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 2px;
+}
+
+.profile-card-header p {
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin: 0;
+}
+
+.profile-fields-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 18px;
 }
 
 .profile-field {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
-.profile-field-full {
+.profile-field.full-width {
   grid-column: 1 / -1;
 }
 
 .profile-field label {
-  font-size: 13px;
+  font-size: 0.82rem;
   font-weight: 600;
+  color: var(--text);
 }
 
 .profile-field input,
 .profile-field textarea {
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid #e2ddeb;
-  border-radius: 12px;
-  padding: 12px 13px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 0.9rem;
   outline: none;
   font-family: inherit;
-  font-size: 14px;
-  background: #fcfbfe;
-  color: #29233d;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
 
 .profile-field input:focus,
 .profile-field textarea:focus {
-  border-color: #7357c8;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(109, 76, 143, 0.12);
+  background: var(--surface);
 }
 
-.profile-field textarea {
-  resize: vertical;
-}
-
-.profile-email {
-  margin-top: 22px;
-  padding: 15px;
-  border-radius: 13px;
-  background: #f7f5fc;
-}
-
-.profile-email span,
-.profile-email small {
-  display: block;
-  color: #817b90;
-}
-
-.profile-email span {
-  font-size: 12px;
-}
-
-.profile-email strong {
-  display: block;
-  margin: 4px 0;
-  word-break: break-word;
-}
-
-.profile-email small {
-  font-size: 11px;
-}
-
-.profile-actions {
-  margin-top: 25px;
+.profile-form-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
 }
 
-.profile-actions button {
-  border: none;
-  border-radius: 12px;
-  padding: 12px 20px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.profile-cancel {
-  background: #eeeaf5;
-  color: #5c5669;
-}
-
-.profile-save {
-  background: #7357c8;
+.profile-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 26px;
+  background: var(--primary);
   color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(109, 76, 143, 0.25);
+  transition: transform 0.2s, background 0.2s;
 }
 
-.profile-save:disabled {
+.profile-save-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+.profile-save-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.profile-success,
-.profile-error {
-  margin-bottom: 20px;
-  padding: 13px 15px;
-  border-radius: 12px;
-  font-size: 13px;
-}
-
-.profile-success {
-  background: #edf9f1;
-  color: #287345;
-}
-
-.profile-error {
-  background: #fff2f2;
-  color: #a23b3b;
-}
-
-.specialist-profile-loading {
-  min-height: 100vh;
+.profile-loading-state {
+  padding: 60px 20px;
+  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #f7f5fc;
-  color: #817b90;
 }
 
-.specialist-profile-loading div {
-  font-size: 40px;
-  margin-bottom: 10px;
-}
-
-@media (max-width: 800px) {
-  .specialist-profile-page {
-    padding: 20px;
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width: 900px) {
+  .profile-layout-grid {
+    grid-template-columns: 1fr;
   }
+}
 
-  .specialist-profile-content {
+@media (max-width: 650px) {
+  .profile-fields-grid {
     grid-template-columns: 1fr;
   }
 
-  .profile-form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .profile-field-full {
-    grid-column: auto;
+  .profile-form-container {
+    padding: 20px 16px;
   }
 }

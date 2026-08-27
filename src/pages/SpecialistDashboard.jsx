@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import {
-  onAuthStateChanged,
-  signOut,
-} from "firebase/auth";
-
+import { onAuthStateChanged } from "firebase/auth";
 import {
   collection,
   doc,
@@ -14,331 +9,76 @@ import {
   query,
   where,
 } from "firebase/firestore";
+import {
+  FaComments,
+  FaUsers,
+  FaCalendarAlt,
+  FaCheckCircle,
+  FaArrowRight,
+  FaUserMd,
+  FaClock,
+  FaCommentDots,
+  FaCalendarPlus,
+  FaUserCircle,
+} from "react-icons/fa";
 
 import { auth, db } from "../services/firebase";
-
+import SpecialistLayout from "../components/SpecialistLayout";
 import "../styles/SpecialistDashboard.css";
-
-
-/* =========================================================
-   ICONOS
-   ========================================================= */
-
-function Icon({ name, size = 20 }) {
-  const icons = {
-    home: (
-      <>
-        <path
-          d="M3 10.5 12 3l9 7.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M5.5 9.5V20h13V9.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M9.5 20v-5.5h5V20"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinejoin="round"
-        />
-      </>
-    ),
-
-    message: (
-      <>
-        <path
-          d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 3v-5.5A7.5 7.5 0 0 1 10.5 4H13a7 7 0 0 1 7 7.5Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M8 11h.01M12 11h.01M16 11h.01"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-        />
-      </>
-    ),
-
-    users: (
-      <>
-        <circle
-          cx="9"
-          cy="8"
-          r="3"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        />
-        <path
-          d="M3.5 19c.4-3.2 2.2-5 5.5-5s5.1 1.8 5.5 5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-        <path
-          d="M15 6.5a3 3 0 0 1 0 5.8M16 14c2.4.4 3.8 2 4.3 4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-      </>
-    ),
-
-    calendar: (
-      <>
-        <rect
-          x="3"
-          y="5"
-          width="18"
-          height="16"
-          rx="2.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        />
-        <path
-          d="M7 3v4M17 3v4M3 10h18"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-        <path
-          d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </>
-    ),
-
-    user: (
-      <>
-        <circle
-          cx="12"
-          cy="8"
-          r="3.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        />
-        <path
-          d="M5 21c.6-4.1 2.9-6.2 7-6.2s6.4 2.1 7 6.2"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-        />
-      </>
-    ),
-
-    settings: (
-      <>
-        <circle
-          cx="12"
-          cy="12"
-          r="3"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        />
-        <path
-          d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.1h-2.5v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6.4v-2.5h.1A1.7 1.7 0 0 0 8 10a1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V5h2.5v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1A1.7 1.7 0 0 0 19.4 10a1.7 1.7 0 0 0 1.5 1h.1v2.5h-.1a1.7 1.7 0 0 0-1.5 1.5Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.4"
-          strokeLinejoin="round"
-        />
-      </>
-    ),
-
-    more: (
-      <>
-        <circle cx="5" cy="12" r="1.5" fill="currentColor" />
-        <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-        <circle cx="19" cy="12" r="1.5" fill="currentColor" />
-      </>
-    ),
-
-    logout: (
-      <>
-        <path
-          d="M10 5H5v14h5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M13 8l4 4-4 4M17 12H9"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </>
-    ),
-
-    close: (
-      <>
-        <path
-          d="M6 6l12 12M18 6 6 18"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-      </>
-    ),
-
-    chat: (
-      <>
-        <path
-          d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-5 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinejoin="round"
-        />
-      </>
-    ),
-  };
-
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-    >
-      {icons[name]}
-    </svg>
-  );
-}
-
-
-/* =========================================================
-   SPECIALIST DASHBOARD
-   ========================================================= */
 
 function SpecialistDashboard() {
   const navigate = useNavigate();
 
   const [specialist, setSpecialist] = useState(null);
   const [conversations, setConversations] = useState([]);
-
+  const [appointmentsCount, setAppointmentsCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [conversationsLoading, setConversationsLoading] =
-    useState(true);
+  const [conversationsLoading, setConversationsLoading] = useState(true);
 
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
-
-
-  /* =======================================================
-     AUTENTICACIÓN + PERFIL
-     ======================================================= */
-
+  // =======================================================
+  // 1. AUTENTICACIÓN
+  // =======================================================
   useEffect(() => {
-    let mounted = true;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setSpecialist(null);
+        setLoading(false);
+        navigate("/login", { replace: true });
+        return;
+      }
 
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (user) => {
-        if (!mounted) return;
+      try {
+        const specialistRef = doc(db, "specialists", user.uid);
+        const specialistSnap = await getDoc(specialistRef);
 
-        if (!user) {
-          setSpecialist(null);
-          setConversations([]);
-          setLoading(false);
-
-          navigate("/specialist/login", {
-            replace: true,
-          });
-
-          return;
-        }
-
-        try {
-          const specialistRef = doc(
-            db,
-            "specialists",
-            user.uid
-          );
-
-          const specialistSnap =
-            await getDoc(specialistRef);
-
-          if (!mounted) return;
-
-          if (!specialistSnap.exists()) {
-            console.error(
-              "No existe el perfil del especialista."
-            );
-
-            await signOut(auth);
-
-            navigate("/specialist/login", {
-              replace: true,
-            });
-
-            return;
-          }
-
-          const specialistData =
-            specialistSnap.data();
-
+        if (specialistSnap.exists()) {
           setSpecialist({
             uid: user.uid,
-            ...specialistData,
+            email: user.email,
+            ...specialistSnap.data(),
           });
-        } catch (error) {
-          console.error(
-            "Error obteniendo especialista:",
-            error
-          );
-
-          if (mounted) {
-            setSpecialist(null);
-          }
-        } finally {
-          if (mounted) {
-            setLoading(false);
-          }
+        } else {
+          setSpecialist({
+            uid: user.uid,
+            email: user.email,
+            nombre: user.displayName || "Especialista",
+            especialidad: "Profesional FeelSafe",
+            disponible: true,
+          });
         }
+      } catch (error) {
+        console.error("Error cargando perfil del especialista:", error);
+      } finally {
+        setLoading(false);
       }
-    );
+    });
 
-    return () => {
-      mounted = false;
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, [navigate]);
 
-
-  /* =======================================================
-     CONVERSACIONES
-     ======================================================= */
-
+  // =======================================================
+  // 2. CONVERSACIONES EN TIEMPO REAL
+  // =======================================================
   useEffect(() => {
     if (!specialist?.uid) {
       setConversations([]);
@@ -348,57 +88,36 @@ function SpecialistDashboard() {
 
     setConversationsLoading(true);
 
-    const conversationsRef = collection(
-      db,
-      "conversaciones_especialistas"
-    );
-
+    const conversationsRef = collection(db, "conversaciones_especialistas");
     const conversationsQuery = query(
       conversationsRef,
-      where(
-        "especialistaId",
-        "==",
-        specialist.uid
-      )
+      where("especialistaId", "==", specialist.uid)
     );
 
     const unsubscribe = onSnapshot(
       conversationsQuery,
       (snapshot) => {
-        const data = snapshot.docs.map(
-          (conversationDoc) => ({
-            id: conversationDoc.id,
-            ...conversationDoc.data(),
-          })
-        );
+        const loadedConversations = snapshot.docs.map((conversationDoc) => ({
+          id: conversationDoc.id,
+          ...conversationDoc.data(),
+        }));
 
-        data.sort((a, b) => {
-          const fechaA =
-            a.fechaUltimoMensaje?.toDate
-              ? a.fechaUltimoMensaje
-                  .toDate()
-                  .getTime()
-              : 0;
-
-          const fechaB =
-            b.fechaUltimoMensaje?.toDate
-              ? b.fechaUltimoMensaje
-                  .toDate()
-                  .getTime()
-              : 0;
-
-          return fechaB - fechaA;
+        // Ordenar por fecha descendente
+        loadedConversations.sort((a, b) => {
+          const timeA = a.fechaUltimoMensaje?.toMillis
+            ? a.fechaUltimoMensaje.toMillis()
+            : 0;
+          const timeB = b.fechaUltimoMensaje?.toMillis
+            ? b.fechaUltimoMensaje.toMillis()
+            : 0;
+          return timeB - timeA;
         });
 
-        setConversations(data);
+        setConversations(loadedConversations);
         setConversationsLoading(false);
       },
       (error) => {
-        console.error(
-          "Error cargando conversaciones:",
-          error
-        );
-
+        console.error("Error escuchando conversaciones:", error);
         setConversations([]);
         setConversationsLoading(false);
       }
@@ -407,856 +126,377 @@ function SpecialistDashboard() {
     return () => unsubscribe();
   }, [specialist?.uid]);
 
+  // =======================================================
+  // 3. CITAS EN TIEMPO REAL
+  // =======================================================
+  useEffect(() => {
+    if (!specialist?.uid) return;
 
-  /* =======================================================
-     CERRAR SESIÓN
-     ======================================================= */
+    const appointmentsRef = collection(db, "citas_especialistas");
+    const appointmentsQuery = query(
+      appointmentsRef,
+      where("especialistaId", "==", specialist.uid)
+    );
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-
-      setSpecialist(null);
-      setConversations([]);
-
-      navigate("/login", {
-        replace: true,
-      });
-    } catch (error) {
-      console.error(
-        "Error cerrando sesión:",
-        error
-      );
-    }
-  };
-
-
-  /* =======================================================
-     ABRIR CONVERSACIÓN
-     ======================================================= */
-
-  const openConversation = (conversation) => {
-    navigate(
-      `/specialist-chat/${conversation.id}`,
-      {
-        state: {
-          conversation,
-        },
+    const unsubscribe = onSnapshot(
+      appointmentsQuery,
+      (snapshot) => {
+        setAppointmentsCount(snapshot.size);
+      },
+      (error) => {
+        console.error("Error cargando citas:", error);
       }
     );
+
+    return () => unsubscribe();
+  }, [specialist?.uid]);
+
+  // =======================================================
+  // ABRIR CONVERSACIÓN
+  // =======================================================
+  const openConversation = (conversation) => {
+    navigate(`/specialist-chat/${conversation.id}`, {
+      state: { conversation },
+    });
   };
 
-
-  /* =======================================================
-     HORA
-     ======================================================= */
-
   const formatTime = (timestamp) => {
-    if (
-      !timestamp ||
-      typeof timestamp.toDate !== "function"
-    ) {
+    if (!timestamp || typeof timestamp.toDate !== "function") {
       return "";
     }
-
     try {
-      return timestamp
-        .toDate()
-        .toLocaleTimeString("es-NI", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+      return timestamp.toDate().toLocaleTimeString("es-NI", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } catch {
       return "";
     }
   };
 
-
-  /* =======================================================
-     LOADING
-     ======================================================= */
+  // Métricas
+  const totalConversations = conversations.length;
+  const totalUsers = new Set(
+    conversations.map((c) => c.usuarioId).filter(Boolean)
+  ).size;
+  const totalUnread = conversations.reduce(
+    (acc, c) => acc + Number(c.mensajesNoLeidos || 0),
+    0
+  );
 
   if (loading) {
     return (
-      <div className="specialist-loading">
-        <div className="loading-spinner"></div>
-
-        <p>
-          Cargando tu espacio profesional...
-        </p>
-      </div>
+      <SpecialistLayout>
+        <div className="specialist-loading-view">
+          <div className="specialist-spinner"></div>
+          <p>Cargando tu espacio profesional...</p>
+        </div>
+      </SpecialistLayout>
     );
   }
-
-  if (!specialist) {
-    return null;
-  }
-
-
-  /* =======================================================
-     ESTADÍSTICAS
-     ======================================================= */
-
-  const totalConversations =
-    conversations.length;
-
-  const totalUsers =
-    new Set(
-      conversations
-        .map(
-          (conversation) =>
-            conversation.usuarioId
-        )
-        .filter(Boolean)
-    ).size;
-
-  const totalUnread =
-    conversations.reduce(
-      (total, conversation) =>
-        total +
-        Number(
-          conversation.mensajesNoLeidos || 0
-        ),
-      0
-    );
-
-
-  /* =======================================================
-     NAVEGACIÓN
-     ======================================================= */
-
-  const goTo = (path) => {
-    setShowMoreMenu(false);
-    navigate(path);
-  };
-
-
-  /* =======================================================
-     INTERFAZ
-     ======================================================= */
 
   return (
-    <div className="specialist-dashboard">
+    <SpecialistLayout>
+      <div className="specialist-dashboard-wrapper">
+        {/* ===================================================
+            HERO PRINCIPAL (Estilo FeelSafe)
+            =================================================== */}
+        <section className="specialist-hero-solid">
+          <div className="specialist-hero-content">
+            <div className="specialist-hero-badge">
+              <span>{specialist?.especialidad || "Especialista FeelSafe"}</span>
+              <span className="specialist-hero-dot">•</span>
+              <span className="specialist-hero-status">
+                {specialist?.disponible !== false ? "Disponible" : "Ausente"}
+              </span>
+            </div>
 
-
-      {/* ===================================================
-          SIDEBAR
-          =================================================== */}
-
-      <aside className="specialist-sidebar">
-
-        {/* LOGO */}
-
-        <div className="sidebar-logo">
-
-          <div className="sidebar-logo-icon">
-            <img src="logo.jpeg" alt="" />
-          </div>
-
-          <div>
-            <strong>
-              FeelSafe
-            </strong>
-
-            <span>
-              Especialistas
-            </span>
-          </div>
-
-        </div>
-
-
-        {/* NAVEGACIÓN PRINCIPAL */}
-
-        <nav className="specialist-nav">
-
-          <button
-            type="button"
-            className="nav-item active"
-            onClick={() =>
-              goTo(
-                "/specialist/dashboard"
-              )
-            }
-          >
-            <span>
-              <Icon name="home" />
-            </span>
-
-            Inicio
-          </button>
-
-
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() =>
-              goTo(
-                "/specialist/messages"
-              )
-            }
-          >
-            <span>
-              <Icon name="message" />
-            </span>
-
-            Mensajes
-
-            <small>
-              {totalUnread > 0
-                ? totalUnread
-                : totalConversations}
-            </small>
-          </button>
-
-
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() =>
-              goTo(
-                "/specialist/users"
-              )
-            }
-          >
-            <span>
-              <Icon name="users" />
-            </span>
-
-            Usuarios
-          </button>
-
-
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() =>
-              goTo(
-                "/specialist/agenda"
-              )
-            }
-          >
-            <span>
-              <Icon name="calendar" />
-            </span>
-
-            Agenda
-          </button>
-          
-          <button
-          type="button"
-          className="nav-item mobile-more-button"
-          onClick={() => setShowMoreMenu(true)}
-        >
-          <span>
-            <Icon name="more" />
-          </span>
-
-          Más
-        </button>
-          
-
-        </nav>
-
-
-        {/* PARTE INFERIOR */}
-
-        <div className="sidebar-bottom">
-
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() =>
-              goTo(
-                "/specialist/profile"
-              )
-            }
-          >
-            <span>
-              <Icon name="user" />
-            </span>
-
-            Mi perfil
-          </button>
-
-
-          <button
-            type="button"
-            className="nav-item"
-            onClick={() =>
-              goTo(
-                "/specialist/settings"
-              )
-            }
-          >
-            <span>
-              <Icon name="settings" />
-            </span>
-
-            Configuración
-          </button>
-
-
-          <button
-            type="button"
-            className="nav-item logout"
-            onClick={handleLogout}
-          >
-            <span>
-              <Icon name="logout" />
-            </span>
-
-            Cerrar sesión
-          </button>
-
-        </div>
-
-      </aside>
-
-
-      {/* ===================================================
-          CONTENIDO PRINCIPAL
-          =================================================== */}
-
-      <main className="specialist-main">
-
-
-        {/* HEADER */}
-
-        <header className="specialist-header">
-
-          <div>
-
-            <span className="header-small">
-              Panel profesional
-            </span>
-
-            <h1>
-              Buenos días,{" "}
-              {specialist.nombre
-                ?.split(" ")[0] ||
-                "Especialista"}{" "}
-              👋
+            <h1 className="specialist-hero-title">
+              Hola, {specialist?.nombre || "Especialista"} 👋
             </h1>
 
-            <p>
-              Aquí tienes un resumen de tu
-              actividad en FeelSafe.
+            <p className="specialist-hero-subtitle">
+              Bienvenido a tu panel profesional. Aquí puedes acompañar y atender a los usuarios de FeelSafe con calidez y seguridad.
             </p>
 
-          </div>
-
-
-          <div className="header-profile">
-
-            <div className="header-status">
-              <span></span>
-              Disponible
-            </div>
-
-
-            <button
-              type="button"
-              className="specialist-avatar"
-              onClick={() =>
-                goTo(
-                  "/specialist/profile"
-                )
-              }
-              title="Ver perfil"
-            >
-
-              {specialist.fotoPerfil ? (
-                <img
-                  src={
-                    specialist.fotoPerfil
-                  }
-                  alt={
-                    specialist.nombre ||
-                    "Especialista"
-                  }
-                />
-              ) : (
-                specialist.nombre
-                  ?.charAt(0)
-                  .toUpperCase() ||
-                "E"
-              )}
-
-            </button>
-
-          </div>
-
-        </header>
-
-
-        {/* =================================================
-            ESTADÍSTICAS
-            ================================================= */}
-
-        <section className="specialist-stats">
-
-
-          <div className="stat-card">
-
-            <div className="stat-icon purple">
-              <Icon
-                name="message"
-                size={21}
-              />
-            </div>
-
-            <div>
-
-              <span>
-                Conversaciones
-              </span>
-
-              <strong>
-                {totalConversations}
-              </strong>
-
-              <small>
-                {totalConversations === 0
-                  ? "Sin conversaciones todavía"
-                  : totalConversations === 1
-                  ? "1 conversación activa"
-                  : `${totalConversations} conversaciones activas`}
-              </small>
-
-            </div>
-
-          </div>
-
-
-          <div className="stat-card">
-
-            <div className="stat-icon blue">
-              <Icon
-                name="users"
-                size={21}
-              />
-            </div>
-
-            <div>
-
-              <span>
-                Usuarios
-              </span>
-
-              <strong>
-                {totalUsers}
-              </strong>
-
-              <small>
-                {totalUsers === 0
-                  ? "Sin usuarios atendidos"
-                  : totalUsers === 1
-                  ? "1 usuario atendido"
-                  : `${totalUsers} usuarios atendidos`}
-              </small>
-
-            </div>
-
-          </div>
-
-
-          <div className="stat-card">
-
-            <div className="stat-icon green">
-              <span
-                style={{
-                  fontSize: "18px",
-                  fontWeight: 800,
-                }}
+            <div className="specialist-hero-actions">
+              <button
+                type="button"
+                className="hero-btn-primary"
+                onClick={() => navigate("/specialist/messages")}
               >
-                ✓
-              </span>
+                <FaComments /> Ver Mensajes
+              </button>
+              <button
+                type="button"
+                className="hero-btn-secondary"
+                onClick={() => navigate("/specialist/agenda")}
+              >
+                <FaCalendarPlus /> Agendar Cita
+              </button>
             </div>
-
-            <div>
-
-              <span>
-                Mensajes pendientes
-              </span>
-
-              <strong>
-                {totalUnread}
-              </strong>
-
-              <small>
-                {totalUnread === 0
-                  ? "Todo al día"
-                  : totalUnread === 1
-                  ? "1 mensaje sin leer"
-                  : `${totalUnread} mensajes sin leer`}
-              </small>
-
-            </div>
-
           </div>
-
         </section>
 
-
-        {/* =================================================
-            CONTENIDO
-            ================================================= */}
-
-        <section className="specialist-content-grid">
-
-
-          {/* PERFIL */}
-
-          <div className="welcome-card">
-
-            <div>
-
-              <span>
-                Tu perfil profesional
-              </span>
-
-              <h2>
-                {specialist.especialidad ||
-                  "Especialista FeelSafe"}
-              </h2>
-
-              <p>
-                {specialist.descripcion ||
-                  "Completa tu descripción profesional para que los usuarios conozcan más sobre ti."}
-              </p>
-
-              <button
-                type="button"
-                onClick={() =>
-                  goTo(
-                    "/specialist/profile"
-                  )
-                }
-              >
-                Ver mi perfil →
-              </button>
-
+        {/* ===================================================
+            MÉTRICAS Y ESTADÍSTICAS
+            =================================================== */}
+        <section className="specialist-stats-grid">
+          {/* Card 1: Mensajes no leídos */}
+          <div
+            className="specialist-stat-card"
+            onClick={() => navigate("/specialist/messages")}
+          >
+            <div className="stat-card-top">
+              <span className="stat-label">Mensajes Pendientes</span>
+              <div className="stat-icon-bubble red">
+                <FaCommentDots />
+              </div>
             </div>
-
-            <div className="welcome-decoration">
-              ✦
+            <div className="stat-number">{totalUnread}</div>
+            <div className="stat-hint">
+              {totalUnread === 0
+                ? "✓ Estás al día con todos tus mensajes"
+                : `${totalUnread} ${totalUnread === 1 ? "mensaje por responder" : "mensajes por responder"}`}
             </div>
-
           </div>
 
-
-          {/* CONVERSACIONES */}
-
-          <div className="recent-card">
-
-            <div className="recent-header">
-
-              <div>
-
-                <span>
-                  Actividad
-                </span>
-
-                <h2>
-                  Conversaciones recientes
-                </h2>
-
+          {/* Card 2: Conversaciones */}
+          <div
+            className="specialist-stat-card"
+            onClick={() => navigate("/specialist/messages")}
+          >
+            <div className="stat-card-top">
+              <span className="stat-label">Conversaciones Activas</span>
+              <div className="stat-icon-bubble purple">
+                <FaComments />
               </div>
+            </div>
+            <div className="stat-number">{totalConversations}</div>
+            <div className="stat-hint">
+              {totalConversations === 0
+                ? "Sin chats iniciados aún"
+                : `${totalConversations} ${totalConversations === 1 ? "chat en curso" : "chats en curso"}`}
+            </div>
+          </div>
 
+          {/* Card 3: Pacientes */}
+          <div
+            className="specialist-stat-card"
+            onClick={() => navigate("/specialist/users")}
+          >
+            <div className="stat-card-top">
+              <span className="stat-label">Pacientes Atendidos</span>
+              <div className="stat-icon-bubble blue">
+                <FaUsers />
+              </div>
+            </div>
+            <div className="stat-number">{totalUsers}</div>
+            <div className="stat-hint">
+              {totalUsers === 0
+                ? "Esperando nuevas consultas"
+                : `${totalUsers} ${totalUsers === 1 ? "usuario acompañado" : "usuarios acompañados"}`}
+            </div>
+          </div>
+
+          {/* Card 4: Citas */}
+          <div
+            className="specialist-stat-card"
+            onClick={() => navigate("/specialist/agenda")}
+          >
+            <div className="stat-card-top">
+              <span className="stat-label">Citas en Agenda</span>
+              <div className="stat-icon-bubble green">
+                <FaCalendarAlt />
+              </div>
+            </div>
+            <div className="stat-number">{appointmentsCount}</div>
+            <div className="stat-hint">
+              {appointmentsCount === 0
+                ? "Agenda disponible"
+                : `${appointmentsCount} consultas registradas`}
+            </div>
+          </div>
+        </section>
+
+        {/* ===================================================
+            GRID PRINCIPAL: CONVERSACIONES + ACCIONES
+            =================================================== */}
+        <section className="specialist-dashboard-grid">
+          {/* Lado Izquierdo: Conversaciones recientes */}
+          <div className="dashboard-card recent-conversations-card">
+            <div className="dashboard-card-header">
+              <div>
+                <h2 className="dashboard-card-title">Conversaciones Recientes</h2>
+                <p className="dashboard-card-subtitle">
+                  Pacientes y usuarios que se han comunicado contigo recientemente.
+                </p>
+              </div>
               <button
                 type="button"
-                onClick={() =>
-                  goTo(
-                    "/specialist/messages"
-                  )
-                }
+                className="dashboard-link-btn"
+                onClick={() => navigate("/specialist/messages")}
               >
-                Ver todas
+                Ver todas <FaArrowRight />
               </button>
-
             </div>
-
-
-            {/* CARGANDO */}
 
             {conversationsLoading ? (
-
-              <div className="empty-conversations">
-
-                <div className="empty-icon">
-                  <Icon
-                    name="message"
-                    size={24}
-                  />
-                </div>
-
-                <h3>
-                  Cargando conversaciones...
-                </h3>
-
-                <p>
-                  Estamos buscando tus conversaciones.
-                </p>
-
+              <div className="dashboard-empty-state">
+                <div className="specialist-spinner-small"></div>
+                <p>Cargando conversaciones...</p>
               </div>
-
             ) : conversations.length === 0 ? (
-
-              /* SIN CONVERSACIONES */
-
-              <div className="empty-conversations">
-
-                <div className="empty-icon">
-                  <Icon
-                    name="chat"
-                    size={24}
-                  />
+              <div className="dashboard-empty-state">
+                <div className="empty-icon-wrap">
+                  <FaComments />
                 </div>
-
-                <h3>
-                  No hay conversaciones todavía
-                </h3>
-
+                <h3>No hay conversaciones todavía</h3>
                 <p>
-                  Cuando un usuario te escriba,
-                  aparecerá aquí.
+                  Cuando un usuario inicie un chat contigo, aparecerá en este listado para que puedas responderle de inmediato.
                 </p>
-
               </div>
-
             ) : (
+              <div className="recent-conversations-list">
+                {conversations.slice(0, 5).map((conv) => (
+                  <div
+                    key={conv.id}
+                    className="recent-conv-item"
+                    onClick={() => openConversation(conv)}
+                  >
+                    <div className="recent-conv-avatar">
+                      {conv.usuarioFoto ? (
+                        <img
+                          src={conv.usuarioFoto}
+                          alt={conv.usuarioNombre || "Usuario"}
+                        />
+                      ) : (
+                        <FaUserCircle className="avatar-placeholder-icon" />
+                      )}
+                    </div>
 
-              <div className="dashboard-conversations">
-
-                {conversations
-                  .slice(0, 4)
-                  .map(
-                    (conversation) => (
-
-                      <div
-                        key={
-                          conversation.id
-                        }
-                        className="dashboard-conversation"
-                        onClick={() =>
-                          openConversation(
-                            conversation
-                          )
-                        }
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(event) => {
-
-                          if (
-                            event.key ===
-                              "Enter" ||
-                            event.key === " "
-                          ) {
-                            openConversation(
-                              conversation
-                            );
-                          }
-
-                        }}
-                      >
-
-                        <div className="dashboard-conversation-avatar">
-
-                          {conversation.usuarioFoto ? (
-
-                            <img
-                              src={
-                                conversation.usuarioFoto
-                              }
-                              alt={
-                                conversation.usuarioNombre ||
-                                "Usuario"
-                              }
-                            />
-
-                          ) : (
-
-                            <Icon
-                              name="user"
-                              size={19}
-                            />
-
-                          )}
-
-                        </div>
-
-
-                        <div className="dashboard-conversation-content">
-
-                          <div className="dashboard-conversation-top">
-
-                            <strong>
-                              {
-                                conversation.usuarioNombre ||
-                                "Usuario"
-                              }
-                            </strong>
-
-                            <span>
-                              {formatTime(
-                                conversation.fechaUltimoMensaje
-                              )}
-                            </span>
-
-                          </div>
-
-
-                          <div className="dashboard-conversation-bottom">
-
-                            <p>
-                              {
-                                conversation.ultimoMensaje ||
-                                "Nueva conversación"
-                              }
-                            </p>
-
-
-                            {conversation.mensajesNoLeidos >
-                              0 && (
-
-                              <span className="dashboard-unread">
-
-                                {
-                                  conversation.mensajesNoLeidos
-                                }
-
-                              </span>
-
-                            )}
-
-                          </div>
-
-                        </div>
-
+                    <div className="recent-conv-details">
+                      <div className="recent-conv-top">
+                        <span className="recent-conv-name">
+                          {conv.usuarioNombre || "Usuario FeelSafe"}
+                        </span>
+                        <span className="recent-conv-time">
+                          <FaClock /> {formatTime(conv.fechaUltimoMensaje) || "Hoy"}
+                        </span>
                       </div>
 
-                    )
-                  )}
-
+                      <div className="recent-conv-bottom">
+                        <p className="recent-conv-snippet">
+                          {conv.ultimoMensaje || "Nueva consulta iniciada"}
+                        </p>
+                        {conv.mensajesNoLeidos > 0 && (
+                          <span className="recent-conv-badge">
+                            {conv.mensajesNoLeidos}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-
             )}
-
           </div>
 
-        </section>
-
-      </main>
-
-
-      {/* ===================================================
-          MENÚ MÓVIL "MÁS"
-          =================================================== */}
-
-      {showMoreMenu && (
-
-        <div
-          className="mobile-more-overlay"
-          onClick={() =>
-            setShowMoreMenu(false)
-          }
-        >
-
-          <div
-            className="mobile-more-menu"
-            onClick={(event) =>
-              event.stopPropagation()
-            }
-          >
-
-            <div className="mobile-more-header">
-
-              <div>
-                <span>
-                  CUENTA
-                </span>
-
-                <h3>
-                  Más opciones
-                </h3>
+          {/* Lado Derecho: Acciones Rápidas y Resumen */}
+          <div className="dashboard-sidebar-column">
+            {/* Tarjeta Perfil Rápido */}
+            <div className="dashboard-card quick-profile-card">
+              <div className="quick-profile-header">
+                <div className="quick-profile-avatar">
+                  {specialist?.fotoPerfil ? (
+                    <img
+                      src={specialist.fotoPerfil}
+                      alt={specialist.nombre || "Especialista"}
+                    />
+                  ) : (
+                    <FaUserMd />
+                  )}
+                </div>
+                <div>
+                  <h3 className="quick-profile-name">
+                    {specialist?.nombre || "Especialista"}
+                  </h3>
+                  <p className="quick-profile-spec">
+                    {specialist?.especialidad || "Especialista"}
+                  </p>
+                </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() =>
-                  setShowMoreMenu(false)
-                }
-              >
-                <Icon
-                  name="close"
-                  size={19}
-                />
-              </button>
+              <div className="quick-profile-body">
+                <p className="quick-profile-desc">
+                  {specialist?.descripcion ||
+                    "Completa tu perfil profesional para generar mayor confianza con tus pacientes."}
+                </p>
 
+                <button
+                  type="button"
+                  className="quick-action-full-btn"
+                  onClick={() => navigate("/specialist/profile")}
+                >
+                  <FaUserMd /> Editar Perfil Profesional
+                </button>
+              </div>
             </div>
 
+            {/* Tarjeta de Accesos Rápidos */}
+            <div className="dashboard-card quick-actions-card">
+              <h3 className="dashboard-card-title">Acciones Directas</h3>
+              <div className="quick-actions-list">
+                <button
+                  type="button"
+                  className="quick-action-row"
+                  onClick={() => navigate("/specialist/agenda")}
+                >
+                  <div className="quick-action-icon green">
+                    <FaCalendarAlt />
+                  </div>
+                  <div className="quick-action-text">
+                    <strong>Gestionar Agenda</strong>
+                    <span>Revisar y programar citas</span>
+                  </div>
+                  <FaArrowRight className="quick-action-arrow" />
+                </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                goTo(
-                  "/specialist/profile"
-                )
-              }
-            >
-              <Icon
-                name="user"
-                size={19}
-              />
+                <button
+                  type="button"
+                  className="quick-action-row"
+                  onClick={() => navigate("/specialist/users")}
+                >
+                  <div className="quick-action-icon blue">
+                    <FaUsers />
+                  </div>
+                  <div className="quick-action-text">
+                    <strong>Directorio de Pacientes</strong>
+                    <span>Historial de usuarios atendidos</span>
+                  </div>
+                  <FaArrowRight className="quick-action-arrow" />
+                </button>
 
-              <span>
-                Mi perfil
-              </span>
-            </button>
-
-
-            <button
-              type="button"
-              onClick={() =>
-                goTo(
-                  "/specialist/settings"
-                )
-              }
-            >
-              <Icon
-                name="settings"
-                size={19}
-              />
-
-              <span>
-                Configuración
-              </span>
-            </button>
-
-
-            <button
-              type="button"
-              className="mobile-more-logout"
-              onClick={handleLogout}
-            >
-              <Icon
-                name="logout"
-                size={19}
-              />
-
-              <span>
-                Cerrar sesión
-              </span>
-            </button>
-
+                <button
+                  type="button"
+                  className="quick-action-row"
+                  onClick={() => navigate("/specialist/settings")}
+                >
+                  <div className="quick-action-icon purple">
+                    <FaCheckCircle />
+                  </div>
+                  <div className="quick-action-text">
+                    <strong>Ajustes y Disponibilidad</strong>
+                    <span>Modificar estado activo y alertas</span>
+                  </div>
+                  <FaArrowRight className="quick-action-arrow" />
+                </button>
+              </div>
+            </div>
           </div>
-
-        </div>
-
-      )}
-
-    </div>
+        </section>
+      </div>
+    </SpecialistLayout>
   );
 }
 
