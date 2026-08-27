@@ -5,12 +5,16 @@ import { onAuthStateChanged } from "firebase/auth";
 
 import {
   collection,
+  doc,
+  getDoc,
   onSnapshot,
   query,
   where,
 } from "firebase/firestore";
 
 import { auth, db } from "../services/firebase";
+
+import SpecialistLayout from "../components/SpecialistLayout";
 
 import "../styles/SpecialistUsers.css";
 
@@ -22,26 +26,24 @@ function SpecialistUsers() {
 
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
 
   // =====================================================
   // AUTENTICACIÓN
   // =====================================================
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        if (!user) {
-          navigate("/specialist/login", {
-            replace: true,
-          });
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        navigate("/specialist/login", {
+          replace: true,
+        });
 
-          return;
-        }
-
-        setCurrentUser(user);
+        return;
       }
-    );
+
+      setCurrentUser(user);
+    });
 
     return () => unsubscribe();
   }, [navigate]);
@@ -56,6 +58,7 @@ function SpecialistUsers() {
     }
 
     setLoading(true);
+    setError("");
 
     const conversationsRef = collection(
       db,
@@ -73,31 +76,84 @@ function SpecialistUsers() {
 
     const unsubscribe = onSnapshot(
       conversationsQuery,
-      (snapshot) => {
-        const usersMap = new Map();
+      async (snapshot) => {
+        try {
+          const users = await Promise.all(
+            snapshot.docs.map(async (conversationDoc) => {
+              const data = conversationDoc.data();
 
-        snapshot.docs.forEach(
-          (conversationDoc) => {
-            const data =
-              conversationDoc.data();
+              const userId = data.usuarioId;
 
-            const userId =
-              data.usuarioId ||
-              conversationDoc.id;
+              let usuarioNombre =
+                data.usuarioNombre ||
+                "Usuario";
 
-            if (!usersMap.has(userId)) {
-              usersMap.set(userId, {
-                id: userId,
+              let usuarioFoto =
+                data.usuarioFoto ||
+                "";
+
+              // =================================================
+              // BUSCAR PERFIL REAL EN "usuarios"
+              // =================================================
+
+              if (userId) {
+                try {
+                  const userRef = doc(
+                    db,
+                    "usuarios",
+                    userId
+                  );
+
+                  const userSnapshot =
+                    await getDoc(userRef);
+
+                  if (userSnapshot.exists()) {
+                    const userData =
+                      userSnapshot.data();
+
+                    console.log(
+                      "👤 PERFIL DEL USUARIO:",
+                      userId,
+                      userData
+                    );
+
+                    usuarioNombre =
+                      userData.nombre ||
+                      userData.displayName ||
+                      userData.nombreCompleto ||
+                      usuarioNombre;
+
+                    usuarioFoto =
+                      userData.foto ||
+                      userData.fotoPerfil ||
+                      userData.photoURL ||
+                      usuarioFoto ||
+                      "";
+                  } else {
+                    console.warn(
+                      "⚠️ No existe perfil en usuarios:",
+                      userId
+                    );
+                  }
+                } catch (profileError) {
+                  console.error(
+                    "❌ Error obteniendo usuario:",
+                    profileError
+                  );
+                }
+              }
+
+              return {
+                id: userId || conversationDoc.id,
+
                 conversationId:
                   conversationDoc.id,
 
-                nombre:
-                  data.usuarioNombre ||
-                  "Usuario",
+                usuarioId: userId,
 
-                foto:
-                  data.usuarioFoto ||
-                  "",
+                usuarioNombre,
+
+                usuarioFoto,
 
                 ultimoMensaje:
                   data.ultimoMensaje ||
@@ -111,23 +167,70 @@ function SpecialistUsers() {
                 fecha:
                   data.fechaUltimoMensaje ||
                   null,
-              });
+              };
+            })
+          );
+
+          // =================================================
+          // EVITAR USUARIOS DUPLICADOS
+          // =================================================
+
+          const usersMap = new Map();
+
+          users.forEach((user) => {
+            if (!usersMap.has(user.id)) {
+              usersMap.set(user.id, user);
             }
-          }
-        );
+          });
 
-        setConversations(
-          Array.from(usersMap.values())
-        );
+          const finalUsers =
+            Array.from(usersMap.values());
 
-        setLoading(false);
+          // =================================================
+          // ORDENAR
+          // =================================================
+
+          finalUsers.sort((a, b) => {
+            const dateA =
+              a.fecha?.toDate
+                ? a.fecha.toDate().getTime()
+                : 0;
+
+            const dateB =
+              b.fecha?.toDate
+                ? b.fecha.toDate().getTime()
+                : 0;
+
+            return dateB - dateA;
+          });
+
+          setConversations(finalUsers);
+          setLoading(false);
+        } catch (error) {
+          console.error(
+            "❌ Error procesando usuarios:",
+            error
+          );
+
+          setError(
+            "No se pudieron cargar los usuarios."
+          );
+
+          setLoading(false);
+        }
       },
-      (error) => {
+      (firebaseError) => {
         console.error(
-          "Error cargando usuarios:",
-          error
+          "❌ Error cargando conversaciones:",
+          firebaseError
         );
 
+        setError(
+          firebaseError.message ||
+            "No se pudieron cargar los usuarios."
+        );
+
+        setConversations([]);
         setLoading(false);
       }
     );
@@ -147,11 +250,10 @@ function SpecialistUsers() {
       return conversations;
     }
 
-    return conversations.filter(
-      (user) =>
-        user.nombre
-          .toLowerCase()
-          .includes(text)
+    return conversations.filter((user) =>
+      user.usuarioNombre
+        ?.toLowerCase()
+        .includes(text)
     );
   }, [conversations, search]);
 
@@ -165,12 +267,17 @@ function SpecialistUsers() {
     }
 
     navigate(
-      `/specialist-chat/${user.conversationId}`
+      `/specialist-chat/${user.conversationId}`,
+      {
+        state: {
+          conversation: user,
+        },
+      }
     );
   };
 
   // =====================================================
-  // FORMATEAR FECHA
+  // FECHA
   // =====================================================
 
   const formatDate = (timestamp) => {
@@ -200,13 +307,15 @@ function SpecialistUsers() {
 
   if (loading) {
     return (
-      <div className="specialist-users-loading">
-        <div>⏳</div>
+      <SpecialistLayout>
+        <div className="specialist-users-loading">
+          <div>⏳</div>
 
-        <p>
-          Cargando usuarios...
-        </p>
-      </div>
+          <p>
+            Cargando usuarios...
+          </p>
+        </div>
+      </SpecialistLayout>
     );
   }
 
@@ -215,182 +324,202 @@ function SpecialistUsers() {
   // =====================================================
 
   return (
-    <div className="specialist-users-page">
+    <SpecialistLayout>
+      <div className="specialist-users-page">
 
-      {/* HEADER */}
+        {/* HEADER */}
 
-      <header className="specialist-users-header">
-
-        <div>
-
-          <button
-            className="users-back-button"
-            onClick={() =>
-              navigate(
-                "/specialist/dashboard"
-              )
-            }
-          >
-            ← Volver al panel
-          </button>
-
-          <span>
-            PANEL DE PROFESIONALES
-          </span>
-
-          <h1>
-            👥 Usuarios
-          </h1>
-
-          <p>
-            Usuarios que han iniciado una
-            conversación contigo.
-          </p>
-
-        </div>
-
-        <div className="users-total">
-          <strong>
-            {conversations.length}
-          </strong>
-
-          <small>
-            usuarios
-          </small>
-        </div>
-
-      </header>
-
-      {/* BUSCADOR */}
-
-      <section className="users-toolbar">
-
-        <div className="users-search">
-
-          <span>
-            🔎
-          </span>
-
-          <input
-            type="text"
-            placeholder="Buscar usuario..."
-            value={search}
-            onChange={(event) =>
-              setSearch(
-                event.target.value
-              )
-            }
-          />
-
-        </div>
-
-      </section>
-
-      {/* LISTA */}
-
-      {filteredUsers.length === 0 ? (
-
-        <div className="users-empty">
+        <header className="specialist-users-header">
 
           <div>
-            👥
+            <span>
+              PANEL DE PROFESIONALES
+            </span>
+
+            <h1>
+              👥 Usuarios
+            </h1>
+
+            <p>
+              Usuarios que han iniciado
+              una conversación contigo.
+            </p>
           </div>
 
-          <h2>
-            {search
-              ? "No encontramos usuarios"
-              : "Todavía no tienes usuarios"}
-          </h2>
+          <div className="users-total">
+            <strong>
+              {conversations.length}
+            </strong>
 
-          <p>
-            {search
-              ? "Prueba con otro nombre."
-              : "Cuando un usuario inicie una conversación contigo aparecerá aquí."}
-          </p>
+            <small>
+              usuarios
+            </small>
+          </div>
 
-        </div>
+        </header>
 
-      ) : (
+        {/* BUSCADOR */}
 
-        <section className="users-list">
+        <section className="users-toolbar">
 
-          {filteredUsers.map(
-            (user) => (
+          <div className="users-search">
 
-              <article
-                key={user.id}
-                className="specialist-user-card"
-                onClick={() =>
-                  openConversation(user)
-                }
-              >
+            <span>🔎</span>
 
-                {/* AVATAR */}
+            <input
+              type="text"
+              placeholder="Buscar usuario..."
+              value={search}
+              onChange={(event) =>
+                setSearch(
+                  event.target.value
+                )
+              }
+            />
 
-                <div className="specialist-user-avatar">
+          </div>
 
-                  {user.foto ? (
-                    <img
-                      src={user.foto}
-                      alt={user.nombre}
-                    />
-                  ) : (
-                    <span>
-                      {user.nombre
-                        ?.charAt(0)
-                        .toUpperCase() ||
-                        "U"}
-                    </span>
-                  )}
+        </section>
 
-                </div>
+        {/* ERROR */}
 
-                {/* INFORMACIÓN */}
+        {error && (
+          <div className="users-empty">
 
-                <div className="specialist-user-info">
+            <div>⚠️</div>
 
-                  <div className="specialist-user-top">
+            <h2>
+              No se pudieron cargar los usuarios
+            </h2>
 
-                    <h3>
-                      {user.nombre}
-                    </h3>
+            <p>
+              {error}
+            </p>
 
-                    <span>
-                      {formatDate(
-                        user.fecha
-                      )}
-                    </span>
+          </div>
+        )}
+
+        {/* SIN USUARIOS */}
+
+        {!error &&
+          filteredUsers.length === 0 && (
+            <div className="users-empty">
+
+              <div>👥</div>
+
+              <h2>
+                {search
+                  ? "No encontramos usuarios"
+                  : "Todavía no tienes usuarios"}
+              </h2>
+
+              <p>
+                {search
+                  ? "Prueba con otro nombre."
+                  : "Cuando un usuario inicie una conversación contigo aparecerá aquí."}
+              </p>
+
+            </div>
+          )}
+
+        {/* LISTA */}
+
+        {!error &&
+          filteredUsers.length > 0 && (
+            <section className="users-list">
+
+              {filteredUsers.map((user) => (
+                <article
+                  key={user.id}
+                  className="specialist-user-card"
+                  onClick={() =>
+                    openConversation(user)
+                  }
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (
+                      event.key === "Enter" ||
+                      event.key === " "
+                    ) {
+                      openConversation(user);
+                    }
+                  }}
+                >
+
+                  {/* FOTO */}
+
+                  <div className="specialist-user-avatar">
+
+                    {user.usuarioFoto ? (
+                      <img
+                        src={user.usuarioFoto}
+                        alt={
+                          user.usuarioNombre ||
+                          "Usuario"
+                        }
+                        onError={(event) => {
+                          event.currentTarget.style.display =
+                            "none";
+                        }}
+                      />
+                    ) : (
+                      <span>
+                        {user.usuarioNombre
+                          ?.charAt(0)
+                          .toUpperCase() ||
+                          "U"}
+                      </span>
+                    )}
 
                   </div>
 
-                  <p>
-                    {user.ultimoMensaje ||
-                      "Nueva conversación"}
-                  </p>
+                  {/* INFORMACIÓN */}
 
-                </div>
+                  <div className="specialist-user-info">
 
-                {/* NO LEÍDOS */}
+                    <div className="specialist-user-top">
 
-                {user.mensajesNoLeidos >
-                  0 && (
-                  <span className="user-unread">
-                    {user.mensajesNoLeidos}
+                      <h3>
+                        {user.usuarioNombre}
+                      </h3>
+
+                      <span>
+                        {formatDate(
+                          user.fecha
+                        )}
+                      </span>
+
+                    </div>
+
+                    <p>
+                      {user.ultimoMensaje ||
+                        "Nueva conversación"}
+                    </p>
+
+                  </div>
+
+                  {/* NO LEÍDOS */}
+
+                  {user.mensajesNoLeidos >
+                    0 && (
+                    <span className="user-unread">
+                      {user.mensajesNoLeidos}
+                    </span>
+                  )}
+
+                  <span className="user-arrow">
+                    →
                   </span>
-                )}
 
-                <span className="user-arrow">
-                  →
-                </span>
+                </article>
+              ))}
 
-              </article>
-            )
+            </section>
           )}
 
-        </section>
-      )}
-
-    </div>
+      </div>
+    </SpecialistLayout>
   );
 }
 

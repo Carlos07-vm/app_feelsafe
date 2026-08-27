@@ -19,7 +19,7 @@ import {
   useParams,
 } from "react-router-dom";
 
-import SpecialistLayout from "../layouts/SpecialistLayout";
+import SpecialistLayout from "../components/SpecialistLayout";
 
 import {
   db,

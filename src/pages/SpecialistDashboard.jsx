@@ -19,18 +19,244 @@ import { auth, db } from "../services/firebase";
 
 import "../styles/SpecialistDashboard.css";
 
+
+/* =========================================================
+   ICONOS
+   ========================================================= */
+
+function Icon({ name, size = 20 }) {
+  const icons = {
+    home: (
+      <>
+        <path
+          d="M3 10.5 12 3l9 7.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M5.5 9.5V20h13V9.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M9.5 20v-5.5h5V20"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+      </>
+    ),
+
+    message: (
+      <>
+        <path
+          d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 3v-5.5A7.5 7.5 0 0 1 10.5 4H13a7 7 0 0 1 7 7.5Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M8 11h.01M12 11h.01M16 11h.01"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+        />
+      </>
+    ),
+
+    users: (
+      <>
+        <circle
+          cx="9"
+          cy="8"
+          r="3"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <path
+          d="M3.5 19c.4-3.2 2.2-5 5.5-5s5.1 1.8 5.5 5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <path
+          d="M15 6.5a3 3 0 0 1 0 5.8M16 14c2.4.4 3.8 2 4.3 4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </>
+    ),
+
+    calendar: (
+      <>
+        <rect
+          x="3"
+          y="5"
+          width="18"
+          height="16"
+          rx="2.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <path
+          d="M7 3v4M17 3v4M3 10h18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <path
+          d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </>
+    ),
+
+    user: (
+      <>
+        <circle
+          cx="12"
+          cy="8"
+          r="3.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <path
+          d="M5 21c.6-4.1 2.9-6.2 7-6.2s6.4 2.1 7 6.2"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </>
+    ),
+
+    settings: (
+      <>
+        <circle
+          cx="12"
+          cy="12"
+          r="3"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <path
+          d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.1h-2.5v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1-1.8-1.8.1-.1A1.7 1.7 0 0 0 8 15a1.7 1.7 0 0 0-1.5-1H6.4v-2.5h.1A1.7 1.7 0 0 0 8 10a1.7 1.7 0 0 0-.3-1.9l-.1-.1 1.8-1.8.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V5h2.5v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.8 1.8-.1.1A1.7 1.7 0 0 0 19.4 10a1.7 1.7 0 0 0 1.5 1h.1v2.5h-.1a1.7 1.7 0 0 0-1.5 1.5Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
+      </>
+    ),
+
+    more: (
+      <>
+        <circle cx="5" cy="12" r="1.5" fill="currentColor" />
+        <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+        <circle cx="19" cy="12" r="1.5" fill="currentColor" />
+      </>
+    ),
+
+    logout: (
+      <>
+        <path
+          d="M10 5H5v14h5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M13 8l4 4-4 4M17 12H9"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </>
+    ),
+
+    close: (
+      <>
+        <path
+          d="M6 6l12 12M18 6 6 18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </>
+    ),
+
+    chat: (
+      <>
+        <path
+          d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-5 3v-3H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+      </>
+    ),
+  };
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      {icons[name]}
+    </svg>
+  );
+}
+
+
+/* =========================================================
+   SPECIALIST DASHBOARD
+   ========================================================= */
+
 function SpecialistDashboard() {
   const navigate = useNavigate();
 
   const [specialist, setSpecialist] = useState(null);
   const [conversations, setConversations] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [conversationsLoading, setConversationsLoading] =
     useState(true);
 
-  // =====================================================
-  // AUTENTICACIÓN + PERFIL DEL ESPECIALISTA
-  // =====================================================
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+
+
+  /* =======================================================
+     AUTENTICACIÓN + PERFIL
+     ======================================================= */
 
   useEffect(() => {
     let mounted = true;
@@ -51,12 +277,6 @@ function SpecialistDashboard() {
 
           return;
         }
-
-        console.log("=================================");
-        console.log("SPECIALIST DASHBOARD");
-        console.log("UID:", user.uid);
-        console.log("EMAIL:", user.email);
-        console.log("=================================");
 
         try {
           const specialistRef = doc(
@@ -87,11 +307,6 @@ function SpecialistDashboard() {
           const specialistData =
             specialistSnap.data();
 
-          console.log(
-            "Especialista encontrado:",
-            specialistData
-          );
-
           setSpecialist({
             uid: user.uid,
             ...specialistData,
@@ -119,9 +334,10 @@ function SpecialistDashboard() {
     };
   }, [navigate]);
 
-  // =====================================================
-  // CARGAR CONVERSACIONES
-  // =====================================================
+
+  /* =======================================================
+     CONVERSACIONES
+     ======================================================= */
 
   useEffect(() => {
     if (!specialist?.uid) {
@@ -129,16 +345,6 @@ function SpecialistDashboard() {
       setConversationsLoading(false);
       return;
     }
-
-    console.log("=================================");
-    console.log(
-      "BUSCANDO CONVERSACIONES DEL ESPECIALISTA"
-    );
-    console.log(
-      "Especialista:",
-      specialist.uid
-    );
-    console.log("=================================");
 
     setConversationsLoading(true);
 
@@ -159,21 +365,12 @@ function SpecialistDashboard() {
     const unsubscribe = onSnapshot(
       conversationsQuery,
       (snapshot) => {
-        console.log(
-          "CONVERSACIONES:",
-          snapshot.size
-        );
-
         const data = snapshot.docs.map(
           (conversationDoc) => ({
             id: conversationDoc.id,
             ...conversationDoc.data(),
           })
         );
-
-        // =================================================
-        // ORDENAR POR ÚLTIMO MENSAJE
-        // =================================================
 
         data.sort((a, b) => {
           const fechaA =
@@ -210,9 +407,10 @@ function SpecialistDashboard() {
     return () => unsubscribe();
   }, [specialist?.uid]);
 
-  // =====================================================
-  // CERRAR SESIÓN
-  // =====================================================
+
+  /* =======================================================
+     CERRAR SESIÓN
+     ======================================================= */
 
   const handleLogout = async () => {
     try {
@@ -232,38 +430,12 @@ function SpecialistDashboard() {
     }
   };
 
-  // =====================================================
-  // ABRIR CONVERSACIÓN
-  // =====================================================
+
+  /* =======================================================
+     ABRIR CONVERSACIÓN
+     ======================================================= */
 
   const openConversation = (conversation) => {
-    console.log(
-      "================================="
-    );
-
-    console.log(
-      "ABRIENDO CONVERSACIÓN DESDE DASHBOARD"
-    );
-
-    console.log(
-      "ID:",
-      conversation.id
-    );
-
-    console.log(
-      "Usuario:",
-      conversation.usuarioId
-    );
-
-    console.log(
-      "Especialista:",
-      conversation.especialistaId
-    );
-
-    console.log(
-      "================================="
-    );
-
     navigate(
       `/specialist-chat/${conversation.id}`,
       {
@@ -274,9 +446,10 @@ function SpecialistDashboard() {
     );
   };
 
-  // =====================================================
-  // FORMATEAR HORA
-  // =====================================================
+
+  /* =======================================================
+     HORA
+     ======================================================= */
 
   const formatTime = (timestamp) => {
     if (
@@ -298,9 +471,10 @@ function SpecialistDashboard() {
     }
   };
 
-  // =====================================================
-  // LOADING PRINCIPAL
-  // =====================================================
+
+  /* =======================================================
+     LOADING
+     ======================================================= */
 
   if (loading) {
     return (
@@ -318,9 +492,10 @@ function SpecialistDashboard() {
     return null;
   }
 
-  // =====================================================
-  // ESTADÍSTICAS
-  // =====================================================
+
+  /* =======================================================
+     ESTADÍSTICAS
+     ======================================================= */
 
   const totalConversations =
     conversations.length;
@@ -345,16 +520,28 @@ function SpecialistDashboard() {
       0
     );
 
-  // =====================================================
-  // INTERFAZ
-  // =====================================================
+
+  /* =======================================================
+     NAVEGACIÓN
+     ======================================================= */
+
+  const goTo = (path) => {
+    setShowMoreMenu(false);
+    navigate(path);
+  };
+
+
+  /* =======================================================
+     INTERFAZ
+     ======================================================= */
 
   return (
     <div className="specialist-dashboard">
 
-      {/* =================================================
+
+      {/* ===================================================
           SIDEBAR
-      ================================================= */}
+          =================================================== */}
 
       <aside className="specialist-sidebar">
 
@@ -378,7 +565,8 @@ function SpecialistDashboard() {
 
         </div>
 
-        {/* NAVEGACIÓN */}
+
+        {/* NAVEGACIÓN PRINCIPAL */}
 
         <nav className="specialist-nav">
 
@@ -386,25 +574,31 @@ function SpecialistDashboard() {
             type="button"
             className="nav-item active"
             onClick={() =>
-              navigate(
+              goTo(
                 "/specialist/dashboard"
               )
             }
           >
-            <span>⌂</span>
+            <span>
+              <Icon name="home" />
+            </span>
+
             Inicio
           </button>
+
 
           <button
             type="button"
             className="nav-item"
             onClick={() =>
-              navigate(
+              goTo(
                 "/specialist/messages"
               )
             }
           >
-            <span>💬</span>
+            <span>
+              <Icon name="message" />
+            </span>
 
             Mensajes
 
@@ -415,31 +609,55 @@ function SpecialistDashboard() {
             </small>
           </button>
 
-          {/* USUARIOS */}
 
           <button
-          className="nav-item"
-          onClick={() =>
-            navigate("/specialist/users")
-          }
-        >
-          <span>👥</span>
-          Usuarios
-        </button>
+            type="button"
+            className="nav-item"
+            onClick={() =>
+              goTo(
+                "/specialist/users"
+              )
+            }
+          >
+            <span>
+              <Icon name="users" />
+            </span>
 
-          {/* AGENDA */}
+            Usuarios
+          </button>
 
-         <button
-          className="nav-item"
-          onClick={() =>
-            navigate("/specialist/agenda")
-          }
+
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() =>
+              goTo(
+                "/specialist/agenda"
+              )
+            }
+          >
+            <span>
+              <Icon name="calendar" />
+            </span>
+
+            Agenda
+          </button>
+          
+          <button
+          type="button"
+          className="nav-item mobile-more-button"
+          onClick={() => setShowMoreMenu(true)}
         >
-          <span>📅</span>
-          Agenda
+          <span>
+            <Icon name="more" />
+          </span>
+
+          Más
         </button>
+          
 
         </nav>
+
 
         {/* PARTE INFERIOR */}
 
@@ -449,31 +667,45 @@ function SpecialistDashboard() {
             type="button"
             className="nav-item"
             onClick={() =>
-              navigate(
+              goTo(
                 "/specialist/profile"
               )
             }
           >
-            <span>👤</span>
+            <span>
+              <Icon name="user" />
+            </span>
+
             Mi perfil
           </button>
 
-         <button
+
+          <button
+            type="button"
             className="nav-item"
             onClick={() =>
-              navigate("/specialist/settings")
+              goTo(
+                "/specialist/settings"
+              )
             }
           >
-            <span>⚙</span>
+            <span>
+              <Icon name="settings" />
+            </span>
+
             Configuración
           </button>
+
 
           <button
             type="button"
             className="nav-item logout"
             onClick={handleLogout}
           >
-            <span>↪</span>
+            <span>
+              <Icon name="logout" />
+            </span>
+
             Cerrar sesión
           </button>
 
@@ -481,11 +713,13 @@ function SpecialistDashboard() {
 
       </aside>
 
-      {/* =================================================
+
+      {/* ===================================================
           CONTENIDO PRINCIPAL
-      ================================================= */}
+          =================================================== */}
 
       <main className="specialist-main">
+
 
         {/* HEADER */}
 
@@ -494,7 +728,7 @@ function SpecialistDashboard() {
           <div>
 
             <span className="header-small">
-              PANEL PROFESIONAL
+              Panel profesional
             </span>
 
             <h1>
@@ -512,6 +746,7 @@ function SpecialistDashboard() {
 
           </div>
 
+
           <div className="header-profile">
 
             <div className="header-status">
@@ -519,11 +754,12 @@ function SpecialistDashboard() {
               Disponible
             </div>
 
+
             <button
               type="button"
               className="specialist-avatar"
               onClick={() =>
-                navigate(
+                goTo(
                   "/specialist/profile"
                 )
               }
@@ -543,7 +779,8 @@ function SpecialistDashboard() {
               ) : (
                 specialist.nombre
                   ?.charAt(0)
-                  .toUpperCase() || "E"
+                  .toUpperCase() ||
+                "E"
               )}
 
             </button>
@@ -552,18 +789,21 @@ function SpecialistDashboard() {
 
         </header>
 
+
         {/* =================================================
             ESTADÍSTICAS
-        ================================================= */}
+            ================================================= */}
 
         <section className="specialist-stats">
 
-          {/* CONVERSACIONES */}
 
           <div className="stat-card">
 
             <div className="stat-icon purple">
-              💬
+              <Icon
+                name="message"
+                size={21}
+              />
             </div>
 
             <div>
@@ -588,12 +828,14 @@ function SpecialistDashboard() {
 
           </div>
 
-          {/* USUARIOS */}
 
           <div className="stat-card">
 
             <div className="stat-icon blue">
-              👥
+              <Icon
+                name="users"
+                size={21}
+              />
             </div>
 
             <div>
@@ -618,12 +860,18 @@ function SpecialistDashboard() {
 
           </div>
 
-          {/* MENSAJES PENDIENTES */}
 
           <div className="stat-card">
 
             <div className="stat-icon green">
-              ✓
+              <span
+                style={{
+                  fontSize: "18px",
+                  fontWeight: 800,
+                }}
+              >
+                ✓
+              </span>
             </div>
 
             <div>
@@ -650,11 +898,13 @@ function SpecialistDashboard() {
 
         </section>
 
+
         {/* =================================================
             CONTENIDO
-        ================================================= */}
+            ================================================= */}
 
         <section className="specialist-content-grid">
+
 
           {/* PERFIL */}
 
@@ -663,7 +913,7 @@ function SpecialistDashboard() {
             <div>
 
               <span>
-                TU PERFIL PROFESIONAL
+                Tu perfil profesional
               </span>
 
               <h2>
@@ -679,7 +929,7 @@ function SpecialistDashboard() {
               <button
                 type="button"
                 onClick={() =>
-                  navigate(
+                  goTo(
                     "/specialist/profile"
                   )
                 }
@@ -695,6 +945,7 @@ function SpecialistDashboard() {
 
           </div>
 
+
           {/* CONVERSACIONES */}
 
           <div className="recent-card">
@@ -704,7 +955,7 @@ function SpecialistDashboard() {
               <div>
 
                 <span>
-                  ACTIVIDAD
+                  Actividad
                 </span>
 
                 <h2>
@@ -716,7 +967,7 @@ function SpecialistDashboard() {
               <button
                 type="button"
                 onClick={() =>
-                  navigate(
+                  goTo(
                     "/specialist/messages"
                   )
                 }
@@ -726,6 +977,7 @@ function SpecialistDashboard() {
 
             </div>
 
+
             {/* CARGANDO */}
 
             {conversationsLoading ? (
@@ -733,7 +985,10 @@ function SpecialistDashboard() {
               <div className="empty-conversations">
 
                 <div className="empty-icon">
-                  ⏳
+                  <Icon
+                    name="message"
+                    size={24}
+                  />
                 </div>
 
                 <h3>
@@ -753,7 +1008,10 @@ function SpecialistDashboard() {
               <div className="empty-conversations">
 
                 <div className="empty-icon">
-                  💬
+                  <Icon
+                    name="chat"
+                    size={24}
+                  />
                 </div>
 
                 <h3>
@@ -768,8 +1026,6 @@ function SpecialistDashboard() {
               </div>
 
             ) : (
-
-              /* LISTA */
 
               <div className="dashboard-conversations">
 
@@ -791,6 +1047,7 @@ function SpecialistDashboard() {
                         role="button"
                         tabIndex={0}
                         onKeyDown={(event) => {
+
                           if (
                             event.key ===
                               "Enter" ||
@@ -800,10 +1057,9 @@ function SpecialistDashboard() {
                               conversation
                             );
                           }
+
                         }}
                       >
-
-                        {/* AVATAR */}
 
                         <div className="dashboard-conversation-avatar">
 
@@ -821,15 +1077,15 @@ function SpecialistDashboard() {
 
                           ) : (
 
-                            <span>
-                              👤
-                            </span>
+                            <Icon
+                              name="user"
+                              size={19}
+                            />
 
                           )}
 
                         </div>
 
-                        {/* CONTENIDO */}
 
                         <div className="dashboard-conversation-content">
 
@@ -850,6 +1106,7 @@ function SpecialistDashboard() {
 
                           </div>
 
+
                           <div className="dashboard-conversation-bottom">
 
                             <p>
@@ -858,6 +1115,7 @@ function SpecialistDashboard() {
                                 "Nueva conversación"
                               }
                             </p>
+
 
                             {conversation.mensajesNoLeidos >
                               0 && (
@@ -890,6 +1148,113 @@ function SpecialistDashboard() {
         </section>
 
       </main>
+
+
+      {/* ===================================================
+          MENÚ MÓVIL "MÁS"
+          =================================================== */}
+
+      {showMoreMenu && (
+
+        <div
+          className="mobile-more-overlay"
+          onClick={() =>
+            setShowMoreMenu(false)
+          }
+        >
+
+          <div
+            className="mobile-more-menu"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+
+            <div className="mobile-more-header">
+
+              <div>
+                <span>
+                  CUENTA
+                </span>
+
+                <h3>
+                  Más opciones
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowMoreMenu(false)
+                }
+              >
+                <Icon
+                  name="close"
+                  size={19}
+                />
+              </button>
+
+            </div>
+
+
+            <button
+              type="button"
+              onClick={() =>
+                goTo(
+                  "/specialist/profile"
+                )
+              }
+            >
+              <Icon
+                name="user"
+                size={19}
+              />
+
+              <span>
+                Mi perfil
+              </span>
+            </button>
+
+
+            <button
+              type="button"
+              onClick={() =>
+                goTo(
+                  "/specialist/settings"
+                )
+              }
+            >
+              <Icon
+                name="settings"
+                size={19}
+              />
+
+              <span>
+                Configuración
+              </span>
+            </button>
+
+
+            <button
+              type="button"
+              className="mobile-more-logout"
+              onClick={handleLogout}
+            >
+              <Icon
+                name="logout"
+                size={19}
+              />
+
+              <span>
+                Cerrar sesión
+              </span>
+            </button>
+
+          </div>
+
+        </div>
+
+      )}
 
     </div>
   );

@@ -5,13 +5,15 @@ import {
   onSnapshot,
   query,
   where,
+  doc,
+  getDoc,
 } from "firebase/firestore";
 
 import { onAuthStateChanged } from "firebase/auth";
 
 import { useNavigate } from "react-router-dom";
 
-import SpecialistLayout from "../layouts/SpecialistLayout";
+import SpecialistLayout from "../components/SpecialistLayout";
 
 import { db, auth } from "../services/firebase";
 
@@ -30,25 +32,30 @@ function SpecialistMessages() {
   // =====================================================
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (firebaseUser) {
-        console.log("=================================");
-        console.log("ESPECIALISTA AUTENTICADO");
-        console.log("UID:", firebaseUser.uid);
-        console.log("EMAIL:", firebaseUser.email);
-        console.log("=================================");
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (firebaseUser) => {
+        if (firebaseUser) {
+          console.log("=================================");
+          console.log("ESPECIALISTA AUTENTICADO");
+          console.log("UID:", firebaseUser.uid);
+          console.log("EMAIL:", firebaseUser.email);
+          console.log("=================================");
 
-        setCurrentUser(firebaseUser);
-      } else {
-        console.log("NO HAY USUARIO AUTENTICADO");
+          setCurrentUser(firebaseUser);
+        } else {
+          console.log("NO HAY USUARIO AUTENTICADO");
 
-        setCurrentUser(null);
-        setConversations([]);
-        setLoading(false);
+          setCurrentUser(null);
+          setConversations([]);
+          setLoading(false);
 
-        navigate("/specialist/login", { replace: true });
+          navigate("/specialist/login", {
+            replace: true,
+          });
+        }
       }
-    });
+    );
 
     return () => unsubscribe();
   }, [navigate]);
@@ -64,7 +71,10 @@ function SpecialistMessages() {
 
     console.log("=================================");
     console.log("BUSCANDO CONVERSACIONES");
-    console.log("ESPECIALISTA:", currentUser.uid);
+    console.log(
+      "ESPECIALISTA:",
+      currentUser.uid
+    );
     console.log("=================================");
 
     setLoading(true);
@@ -77,49 +87,193 @@ function SpecialistMessages() {
 
     const conversationsQuery = query(
       conversationsRef,
-      where("especialistaId", "==", currentUser.uid)
+      where(
+        "especialistaId",
+        "==",
+        currentUser.uid
+      )
     );
 
     const unsubscribe = onSnapshot(
       conversationsQuery,
-      (snapshot) => {
+      async (snapshot) => {
         console.log(
           "CONVERSACIONES ENCONTRADAS:",
           snapshot.size
         );
 
-        const loadedConversations = snapshot.docs.map(
-          (conversationDoc) => {
-            const data = conversationDoc.data();
+        try {
+          const loadedConversations =
+            await Promise.all(
+              snapshot.docs.map(
+                async (conversationDoc) => {
+                  const data =
+                    conversationDoc.data();
 
-            console.log(
-              "CONVERSACIÓN:",
-              conversationDoc.id,
-              data
+                  console.log(
+                    "CONVERSACIÓN:",
+                    conversationDoc.id,
+                    data
+                  );
+
+                  // =====================================
+                  // DATOS DE LA CONVERSACIÓN
+                  // =====================================
+
+                  let usuarioNombre =
+                    data.usuarioNombre ||
+                    "Usuario";
+
+                  let usuarioFoto =
+                    data.usuarioFoto ||
+                    "";
+
+                  const usuarioId =
+                    data.usuarioId || "";
+
+                  // =====================================
+                  // BUSCAR PERFIL REAL DEL USUARIO
+                  // =====================================
+
+                  if (usuarioId) {
+                    try {
+                      console.log(
+                        "BUSCANDO PERFIL:",
+                        usuarioId
+                      );
+
+                      /*
+                       * IMPORTANTE:
+                       * Los usuarios normales están
+                       * guardados en:
+                       *
+                       * usuarios/{uid}
+                       */
+
+                      const userRef = doc(
+                        db,
+                        "usuarios",
+                        usuarioId
+                      );
+
+                      const userSnapshot =
+                        await getDoc(userRef);
+
+                      if (
+                        userSnapshot.exists()
+                      ) {
+                        const userData =
+                          userSnapshot.data();
+
+                        console.log(
+                          "PERFIL DEL USUARIO:",
+                          userData
+                        );
+
+                        // =================================
+                        // NOMBRE ACTUALIZADO
+                        // =================================
+
+                        usuarioNombre =
+                          userData.nombre ||
+                          userData.nombreCompleto ||
+                          userData.displayName ||
+                          usuarioNombre;
+
+                        // =================================
+                        // FOTO ACTUALIZADA
+                        // =================================
+
+                        usuarioFoto =
+                          userData.foto ||
+                          userData.fotoPerfil ||
+                          userData.photoURL ||
+                          usuarioFoto ||
+                          "";
+
+                        console.log(
+                          "FOTO DEL USUARIO:",
+                          usuarioFoto
+                        );
+                      } else {
+                        console.warn(
+                          "NO EXISTE EL PERFIL:",
+                          usuarioId
+                        );
+                      }
+                    } catch (profileError) {
+                      console.error(
+                        "ERROR OBTENIENDO PERFIL:",
+                        profileError
+                      );
+                    }
+                  } else {
+                    console.warn(
+                      "La conversación no tiene usuarioId:",
+                      conversationDoc.id
+                    );
+                  }
+
+                  // =====================================
+                  // RETORNAR CONVERSACIÓN
+                  // =====================================
+
+                  return {
+                    id: conversationDoc.id,
+
+                    ...data,
+
+                    usuarioId,
+
+                    usuarioNombre,
+
+                    usuarioFoto,
+                  };
+                }
+              )
             );
 
-            return {
-              id: conversationDoc.id,
-              ...data,
-            };
-          }
-        );
+          // ===========================================
+          // ORDENAR POR ÚLTIMO MENSAJE
+          // ===========================================
 
-        // Ordenar por fecha
-        loadedConversations.sort((a, b) => {
-          const dateA = a.fechaUltimoMensaje?.toDate
-            ? a.fechaUltimoMensaje.toDate().getTime()
-            : 0;
+          loadedConversations.sort(
+            (a, b) => {
+              const dateA =
+                a.fechaUltimoMensaje?.toDate
+                  ? a.fechaUltimoMensaje
+                      .toDate()
+                      .getTime()
+                  : 0;
 
-          const dateB = b.fechaUltimoMensaje?.toDate
-            ? b.fechaUltimoMensaje.toDate().getTime()
-            : 0;
+              const dateB =
+                b.fechaUltimoMensaje?.toDate
+                  ? b.fechaUltimoMensaje
+                      .toDate()
+                      .getTime()
+                  : 0;
 
-          return dateB - dateA;
-        });
+              return dateB - dateA;
+            }
+          );
 
-        setConversations(loadedConversations);
-        setLoading(false);
+          setConversations(
+            loadedConversations
+          );
+
+          setLoading(false);
+        } catch (error) {
+          console.error(
+            "ERROR PROCESANDO CONVERSACIONES:",
+            error
+          );
+
+          setError(
+            "No se pudieron procesar las conversaciones."
+          );
+
+          setLoading(false);
+        }
       },
       (firebaseError) => {
         console.error(
@@ -127,7 +281,11 @@ function SpecialistMessages() {
           firebaseError
         );
 
-        setError(firebaseError.message);
+        setError(
+          firebaseError.message ||
+            "No se pudieron cargar las conversaciones."
+        );
+
         setConversations([]);
         setLoading(false);
       }
@@ -140,38 +298,66 @@ function SpecialistMessages() {
   // ABRIR CONVERSACIÓN
   // =====================================================
 
- const openConversation = (conversation) => {
-  console.log("=================================");
-  console.log("ABRIENDO CONVERSACIÓN");
-  console.log("ID:", conversation.id);
-  console.log("Usuario:", conversation.usuarioId);
-  console.log("Especialista:", conversation.especialistaId);
-  console.log("=================================");
+  const openConversation = (
+    conversation
+  ) => {
+    console.log("=================================");
+    console.log(
+      "ABRIENDO CONVERSACIÓN"
+    );
+    console.log(
+      "ID:",
+      conversation.id
+    );
+    console.log(
+      "Usuario:",
+      conversation.usuarioId
+    );
+    console.log(
+      "Especialista:",
+      conversation.especialistaId
+    );
+    console.log(
+      "Foto:",
+      conversation.usuarioFoto
+    );
+    console.log("=================================");
 
-  navigate(`/specialist-chat/${conversation.id}`, {
-    state: {
-      conversation,
-    },
-  });
-};
+    navigate(
+      `/specialist-chat/${conversation.id}`,
+      {
+        state: {
+          conversation,
+        },
+      }
+    );
+  };
 
   // =====================================================
   // FORMATEAR FECHA
   // =====================================================
 
-  const formatDate = (timestamp) => {
+  const formatDate = (
+    timestamp
+  ) => {
     if (
       !timestamp ||
-      typeof timestamp.toDate !== "function"
+      typeof timestamp.toDate !==
+        "function"
     ) {
       return "";
     }
 
     try {
-      return timestamp.toDate().toLocaleTimeString("es-NI", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      return timestamp
+        .toDate()
+        .toLocaleTimeString(
+          "es-NI",
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+          }
+        );
     } catch {
       return "";
     }
@@ -189,7 +375,9 @@ function SpecialistMessages() {
             ⏳
           </div>
 
-          <p>Cargando conversaciones...</p>
+          <p>
+            Cargando conversaciones...
+          </p>
         </div>
       </SpecialistLayout>
     );
@@ -201,168 +389,256 @@ function SpecialistMessages() {
 
   return (
     <SpecialistLayout>
+
       <div className="specialist-conversations-page">
 
-        {/* ENCABEZADO */}
+        {/* =================================================
+            ENCABEZADO
+        ================================================= */}
 
         <div className="specialist-page-header">
+
           <div>
+
             <span className="specialist-label">
               PANEL DE PROFESIONALES
             </span>
 
-            <h1>💬 Mis mensajes</h1>
+            <h1>
+              💬 Mis mensajes
+            </h1>
 
             <p>
-              Aquí puedes ver y responder las
-              conversaciones de tus usuarios.
+              Aquí puedes ver y responder
+              las conversaciones de tus
+              usuarios.
             </p>
+
           </div>
 
           <div className="conversation-counter">
-            <strong>{conversations.length}</strong>
 
-            <span>conversaciones</span>
+            <strong>
+              {conversations.length}
+            </strong>
+
+            <span>
+              conversaciones
+            </span>
+
           </div>
+
         </div>
 
-        {/* ERROR */}
+        {/* =================================================
+            ERROR
+        ================================================= */}
 
         {error && (
           <div
             className="no-conversations"
             style={{
-              border: "1px solid #ffcccc",
+              border:
+                "1px solid #ffcccc",
             }}
           >
+
             <div className="no-conversations-icon">
               ⚠️
             </div>
 
             <h2>
-              No se pudieron cargar los mensajes
-            </h2>
-
-            <p>{error}</p>
-          </div>
-        )}
-
-        {/* SIN CONVERSACIONES */}
-
-        {!error && conversations.length === 0 && (
-          <div className="no-conversations">
-
-            <div className="no-conversations-icon">
-              💬
-            </div>
-
-            <h2>
-              Aún no tienes conversaciones
+              No se pudieron cargar
+              los mensajes
             </h2>
 
             <p>
-              Cuando un usuario te escriba,
-              la conversación aparecerá aquí.
+              {error}
             </p>
 
-            <small
-              style={{
-                display: "block",
-                marginTop: "15px",
-                opacity: 0.6,
-              }}
-            >
-              Especialista conectado:{" "}
-              {currentUser?.uid}
-            </small>
-
           </div>
         )}
 
-        {/* LISTA DE CONVERSACIONES */}
+        {/* =================================================
+            SIN CONVERSACIONES
+        ================================================= */}
 
-        {!error && conversations.length > 0 && (
-          <div className="conversations-list">
+        {!error &&
+          conversations.length === 0 && (
+            <div className="no-conversations">
 
-            {conversations.map((conversation) => (
-              <div
-                key={conversation.id}
-                className="conversation-card"
-                onClick={() =>
-                  openConversation(conversation)
-                }
-                role="button"
-                tabIndex={0}
-                onKeyDown={(event) => {
-                  if (
-                    event.key === "Enter" ||
-                    event.key === " "
-                  ) {
-                    openConversation(conversation);
-                  }
+              <div className="no-conversations-icon">
+                💬
+              </div>
+
+              <h2>
+                Aún no tienes conversaciones
+              </h2>
+
+              <p>
+                Cuando un usuario te
+                escriba, la conversación
+                aparecerá aquí.
+              </p>
+
+              <small
+                style={{
+                  display: "block",
+                  marginTop: "15px",
+                  opacity: 0.6,
                 }}
               >
+                Especialista conectado:{" "}
+                {currentUser?.uid}
+              </small>
 
-                {/* FOTO */}
+            </div>
+          )}
 
-                <div className="conversation-avatar">
+        {/* =================================================
+            LISTA DE CONVERSACIONES
+        ================================================= */}
 
-                  {conversation.usuarioFoto ? (
-                    <img
-                      src={conversation.usuarioFoto}
-                      alt={
-                        conversation.usuarioNombre ||
-                        "Usuario"
+        {!error &&
+          conversations.length > 0 && (
+
+            <div className="conversations-list">
+
+              {conversations.map(
+                (conversation) => (
+
+                  <div
+                    key={
+                      conversation.id
+                    }
+                    className="conversation-card"
+                    onClick={() =>
+                      openConversation(
+                        conversation
+                      )
+                    }
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(
+                      event
+                    ) => {
+
+                      if (
+                        event.key ===
+                          "Enter" ||
+                        event.key === " "
+                      ) {
+                        openConversation(
+                          conversation
+                        );
                       }
-                    />
-                  ) : (
-                    <span>👤</span>
-                  )}
 
-                </div>
+                    }}
+                  >
 
-                {/* INFORMACIÓN */}
+                    {/* =================================
+                        FOTO DEL USUARIO
+                    ================================= */}
 
-                <div className="conversation-content">
+                    <div className="conversation-avatar">
 
-                  <div className="conversation-top">
+                      {conversation.usuarioFoto ? (
 
-                    <h3>
-                      {conversation.usuarioNombre ||
-                        "Usuario"}
-                    </h3>
+                        <img
+                          src={
+                            conversation.usuarioFoto
+                          }
+                          alt={
+                            conversation.usuarioNombre ||
+                            "Usuario"
+                          }
+                          onError={(
+                            event
+                          ) => {
+                            event.currentTarget.style.display =
+                              "none";
+                          }}
+                        />
 
-                    <span className="conversation-time">
-                      {formatDate(
-                        conversation.fechaUltimoMensaje
+                      ) : (
+
+                        <span>
+                          {conversation.usuarioNombre
+                            ?.charAt(
+                              0
+                            )
+                            .toUpperCase() ||
+                            "👤"}
+                        </span>
+
                       )}
-                    </span>
+
+                    </div>
+
+                    {/* =================================
+                        INFORMACIÓN
+                    ================================= */}
+
+                    <div className="conversation-content">
+
+                      <div className="conversation-top">
+
+                        <h3>
+                          {
+                            conversation.usuarioNombre ||
+                            "Usuario"
+                          }
+                        </h3>
+
+                        <span className="conversation-time">
+
+                          {formatDate(
+                            conversation.fechaUltimoMensaje
+                          )}
+
+                        </span>
+
+                      </div>
+
+                      <div className="conversation-bottom">
+
+                        <p>
+                          {
+                            conversation.ultimoMensaje ||
+                            "Nueva conversación"
+                          }
+                        </p>
+
+                        {Number(
+                          conversation.mensajesNoLeidos ||
+                            0
+                        ) > 0 && (
+
+                          <span className="unread-badge">
+
+                            {
+                              conversation.mensajesNoLeidos
+                            }
+
+                          </span>
+
+                        )}
+
+                      </div>
+
+                    </div>
 
                   </div>
 
-                  <div className="conversation-bottom">
+                )
+              )}
 
-                    <p>
-                      {conversation.ultimoMensaje ||
-                        "Nueva conversación"}
-                    </p>
+            </div>
 
-                    {conversation.mensajesNoLeidos > 0 && (
-                      <span className="unread-badge">
-                        {conversation.mensajesNoLeidos}
-                      </span>
-                    )}
+          )}
 
-                  </div>
-
-                </div>
-
-              </div>
-            ))}
-
-          </div>
-        )}
       </div>
+
     </SpecialistLayout>
   );
 }
