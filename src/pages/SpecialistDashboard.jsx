@@ -550,7 +550,7 @@ function SpecialistDashboard() {
         <div className="sidebar-logo">
 
           <div className="sidebar-logo-icon">
-            ♡
+            <img src="logo.jpeg" alt="" />
           </div>
 
           <div>
