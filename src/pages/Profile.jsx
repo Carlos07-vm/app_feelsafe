@@ -1,270 +1,286 @@
 ﻿import "../styles/Profile.css";
 import MainLayout from "../layouts/MainLayout";
 import { useApp } from "../context/AppContext";
-import { useNavigate } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
-import { signOut } from "firebase/auth";
-import { auth } from "../services/firebase";
+import { translations } from "../constants/translations";
+import { useState } from "react";
 import { 
-  FaUser, FaCamera, FaPen, FaPalette, FaGlobe, FaBell, FaLock, 
-  FaHeart, FaFileAlt, FaInfoCircle, FaSignOutAlt, FaTrash, FaChevronRight
+  FaUserEdit, 
+  FaCamera, 
+  FaPen, 
+  FaPalette, 
+  FaGlobe, 
+  FaBell, 
+  FaLock, 
+  FaHeart, 
+  FaFileAlt,
+  FaUser
 } from "react-icons/fa";
 
-// =========================================================
-// 1. DICCIONARIO DE TRADUCCIONES
-// =========================================================
-const translations = {
-  es: {
-    account: "Cuenta",
-    editProfile: "Editar perfil",
-    changePhoto: "Cambiar foto",
-    updateDesc: "Actualizar descripción",
-    settings: "Configuración",
-    theme: "Tema",
-    themeLight: "Claro ☀️",
-    themeDark: "Oscuro 🌙",
-    language: "Idioma",
-    langEs: "Español 🇪🇸",
-    langEn: "Inglés 🇺🇸",
-    notifications: "Notificaciones",
-    privacy: "Privacidad",
-    application: "Aplicación",
-    quote: "Frase del día",
-    privacyPolicy: "Política de privacidad",
-    about: "Acerca de FeelSafe",
-    logout: "Cerrar sesión",
-    deleteAccount: "Eliminar cuenta",
-    streak: "Racha",
-    wellbeing: "Bienestar",
-    notes: "Notas",
-    noDesc: "Añade una descripción sobre ti para personalizar tu perfil."
-  },
-  en: {
-    account: "Account",
-    editProfile: "Edit Profile",
-    changePhoto: "Change Photo",
-    updateDesc: "Update Description",
-    settings: "Settings",
-    theme: "Theme",
-    themeLight: "Light ☀️",
-    themeDark: "Dark 🌙",
-    language: "Language",
-    langEs: "Spanish 🇪🇸",
-    langEn: "English 🇺🇸",
-    notifications: "Notifications",
-    privacy: "Privacy",
-    application: "Application",
-    quote: "Quote of the Day",
-    privacyPolicy: "Privacy Policy",
-    about: "About FeelSafe",
-    logout: "Log Out",
-    deleteAccount: "Delete Account",
-    streak: "Streak",
-    wellbeing: "Wellbeing",
-    notes: "Notes",
-    noDesc: "Add a description about yourself to customize your profile."
-  }
-};
-
 function Profile() {
-  const { 
-    user, updateUserProfile, theme, toggleTheme, language, toggleLanguage 
-  } = useApp();
-  
-  const navigate = useNavigate();
-
-  // 2. ACTIVAMOS EL DICCIONARIO (Dependiendo del idioma seleccionado)
+  // AQUÍ ESTÁ LA MAGIA: Importamos toggleTheme y toggleLanguage directamente del contexto
+  const { user, setUser, theme, toggleTheme, language, toggleLanguage } = useApp();
   const t = translations[language] || translations.es;
 
-  const [profileImage, setProfileImage] = useState("");
-  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
-  const [showImagePreview, setShowImagePreview] = useState(false);
-  const [showEditProfile, setShowEditProfile] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [statusMessage, setStatusMessage] = useState("");
+  // Estados para modales y edición
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingDesc, setIsEditingDesc] = useState(false);
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
 
-  const fileInputRef = useRef(null);
-  const cameraInputRef = useRef(null);
+  const [name, setName] = useState(user?.name || "Merlo");
+  const [description, setDescription] = useState(user?.description || "");
+  const [photo, setPhoto] = useState(user?.photo || null);
 
-  useEffect(() => {
-    const savedImage = localStorage.getItem("profileImage");
-    if (savedImage) setProfileImage(savedImage);
-    else setProfileImage(user?.photoURL || user?.foto || "");
-    
-    setEditName(user?.displayName || user?.nombre || "");
-    setEditDescription(user?.description || "");
-  }, [user]);
+  const handleSaveName = (e) => {
+    e.preventDefault();
+    setUser({ ...user, name });
+    setIsEditingName(false);
+  };
 
-  useEffect(() => {
-    if (profileImage) localStorage.setItem("profileImage", profileImage);
-  }, [profileImage]);
+  const handleSaveDesc = (e) => {
+    e.preventDefault();
+    setUser({ ...user, description });
+    setIsEditingDesc(false);
+  };
 
-  const handleLogout = async () => {
-    if (!window.confirm("¿Estás seguro de que deseas cerrar sesión?")) return;
-    try {
-      await signOut(auth);
-      navigate("/login");
-    } catch (error) {
-      alert("No se pudo cerrar sesión. Intenta de nuevo.");
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhoto(reader.result);
+        setUser({ ...user, photo: reader.result });
+        setIsPhotoModalOpen(false);
+      };
+      reader.readAsDataURL(file);
     }
-  };
-
-  const handleSelectPhoto = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const image = reader.result;
-      setProfileImage(image);
-      await updateUserProfile({ foto: image, photoURL: image });
-      setShowPhotoMenu(false);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleDeletePhoto = () => {
-    setProfileImage("");
-    updateUserProfile({ foto: "", photoURL: "" });
-    localStorage.removeItem("profileImage");
-    setShowPhotoMenu(false);
-  };
-
-  const handleSaveProfile = async () => {
-    if (!editName.trim()) return;
-    await updateUserProfile({
-      displayName: editName.trim(),
-      nombre: editName.trim(),
-      description: editDescription.trim(),
-    });
-    setShowEditProfile(false);
   };
 
   return (
     <MainLayout>
       <div className="profile-page">
         
-        {/* =================================================
-            CABECERA DEL PERFIL
-        ================================================= */}
+        {/* Cabecera con portada y avatar flotante */}
         <div className="profile-header-card">
           <div className="profile-cover"></div>
           
           <div className="profile-avatar-section">
-            <div className="profile-avatar" onClick={() => setShowPhotoMenu(true)}>
+            <div className="profile-avatar" onClick={() => setIsPhotoModalOpen(true)}>
               <div className="avatar-img-container">
-                {profileImage ? (
-                  <img src={profileImage} alt="Perfil" />
-                ) : user?.photoURL ? (
-                  <img src={user.photoURL} alt="Perfil" />
+                {photo || user?.photo ? (
+                  <img src={photo || user.photo} alt="Avatar" />
                 ) : (
-                  <span className="avatar-placeholder">👤</span>
+                  <div className="avatar-placeholder"><FaUser /></div>
                 )}
               </div>
-              <button className="camera-btn" type="button" onClick={(e) => { e.stopPropagation(); setShowPhotoMenu(true); }}>
+              <div className="camera-btn">
                 <FaCamera />
-              </button>
+              </div>
             </div>
           </div>
 
           <div className="profile-header-info">
-            <h2>{user?.displayName || user?.nombre || "Usuario"}</h2>
-            <span className="user-email">{user?.email || ""}</span>
+            <h2>{user?.name || name}</h2>
+            <span className="user-email">{user?.email || "exequielmerlo2@gmail.com"}</span>
             <p className="profile-description">
-              {user?.description || t.noDesc}
+              {user?.description || description || (language === 'es' ? "Añade una descripción sobre ti para personalizar tu perfil." : "Add a bio about yourself to customize your profile.")}
             </p>
           </div>
         </div>
 
-        {/* =================================================
-            ESTADÍSTICAS
-        ================================================= */}
+        {/* Estadísticas unificadas */}
         <div className="profile-stats-grid">
           <div className="stat-box">
-            <span className="stat-value">{user?.streak ?? 0}</span>
-            <span className="stat-label">🔥 {t.streak}</span>
+            <span className="stat-value">{user?.streak || 0}</span>
+            <span className="stat-label">{language === 'es' ? "Racha" : "Streak"}</span>
           </div>
           <div className="stat-box">
-            <span className="stat-value">{user?.wellbeing ?? 72}%</span>
-            <span className="stat-label">💚 {t.wellbeing}</span>
+            <span className="stat-value">{user?.wellbeing || 72}%</span>
+            <span className="stat-label">{language === 'es' ? "Bienestar" : "Wellbeing"}</span>
           </div>
           <div className="stat-box">
-            <span className="stat-value">{user?.notes?.length || 0}</span>
-            <span className="stat-label">📝 {t.notes}</span>
+            <span className="stat-value">{user?.notes?.length || 1}</span>
+            <span className="stat-label">{language === 'es' ? "Notas" : "Notes"}</span>
           </div>
         </div>
 
-        {/* =================================================
-            MENÚS CON DICCIONARIO
-        ================================================= */}
+        {/* Menú: Cuenta */}
         <div className="menu-group">
-          <h3 className="menu-title">{t.account}</h3>
+          <h3 className="menu-title">{language === 'es' ? "Cuenta" : "Account"}</h3>
           <div className="menu-card">
-            <button className="menu-item" type="button" onClick={() => setShowEditProfile(true)}>
-              <div className="menu-item-left"><FaUser className="menu-icon text-purple" /> <span>{t.editProfile}</span></div>
-              <FaChevronRight className="menu-arrow" />
+            <button className="menu-item" onClick={() => setIsEditingName(true)}>
+              <div className="menu-item-left">
+                <FaUserEdit className="menu-icon text-purple" />
+                <span>{language === 'es' ? "Editar perfil" : "Edit profile"}</span>
+              </div>
+              <span className="menu-arrow">›</span>
             </button>
-            <button className="menu-item" type="button" onClick={() => setShowPhotoMenu(true)}>
-              <div className="menu-item-left"><FaCamera className="menu-icon text-blue" /> <span>{t.changePhoto}</span></div>
-              <FaChevronRight className="menu-arrow" />
+
+            <button className="menu-item" onClick={() => setIsPhotoModalOpen(true)}>
+              <div className="menu-item-left">
+                <FaCamera className="menu-icon text-blue" />
+                <span>{language === 'es' ? "Cambio de foto" : "Change photo"}</span>
+              </div>
+              <span className="menu-arrow">›</span>
             </button>
-            <button className="menu-item" type="button" onClick={() => setShowEditProfile(true)}>
-              <div className="menu-item-left"><FaPen className="menu-icon text-green" /> <span>{t.updateDesc}</span></div>
-              <FaChevronRight className="menu-arrow" />
+
+            <button className="menu-item" onClick={() => setIsEditingDesc(true)}>
+              <div className="menu-item-left">
+                <FaPen className="menu-icon text-green" />
+                <span>{language === 'es' ? "Actualización de la descripción" : "Update description"}</span>
+              </div>
+              <span className="menu-arrow">›</span>
             </button>
           </div>
         </div>
 
+        {/* Menú: Escenarios */}
         <div className="menu-group">
-          <h3 className="menu-title">{t.settings}</h3>
+          <h3 className="menu-title">{language === 'es' ? "Escenarios" : "Settings"}</h3>
           <div className="menu-card">
-            <button className="menu-item" type="button" onClick={toggleTheme}>
-              <div className="menu-item-left"><FaPalette className="menu-icon text-orange" /> <span>{t.theme}: {theme === 'light' ? t.themeLight : t.themeDark}</span></div>
-              <FaChevronRight className="menu-arrow" />
+            
+            {/* Los botones usan toggleTheme y toggleLanguage directamente */}
+            <button className="menu-item" onClick={toggleTheme} type="button">
+              <div className="menu-item-left">
+                <FaPalette className="menu-icon text-orange" />
+                <span>
+                  {language === 'es' ? "Tema" : "Theme"}:{" "}
+                  <strong>
+                    {theme === "light" 
+                      ? (language === 'es' ? "Luz ☀️" : "Light ☀️") 
+                      : (language === 'es' ? "Oscuro 🌙" : "Dark 🌙")}
+                  </strong>
+                </span>
+              </div>
+              <span className="menu-arrow">›</span>
             </button>
-            <button className="menu-item" type="button" onClick={toggleLanguage}>
-              <div className="menu-item-left"><FaGlobe className="menu-icon text-blue" /> <span>{t.language}: {language === 'es' ? t.langEs : t.langEn}</span></div>
-              <FaChevronRight className="menu-arrow" />
+
+            <button className="menu-item" onClick={toggleLanguage} type="button">
+              <div className="menu-item-left">
+                <FaGlobe className="menu-icon text-blue" />
+                <span>
+                  {language === 'es' ? "Idioma" : "Language"}:{" "}
+                  <strong>
+                    {language === 'es' ? "Español 🇪🇸" : "English 🇺🇸"}
+                  </strong>
+                </span>
+              </div>
+              <span className="menu-arrow">›</span>
             </button>
+
             <button className="menu-item" type="button">
-              <div className="menu-item-left"><FaBell className="menu-icon text-yellow" /> <span>{t.notifications}</span></div>
-              <FaChevronRight className="menu-arrow" />
+              <div className="menu-item-left">
+                <FaBell className="menu-icon text-yellow" />
+                <span>{language === 'es' ? "Notificaciones" : "Notifications"}</span>
+              </div>
+              <span className="menu-arrow">›</span>
             </button>
+
             <button className="menu-item" type="button">
-              <div className="menu-item-left"><FaLock className="menu-icon text-gray" /> <span>{t.privacy}</span></div>
-              <FaChevronRight className="menu-arrow" />
+              <div className="menu-item-left">
+                <FaLock className="menu-icon text-gray" />
+                <span>{language === 'es' ? "Privacidad" : "Privacy"}</span>
+              </div>
+              <span className="menu-arrow">›</span>
             </button>
           </div>
         </div>
 
+        {/* Menú: Aplicación */}
         <div className="menu-group">
-          <h3 className="menu-title">{t.application}</h3>
+          <h3 className="menu-title">{language === 'es' ? "Aplicación" : "Application"}</h3>
           <div className="menu-card">
             <button className="menu-item" type="button">
-              <div className="menu-item-left"><FaHeart className="menu-icon text-pink" /> <span>{t.quote}</span></div>
-              <FaChevronRight className="menu-arrow" />
+              <div className="menu-item-left">
+                <FaHeart className="menu-icon text-pink" />
+                <span>{language === 'es' ? "Cita del día" : "Quote of the day"}</span>
+              </div>
+              <span className="menu-arrow">›</span>
             </button>
+
             <button className="menu-item" type="button">
-              <div className="menu-item-left"><FaFileAlt className="menu-icon text-gray" /> <span>{t.privacyPolicy}</span></div>
-              <FaChevronRight className="menu-arrow" />
-            </button>
-            <button className="menu-item" type="button">
-              <div className="menu-item-left"><FaInfoCircle className="menu-icon text-blue" /> <span>{t.about}</span></div>
-              <FaChevronRight className="menu-arrow" />
+              <div className="menu-item-left">
+                <FaFileAlt className="menu-icon text-purple" />
+                <span>{language === 'es' ? "Política de privacidad" : "Privacy policy"}</span>
+              </div>
+              <span className="menu-arrow">›</span>
             </button>
           </div>
         </div>
 
-        <div className="menu-group">
-          <div className="menu-card card-danger">
-            <button className="menu-item text-red" type="button" onClick={handleLogout}>
-              <div className="menu-item-left"><FaSignOutAlt className="menu-icon" /> <span>{t.logout}</span></div>
-            </button>
-            <button className="menu-item text-red" type="button">
-              <div className="menu-item-left"><FaTrash className="menu-icon" /> <span>{t.deleteAccount}</span></div>
-            </button>
+        {/* MODAL: Editar Nombre */}
+        {isEditingName && (
+          <div className="modal-overlay" onClick={() => setIsEditingName(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>{language === 'es' ? "Editar Nombre" : "Edit Name"}</h2>
+              <form onSubmit={handleSaveName}>
+                <input 
+                  type="text" 
+                  className="modal-input"
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  placeholder="Tu nombre" 
+                />
+                <div className="modal-actions">
+                  <button type="button" className="modal-cancel-btn" onClick={() => setIsEditingName(false)}>
+                    {language === 'es' ? "Cancelar" : "Cancel"}
+                  </button>
+                  <button type="submit" className="modal-save-btn">
+                    {language === 'es' ? "Guardar" : "Save"}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* MODAL: Editar Descripción */}
+        {isEditingDesc && (
+          <div className="modal-overlay" onClick={() => setIsEditingDesc(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>{language === 'es' ? "Actualizar Descripción" : "Update Description"}</h2>
+              <form onSubmit={handleSaveDesc}>
+                <textarea 
+                  className="modal-textarea"
+                  rows="4"
+                  value={description} 
+                  onChange={(e) => setDescription(e.target.value)} 
+                  placeholder={language === 'es' ? "Escribe algo sobre ti..." : "Write something about yourself..."} 
+                />
+                <div className="modal-actions">
+                  <button type="button" className="modal-cancel-btn" onClick={() => setIsEditingDesc(false)}>
+                    {language === 'es' ? "Cancelar" : "Cancel"}
+                  </button>
+                  <button type="submit" className="modal-save-btn">
+                    {language === 'es' ? "Guardar" : "Save"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL: Cambio de Foto */}
+        {isPhotoModalOpen && (
+          <div className="modal-overlay" onClick={() => setIsPhotoModalOpen(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>{language === 'es' ? "Cambiar Foto de Perfil" : "Change Profile Photo"}</h2>
+              <div className="modal-options">
+                <label className="modal-save-btn" style={{ display: 'block', textAlign: 'center', cursor: 'pointer' }}>
+                  {language === 'es' ? "Subir desde el dispositivo" : "Upload from device"}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    style={{ display: "none" }} 
+                    onChange={handlePhotoChange} 
+                  />
+                </label>
+                <button type="button" className="modal-cancel-btn" onClick={() => setIsPhotoModalOpen(false)}>
+                  {language === 'es' ? "Cancelar" : "Cancel"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </MainLayout>
