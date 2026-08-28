@@ -5,6 +5,7 @@
   background: #F8F9FE;
   border-radius: 32px;
   box-shadow: 0 26px 60px rgba(44, 49, 99, 0.08);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* ================= Encabezado ================= */
@@ -19,6 +20,7 @@
   color: #3b1f7a;
   margin-bottom: 12px;
   line-height: 1.05;
+  transition: color 0.3s ease;
 }
 
 .mood-header p {
@@ -27,6 +29,7 @@
   color: #585f7a;
   line-height: 1.75;
   font-size: 1rem;
+  transition: color 0.3s ease;
 }
 
 /* ================= Selector de emociones ================= */
@@ -45,7 +48,7 @@
   padding: 28px 20px;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+  transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease, background 0.3s ease;
   box-shadow: 0 18px 40px rgba(67, 56, 141, 0.08);
 }
 
@@ -66,6 +69,7 @@
   font-size: 1rem;
   font-weight: 700;
   color: #2f2f4a;
+  transition: color 0.3s ease;
 }
 
 .emotion-card.active {
@@ -79,7 +83,7 @@
   color: white;
 }
 
-/* ================= Nota del usuario ================= */
+/* ================= Nota e Intensidad ================= */
 .mood-note {
   margin-top: 42px;
 }
@@ -89,6 +93,22 @@
   color: #312b55;
   margin-bottom: 16px;
   font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+.mood-note p {
+  margin-top: 10px;
+  color: #585f7a;
+  font-size: 1rem;
+  transition: color 0.3s ease;
+}
+
+/* Estilos para la barra deslizable (Range) */
+.mood-note input[type="range"] {
+  width: 100%;
+  margin: 10px 0;
+  accent-color: #7c55ff;
+  cursor: pointer;
 }
 
 .mood-page textarea {
@@ -102,8 +122,9 @@
   font-family: inherit;
   line-height: 1.75;
   background: #ffffff;
+  color: #2f2f4a;
   box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.03), 0 16px 38px rgba(67, 56, 141, 0.08);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.3s ease, color 0.3s ease;
 }
 
 .mood-page textarea:focus {
@@ -128,21 +149,96 @@
   transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
 }
 
-.save-btn:hover {
+.save-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 22px 42px rgba(109, 76, 143, 0.32);
 }
 
-.save-btn:active {
+.save-btn:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .mood-status {
   margin-top: 16px;
   color: #4b4b6b;
   font-weight: 600;
+  text-align: center;
+  transition: color 0.3s ease;
 }
 
+
+/* =================================================
+   MODO OSCURO (.theme-dark)
+================================================= */
+.mood-page.theme-dark {
+  background: #1a1a2e;
+  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.3);
+}
+
+.mood-page.theme-dark .mood-header h1 {
+  color: #ffffff;
+}
+
+.mood-page.theme-dark .mood-header p,
+.mood-page.theme-dark .mood-note p {
+  color: #a09bba;
+}
+
+.mood-page.theme-dark .emotion-card {
+  background: #252542;
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+}
+
+.mood-page.theme-dark .emotion-card:hover {
+  border-color: rgba(124, 85, 255, 0.5);
+  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.3);
+}
+
+.mood-page.theme-dark .emotion-card p {
+  color: #e2d9f3;
+}
+
+.mood-page.theme-dark .emotion-card.active {
+  background: linear-gradient(135deg, #6d4c8f, #7c55ff);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.mood-page.theme-dark .emotion-card.active p {
+  color: #ffffff;
+}
+
+.mood-page.theme-dark .mood-note h2 {
+  color: #ffffff;
+}
+
+.mood-page.theme-dark textarea {
+  background: #252542;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.mood-page.theme-dark textarea::placeholder {
+  color: #7a7a9a;
+}
+
+.mood-page.theme-dark textarea:focus {
+  border-color: #7c55ff;
+  box-shadow: 0 0 0 4px rgba(124, 85, 255, 0.25), inset 0 0 0 1px rgba(124, 85, 255, 0.3);
+}
+
+.mood-page.theme-dark .mood-status {
+  color: #e2d9f3;
+}
+
+
+/* ================= Media Queries ================= */
 @media (max-width: 740px) {
   .mood-page {
     padding: 26px;
