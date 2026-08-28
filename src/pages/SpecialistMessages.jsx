@@ -63,28 +63,67 @@ function SpecialistMessages() {
 
     const unsubscribe = onSnapshot(
       conversationsQuery,
-      (snapshot) => {
+       (snapshot) => {
         const loadedConversations = snapshot.docs.map((conversationDoc) => ({
           id: conversationDoc.id,
           ...conversationDoc.data(),
         }));
 
-        loadedConversations.sort((a, b) => {
+        // ===================================================
+        // 1. ELIMINAR EL CHAT DEL PROPIO ESPECIALISTA
+        // ===================================================
+
+        const patientConversations = loadedConversations.filter((conversation) => {
+          return (
+            conversation.usuarioId &&
+            conversation.usuarioId !== currentUser.uid
+          );
+        });
+
+        // ===================================================
+        // 2. ORDENAR POR ÚLTIMO MENSAJE
+        // ===================================================
+
+        patientConversations.sort((a, b) => {
           const timeA = a.fechaUltimoMensaje?.toMillis
             ? a.fechaUltimoMensaje.toMillis()
             : 0;
+
           const timeB = b.fechaUltimoMensaje?.toMillis
             ? b.fechaUltimoMensaje.toMillis()
             : 0;
+
           return timeB - timeA;
         });
 
-        setConversations(loadedConversations);
-        setLoading(false);
-      },
-      (err) => {
-        console.error("Error cargando conversaciones:", err);
-        setConversations([]);
+        // ===================================================
+        // 3. ELIMINAR CONVERSACIONES DUPLICADAS
+        //
+        // Se conserva la conversación más reciente
+        // de cada usuario.
+        // ===================================================
+
+        const uniqueConversations = [];
+        const usersSeen = new Set();
+
+        patientConversations.forEach((conversation) => {
+          const userId = conversation.usuarioId;
+
+          // Si no tiene usuarioId, la dejamos fuera para
+          // evitar conversaciones imposibles de identificar.
+          if (!userId) return;
+
+          if (!usersSeen.has(userId)) {
+            usersSeen.add(userId);
+            uniqueConversations.push(conversation);
+          }
+        });
+
+        console.log("📨 Conversaciones encontradas:", loadedConversations.length);
+        console.log("👤 Conversaciones de pacientes:", patientConversations.length);
+        console.log("✅ Conversaciones únicas:", uniqueConversations.length);
+
+        setConversations(uniqueConversations);
         setLoading(false);
       }
     );

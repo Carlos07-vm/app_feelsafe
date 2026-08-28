@@ -164,10 +164,29 @@ function SpecialistAgenda() {
         notas: "",
       });
       setShowForm(false);
-    } catch (err) {
-      console.error("Error creando cita:", err);
-      setError("No se pudo programar la cita.");
-    } finally {
+   } catch (err) {
+      console.error("❌ ERROR COMPLETO AL CREAR CITA:", err);
+      console.error("Código:", err?.code);
+      console.error("Mensaje:", err?.message);
+      console.error("Usuario actual:", currentUser);
+      console.error("UID especialista:", currentUser?.uid);
+      console.error("Datos de la cita:", {
+        especialistaId: currentUser?.uid,
+        usuarioNombre: form.usuarioNombre.trim(),
+        usuarioId: form.usuarioId.trim() || null,
+        fecha: form.fecha,
+        hora: form.hora,
+        motivo: form.motivo.trim() || "Consulta de bienestar",
+        notas: form.notas.trim() || "",
+      });
+
+      setError(
+        err?.code
+          ? `No se pudo programar la cita: ${err.code}`
+          : "No se pudo programar la cita."
+      );
+}
+     finally {
       setSaving(false);
     }
   };

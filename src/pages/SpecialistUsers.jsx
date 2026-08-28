@@ -69,8 +69,13 @@ function SpecialistUsers() {
 
           for (const convDoc of snapshot.docs) {
             const data = convDoc.data();
-            const userId = data.usuarioId;
-            if (!userId) continue;
+           const userId = data.usuarioId;
+
+          // Ignorar conversaciones sin usuario
+          if (!userId) continue;
+
+          // No mostrar al propio especialista como paciente
+          if (userId === currentUser.uid) continue;
 
             let usuarioNombre = data.usuarioNombre || "Usuario";
             let usuarioFoto = data.usuarioFoto || "";

@@ -34,7 +34,9 @@ function SpecialistDashboard() {
   const [appointmentsCount, setAppointmentsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [conversationsLoading, setConversationsLoading] = useState(true);
-
+  const [totalConversationsCount, setTotalConversationsCount] = useState(0);
+  const [totalUsersCount, setTotalUsersCount] = useState(0);
+  const [totalUnreadCount, setTotalUnreadCount] = useState(0);  
   // =======================================================
   // 1. AUTENTICACIÓN
   // =======================================================
@@ -77,54 +79,182 @@ function SpecialistDashboard() {
   }, [navigate]);
 
   // =======================================================
-  // 2. CONVERSACIONES EN TIEMPO REAL
-  // =======================================================
-  useEffect(() => {
-    if (!specialist?.uid) {
-      setConversations([]);
-      setConversationsLoading(false);
-      return;
-    }
+// 2. CONVERSACIONES EN TIEMPO REAL
+// =======================================================
+useEffect(() => {
+  if (!specialist?.uid) {
+    setConversations([]);
+    setConversationsLoading(false);
+    return;
+  }
 
-    setConversationsLoading(true);
+  setConversationsLoading(true);
 
-    const conversationsRef = collection(db, "conversaciones_especialistas");
-    const conversationsQuery = query(
-      conversationsRef,
-      where("especialistaId", "==", specialist.uid)
-    );
+  const conversationsRef = collection(
+    db,
+    "conversaciones_especialistas"
+  );
 
-    const unsubscribe = onSnapshot(
-      conversationsQuery,
-      (snapshot) => {
-        const loadedConversations = snapshot.docs.map((conversationDoc) => ({
-          id: conversationDoc.id,
-          ...conversationDoc.data(),
-        }));
+  const conversationsQuery = query(
+    conversationsRef,
+    where("especialistaId", "==", specialist.uid)
+  );
 
-        // Ordenar por fecha descendente
+  const unsubscribe = onSnapshot(
+    conversationsQuery,
+    (snapshot) => {
+      try {
+        // ===================================================
+        // 1. OBTENER CONVERSACIONES
+        // ===================================================
+
+        const loadedConversations = snapshot.docs
+          .map((conversationDoc) => ({
+            id: conversationDoc.id,
+            ...conversationDoc.data(),
+          }))
+          .filter((conversation) => {
+            const usuarioId = conversation.usuarioId;
+
+            // No mostrar conversaciones sin usuario
+            if (!usuarioId) {
+              return false;
+            }
+
+            // No mostrar al propio especialista
+            if (usuarioId === specialist.uid) {
+              return false;
+            }
+
+            return true;
+          });
+
+        // ===================================================
+        // 2. ORDENAR POR ÚLTIMO MENSAJE
+        // ===================================================
+
         loadedConversations.sort((a, b) => {
-          const timeA = a.fechaUltimoMensaje?.toMillis
-            ? a.fechaUltimoMensaje.toMillis()
-            : 0;
-          const timeB = b.fechaUltimoMensaje?.toMillis
-            ? b.fechaUltimoMensaje.toMillis()
-            : 0;
+          const timeA =
+            a.fechaUltimoMensaje?.toMillis
+              ? a.fechaUltimoMensaje.toMillis()
+              : 0;
+
+          const timeB =
+            b.fechaUltimoMensaje?.toMillis
+              ? b.fechaUltimoMensaje.toMillis()
+              : 0;
+
           return timeB - timeA;
         });
 
-        setConversations(loadedConversations);
-        setConversationsLoading(false);
-      },
-      (error) => {
-        console.error("Error escuchando conversaciones:", error);
+        // ===================================================
+        // 3. ELIMINAR USUARIOS REPETIDOS
+        // ===================================================
+        //
+        // Si existen varias conversaciones para el mismo
+        // usuario, solamente conservamos la más reciente.
+        //
+
+        const usersSeen = new Set();
+
+        const uniqueConversations = loadedConversations.filter(
+          (conversation) => {
+            const usuarioId = conversation.usuarioId;
+
+            if (usersSeen.has(usuarioId)) {
+              return false;
+            }
+
+            usersSeen.add(usuarioId);
+            return true;
+          }
+        );
+
+        // ===================================================
+// ACTUALIZAR CONTADORES
+// ===================================================
+
+const uniqueUsers = new Set(
+  uniqueConversations
+    .map((conversation) => conversation.usuarioId)
+    .filter(
+      (usuarioId) =>
+        usuarioId && usuarioId !== specialist.uid
+    )
+);
+
+const unreadCount = uniqueConversations.reduce(
+  (total, conversation) => {
+    return total + Number(
+      conversation.mensajesNoLeidos || 0
+    );
+  },
+  0
+);
+
+setTotalConversationsCount(
+  uniqueConversations.length
+);
+
+setTotalUsersCount(
+  uniqueUsers.size
+);
+
+setTotalUnreadCount(
+  unreadCount
+);
+
+        // ===================================================
+        // 4. DEBUG
+        // ===================================================
+
+        console.log(
+          "💬 Conversaciones encontradas:",
+          snapshot.docs.length
+        );
+
+        console.log(
+          "🚫 Conversaciones del especialista excluidas:",
+          snapshot.docs.filter(
+            (doc) =>
+              doc.data().usuarioId === specialist.uid
+          ).length
+        );
+
+        console.log(
+          "👥 Usuarios únicos:",
+          uniqueConversations.length
+        );
+
+        // ===================================================
+        // 5. ACTUALIZAR ESTADO
+        // ===================================================
+
+        setConversations(uniqueConversations);
+      } catch (error) {
+        console.error(
+          "❌ Error procesando conversaciones:",
+          error
+        );
+
         setConversations([]);
+      } finally {
         setConversationsLoading(false);
       }
-    );
+    },
+    (error) => {
+      console.error(
+        "❌ Error escuchando conversaciones:",
+        error
+      );
 
-    return () => unsubscribe();
-  }, [specialist?.uid]);
+      setConversations([]);
+      setConversationsLoading(false);
+    }
+  );
+
+  return () => unsubscribe();
+}, [specialist?.uid]);
 
   // =======================================================
   // 3. CITAS EN TIEMPO REAL
@@ -174,15 +304,6 @@ function SpecialistDashboard() {
     }
   };
 
-  // Métricas
-  const totalConversations = conversations.length;
-  const totalUsers = new Set(
-    conversations.map((c) => c.usuarioId).filter(Boolean)
-  ).size;
-  const totalUnread = conversations.reduce(
-    (acc, c) => acc + Number(c.mensajesNoLeidos || 0),
-    0
-  );
 
   if (loading) {
     return (

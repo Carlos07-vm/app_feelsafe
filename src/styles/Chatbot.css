@@ -300,3 +300,65 @@
     height: 44px;
   }
 }
+
+/* =====================================================
+   RECOMENDACIÓN DE APOYO
+===================================================== */
+
+.support-recommendation {
+  margin: 12px 20px;
+  padding: 16px;
+  border-radius: 16px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  border: 1px solid transparent;
+}
+
+.support-normal {
+  background: #f3efff;
+  border-color: #ddd2ff;
+}
+
+.support-urgent {
+  background: #fff0f0;
+  border-color: #ffcccc;
+}
+
+.support-recommendation-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.support-recommendation-content {
+  flex: 1;
+}
+
+.support-recommendation-content h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.support-recommendation-content p {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.support-recommendation-content button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  background: #6c4cc7;
+  color: white;
+}
+
+.support-urgent .support-recommendation-content button {
+  background: #c62828;
+}
+
+.support-recommendation-content button:hover {
+  opacity: 0.9;
+}
