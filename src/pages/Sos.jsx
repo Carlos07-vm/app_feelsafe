@@ -1,20 +1,138 @@
 import "../styles/Sos.css";
-import MainLayout from "../layouts/MainLayout";
+import MainLayout from "../layouts/MainLayout"; 
+import { useState, useEffect } from "react"; 
+import { useApp } from "../context/AppContext"; 
+
 import {
   FaPhoneAlt,
   FaHeart,
   FaUserFriends,
   FaHandsHelping,
+  FaWhatsapp,
+  FaPlus,
+  FaTimes,
+  FaTrash
 } from "react-icons/fa";
-import { useState } from "react";
+
+// Métodos específicos de Firestore para operar con la base de datos
+import { 
+  collection,   
+  addDoc,       
+  getDocs,      
+  deleteDoc,    
+  doc           
+} from "firebase/firestore";
+import { db } from "../services/firebase";
 
 function SOS() {
+  const { user } = useApp(); 
   const [status, setStatus] = useState("Selecciona una opción para recibir ayuda inmediata.");
+
+  // Estados para manejar el comportamiento del modal y los datos de Firebase
+  const [showContactModal, setShowContactModal] = useState(false); 
+  const [contacts, setContacts] = useState([]); 
+  const [loadingContacts, setLoadingContacts] = useState(false); 
+  
+  const [isAddingContact, setIsAddingContact] = useState(false); 
+  const [newName, setNewName] = useState(""); 
+  const [newPhone, setNewPhone] = useState(""); 
+
+  // ==================== LÓGICA DE FIREBASE ====================
+
+  const fetchContacts = async () => {
+    if (!user?.uid) return; 
+    setLoadingContacts(true); 
+    try {
+      // Apuntamos a la subcolección específica del usuario logueado
+      const contactsRef = collection(db, "usuarios", user.uid, "contactos_emergencia");
+      const snapshot = await getDocs(contactsRef); 
+      
+      // Transformamos el formato crudo de Firebase a un arreglo de objetos manejable en React
+      const contactList = snapshot.docs.map(doc => ({ 
+        id: doc.id, 
+        ...doc.data() 
+      }));
+      setContacts(contactList); 
+    } catch (error) {
+      console.error("Error al obtener contactos:", error);
+      setStatus(`Error de Firebase: ${error.message}`); 
+    } finally {
+      setLoadingContacts(false); 
+    }
+  };
+
+  // Solo hacemos la petición a Firebase cuando el usuario abre el modal (ahorra lecturas)
+  useEffect(() => {
+    if (showContactModal) fetchContacts();
+  }, [showContactModal, user]);
+
+  const handleAddContact = async (e) => {
+    e.preventDefault(); 
+    if (!newName.trim() || !newPhone.trim() || !user?.uid) return; 
+    
+    try {
+      setLoadingContacts(true);
+      const contactsRef = collection(db, "usuarios", user.uid, "contactos_emergencia");
+      
+      // addDoc genera automáticamente un ID único para este nuevo contacto
+      await addDoc(contactsRef, { 
+        nombre: newName, 
+        telefono: newPhone, 
+        fechaCreacion: new Date().toISOString() 
+      });
+      
+      setNewName(""); 
+      setNewPhone(""); 
+      setIsAddingContact(false); 
+      
+      await fetchContacts(); 
+      setStatus("Contacto guardado correctamente.");
+    } catch (error) {
+      console.error("Error al guardar el contacto:", error);
+      setStatus(`Error al guardar: ${error.message}`);
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
+
+  const handleDeleteContact = async (contactId) => {
+    if (!window.confirm("¿Estás seguro de eliminar este contacto?")) return;
+    
+    try {
+      setLoadingContacts(true);
+      // doc() crea una referencia exacta al documento usando su ID único
+      const contactRef = doc(db, "usuarios", user.uid, "contactos_emergencia", contactId);
+      await deleteDoc(contactRef); 
+      await fetchContacts(); 
+      setStatus("Contacto eliminado.");
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      setStatus(`Error al eliminar: ${error.message}`);
+    } finally {
+      setLoadingContacts(false);
+    }
+  };
+
+  // ==================== ACCIONES DEL DISPOSITIVO ====================
+
+  const handleNormalCall = (phone) => {
+    // 'tel:' invoca la aplicación nativa de llamadas del sistema operativo
+    window.location.href = `tel:${phone}`; 
+    setStatus(`Llamando a ${phone}...`);
+  };
+
+  const handleWhatsAppCall = (phone) => {
+    // Expresión regular: Elimina espacios, guiones o símbolos para evitar errores en la URL de WhatsApp
+    const cleanPhone = phone.replace(/[^0-9]/g, "");
+    window.open(`https://wa.me/${cleanPhone}`, "_blank"); 
+    setStatus(`Abriendo WhatsApp...`);
+  };
 
   const handleAction = (type) => {
     switch (type) {
       case "contact":
-        setStatus("Abriendo lista de contactos de confianza... Si no tienes, pulsa en hablar con alguien.");
+        setShowContactModal(true); 
+        setStatus("Abriendo lista de contactos de emergencia...");
         break;
       case "breath":
         setStatus("Inicia una respiración profunda: inhala 4s, mantén 4s, exhala 4s.");
@@ -28,82 +146,39 @@ function SOS() {
     }
   };
 
+  // ==================== INTERFAZ ====================
   return (
     <MainLayout>
       <div className="sos-container">
-
-        {/* ENCABEZADO */}
         <div className="sos-header">
-          <h1 className="page-title">
-            🆘 Centro SOS
-          </h1>
-          <p className="page-description">
-            Si estás pasando por un momento difícil, no estás solo. FeelSafe está aquí para ayudarte.
-          </p>
+          <h1 className="page-title">🆘 Centro SOS</h1>
+          <p className="page-description">Si estás pasando por un momento difícil, no estás solo. FeelSafe está aquí para ayudarte.</p>
         </div>
 
-        {/* GRID DE TARJETAS */}
         <div className="sos-grid">
-
-          {/* TARJETA 1: EMERGENCIA (Detalles rojos) */}
           <div className="sos-card card-red">
-            <div className="sos-icon-wrapper">
-              <FaPhoneAlt className="sos-icon" />
-            </div>
+            <div className="sos-icon-wrapper"><FaPhoneAlt className="sos-icon" /></div>
             <h2>Llamar a un contacto</h2>
-            <p className="sos-text">
-              Contacta rápidamente a un familiar o persona de confianza.
-            </p>
-            <button 
-              className="sos-btn" 
-              type="button" 
-              onClick={() => handleAction("contact")}
-            >
-              Contactar
-            </button>
+            <p className="sos-text">Contacta rápidamente a un familiar o persona de confianza.</p>
+            <button className="sos-btn" type="button" onClick={() => handleAction("contact")}>Contactar</button>
           </div>
 
-          {/* TARJETA 2: RESPIRACIÓN (Detalles azules) */}
           <div className="sos-card card-blue">
-            <div className="sos-icon-wrapper">
-              <FaHeart className="sos-icon" />
-            </div>
+            <div className="sos-icon-wrapper"><FaHeart className="sos-icon" /></div>
             <h2>Respira conmigo</h2>
-            <p className="sos-text">
-              Inicia un ejercicio guiado para disminuir la ansiedad.
-            </p>
-            <button 
-              className="sos-btn" 
-              type="button" 
-              onClick={() => handleAction("breath")}
-            >
-              Comenzar
-            </button>
+            <p className="sos-text">Inicia un ejercicio guiado para disminuir la ansiedad.</p>
+            <button className="sos-btn" type="button" onClick={() => handleAction("breath")}>Comenzar</button>
           </div>
 
-          {/* TARJETA 3: HABLAR (Detalles morados) */}
           <div className="sos-card card-purple">
-            <div className="sos-icon-wrapper">
-              <FaUserFriends className="sos-icon" />
-            </div>
+            <div className="sos-icon-wrapper"><FaUserFriends className="sos-icon" /></div>
             <h2>Habla con alguien</h2>
-            <p className="sos-text">
-              Compartir cómo te sientes puede ayudarte mucho.
-            </p>
-            <button 
-              className="sos-btn" 
-              type="button" 
-              onClick={() => handleAction("talk")}
-            >
-              Ver recomendaciones
-            </button>
+            <p className="sos-text">Compartir cómo te sientes puede ayudarte mucho.</p>
+            <button className="sos-btn" type="button" onClick={() => handleAction("talk")}>Ver recomendaciones</button>
           </div>
 
-          {/* TARJETA 4: CONSEJOS (Detalles verdes) */}
           <div className="sos-card card-green">
-            <div className="sos-icon-wrapper">
-              <FaHandsHelping className="sos-icon" />
-            </div>
+            <div className="sos-icon-wrapper"><FaHandsHelping className="sos-icon" /></div>
             <h2>Consejos rápidos</h2>
             <ul className="sos-list">
               <li>Respira lentamente.</li>
@@ -112,14 +187,80 @@ function SOS() {
               <li>Escucha música relajante.</li>
             </ul>
           </div>
-
         </div>
 
-        {/* MENSAJE DE ESTADO INFERIOR */}
         <div className="sos-status-banner">
           <p>{status}</p>
         </div>
 
+        {showContactModal && (
+          <div 
+            className="sos-modal-overlay" 
+            onClick={() => { setShowContactModal(false); setIsAddingContact(false); }}
+          >
+            {/* e.stopPropagation() evita que el clic en el contenido cierre el modal (evento del overlay superior) */}
+            <div className="sos-modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="sos-modal-header">
+                <h2>Contactos SOS 🚨</h2>
+                <button className="sos-close-btn" onClick={() => setShowContactModal(false)}>
+                  <FaTimes />
+                </button>
+              </div>
+
+              {loadingContacts ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Cargando...</p>
+              ) : isAddingContact ? (
+                
+                <form className="sos-modal-form" onSubmit={handleAddContact}>
+                  <p>Agrega a un familiar, amigo o especialista. (Ej. +505 8888 8888)</p>
+                  <input 
+                    type="text" placeholder="Nombre (ej. Mamá)" 
+                    value={newName} onChange={(e) => setNewName(e.target.value)} required 
+                  />
+                  <input 
+                    type="tel" placeholder="Número con código de país" 
+                    value={newPhone} onChange={(e) => setNewPhone(e.target.value)} required 
+                  />
+                  <div className="sos-modal-actions">
+                    <button type="button" className="btn-cancel" onClick={() => setIsAddingContact(false)}>Cancelar</button>
+                    <button type="submit" className="btn-save">Guardar</button>
+                  </div>
+                </form>
+
+              ) : (
+
+                <div>
+                  {contacts.length === 0 ? (
+                    <p style={{ textAlign: 'center', color: 'var(--text-muted)', margin: '20px 0' }}>No tienes contactos registrados.</p>
+                  ) : (
+                    <div className="sos-contact-list">
+                      {contacts.map((contact) => (
+                        <div key={contact.id} className="sos-contact-item">
+                          <div className="sos-contact-header">
+                            <strong>{contact.nombre}</strong>
+                            <button className="sos-delete-btn" onClick={() => handleDeleteContact(contact.id)}><FaTrash /></button>
+                          </div>
+                          <div className="sos-contact-buttons">
+                            <button className="sos-call-btn" onClick={() => handleNormalCall(contact.telefono)}>
+                              <FaPhoneAlt /> Llamar
+                            </button>
+                            <button className="sos-wa-btn" onClick={() => handleWhatsAppCall(contact.telefono)}>
+                              <FaWhatsapp /> WhatsApp
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <button className="sos-add-btn" onClick={() => setIsAddingContact(true)}>
+                    <FaPlus /> Añadir nuevo contacto
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </MainLayout>
   );
