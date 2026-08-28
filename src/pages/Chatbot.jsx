@@ -1,4 +1,4 @@
-﻿import "../styles/Chatbot.css";
+import "../styles/Chatbot.css";
 import MainLayout from "../layouts/MainLayout";
 import { FaPaperPlane, FaTrash } from "react-icons/fa";
 import { useEffect, useState, useRef } from "react";
@@ -8,120 +8,271 @@ import { queryGemini } from "../services/geminiService";
 
 import {
   crearConversacion,
+  obtenerConversaciones,
   actualizarUltimoMensaje,
 } from "../services/conversacionService";
 
 import {
   crearMensajeChat,
   obtenerMensajesChat,
+  eliminarMensajesChat,
 } from "../services/mensajeChatService";
+
+const MENSAJE_BIENVENIDA =
+  "Hola 👋 Soy FeelSafe AI. Estoy aquí para escucharte y apoyarte con empatía.";
 
 function Chatbot() {
   const { user } = useApp();
-  const [conversationId, setConversationId] = useState(null);
+
+  const [conversationId, setConversationId] =
+    useState(null);
+
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      sender: "bot",
-      text: "Hola 👋 Soy FeelSafe AI. Estoy aquí para escucharte y apoyarte con empatía.",
-    },
-  ]);
+
+  const [messages, setMessages] = useState([]);
 
   const [loading, setLoading] = useState(false);
-  const [loadingChat, setLoadingChat] = useState(true);
+
+  const [loadingChat, setLoadingChat] =
+    useState(true);
+
   const [error, setError] = useState(null);
-  
-  // Referencia para hacer scroll automático al último mensaje
+
+  const [supportLevel, setSupportLevel] =
+    useState("normal");
+
+  const [supportRecommendation, setSupportRecommendation] =
+    useState("");
+
   const messagesEndRef = useRef(null);
+  const conversacionIniciadaRef =
+    useRef(false);
+  const inputRef = useRef(null);
+
+  // ============================================================
+  // AUTO SCROLL
+  // ============================================================
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  /*
-   * Crear una conversación cuando se abre el chatbot
-   */
+  // ============================================================
+  // INICIAR / RECUPERAR CONVERSACIÓN
+  // ============================================================
+
   useEffect(() => {
     const iniciarConversacion = async () => {
-      const usuarioActual = auth.currentUser;
+      if (conversacionIniciadaRef.current)
+        return;
+
+      conversacionIniciadaRef.current = true;
+
+      const usuarioActual =
+        auth.currentUser;
 
       if (!usuarioActual) {
-        setError("Debes iniciar sesión para usar el chatbot.");
+        setError(
+          "Debes iniciar sesión para usar el chatbot."
+        );
+
         setLoadingChat(false);
+
         return;
       }
 
       try {
         setLoadingChat(true);
+        setError(null);
 
-        const resultado = await crearConversacion({
-          uidUsuario: usuarioActual.uid,
-          titulo: "Conversación con FeelSafe AI",
-        });
+        // ======================================================
+        // 1. BUSCAR CONVERSACIONES EXISTENTES
+        // ======================================================
 
-        if (!resultado.success) {
-          throw new Error(resultado.error);
+        const resultadoConversaciones =
+          await obtenerConversaciones(
+            usuarioActual.uid
+          );
+
+        let idConversacion = null;
+
+        if (
+          resultadoConversaciones.success &&
+          resultadoConversaciones.data.length > 0
+        ) {
+          // ====================================================
+          // USAR LA CONVERSACIÓN MÁS RECIENTE
+          // ====================================================
+
+          idConversacion =
+            resultadoConversaciones.data[0].id;
+
+          console.log(
+            "Conversación existente encontrada:",
+            idConversacion
+          );
+        } else {
+          // ====================================================
+          // 2. SI NO EXISTE, CREAR UNA NUEVA
+          // ====================================================
+
+          const nuevaConversacion =
+            await crearConversacion({
+              uidUsuario:
+                usuarioActual.uid,
+
+              titulo:
+                "Conversación con FeelSafe AI",
+            });
+
+          if (!nuevaConversacion.success) {
+            throw new Error(
+              nuevaConversacion.error
+            );
+          }
+
+          idConversacion =
+            nuevaConversacion.id;
+
+          console.log(
+            "Nueva conversación creada:",
+            idConversacion
+          );
         }
 
-        const idConversacion = resultado.id;
-        setConversationId(idConversacion);
-        console.log("Conversación creada correctamente:", idConversacion);
+        setConversationId(
+          idConversacion
+        );
 
-        const mensajeInicial = await crearMensajeChat({
-          idConversacion,
-          uidUsuario: usuarioActual.uid,
-          remitente: "Bot",
-          mensaje: "Hola 👋 Soy FeelSafe AI. Estoy aquí para escucharte y apoyarte con empatía.",
-        });
+        // ======================================================
+        // 3. CARGAR MENSAJES EXISTENTES
+        // ======================================================
 
-        if (!mensajeInicial.success) {
-          throw new Error(mensajeInicial.error);
-        }
+        const resultadoMensajes =
+          await obtenerMensajesChat(
+            idConversacion
+          );
 
-        const mensajesGuardados = await obtenerMensajesChat(idConversacion);
+        if (
+          resultadoMensajes.success &&
+          resultadoMensajes.data.length > 0
+        ) {
+          // ====================================================
+          // CONVERTIR FIRESTORE → FORMATO DEL CHAT
+          // ====================================================
 
-        if (!mensajesGuardados.success) {
-          throw new Error(mensajesGuardados.error);
-        }
+          const mensajesFormateados =
+            resultadoMensajes.data.map(
+              (msg) => ({
+                id: msg.id,
 
-        if (mensajesGuardados.data.length > 0) {
-          const mensajesFormateados = mensajesGuardados.data.map((mensaje) => ({
-            sender: mensaje.remitente === "Usuario" ? "user" : "bot",
-            text: mensaje.mensaje,
-          }));
-          setMessages(mensajesFormateados);
+                sender:
+                  msg.remitente ===
+                  "Usuario"
+                    ? "user"
+                    : "bot",
+
+                text: msg.mensaje,
+              })
+            );
+
+          setMessages(
+            mensajesFormateados
+          );
+
+          console.log(
+            "Historial cargado:",
+            mensajesFormateados.length,
+            "mensajes"
+          );
+        } else {
+          // ====================================================
+          // 4. PRIMERA CONVERSACIÓN
+          // ====================================================
+
+          const mensajeInicial = {
+            sender: "bot",
+            text: MENSAJE_BIENVENIDA,
+          };
+
+          setMessages([
+            mensajeInicial,
+          ]);
+
+          // Guardar bienvenida
+          await crearMensajeChat({
+            idConversacion,
+            uidUsuario:
+              usuarioActual.uid,
+            remitente: "Bot",
+            mensaje:
+              MENSAJE_BIENVENIDA,
+          });
+
+          console.log(
+            "Mensaje de bienvenida creado."
+          );
         }
       } catch (err) {
-        console.error("Error al iniciar conversación:", err);
-        setError("No se pudo iniciar la conversación: " + err.message);
+        console.error(
+          "Error al iniciar conversación:",
+          err
+        );
+
+        // ======================================================
+        // FALLBACK VISUAL
+        // ======================================================
+
+        setMessages([
+          {
+            sender: "bot",
+            text: MENSAJE_BIENVENIDA,
+          },
+        ]);
       } finally {
         setLoadingChat(false);
+
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 100);
       }
     };
 
     iniciarConversacion();
   }, []);
 
-  /*
-   * Enviar mensaje
-   */
+  // ============================================================
+  // ENVIAR MENSAJE
+  // ============================================================
+
   const handleSend = async () => {
     const trimmed = message.trim();
-    if (!trimmed) return;
 
-    if (!conversationId) {
-      setError("La conversación todavía no está lista.");
+    if (!trimmed || loading)
+      return;
+
+    const usuarioActual =
+      auth.currentUser;
+
+    if (!usuarioActual) {
+      setError(
+        "Tu sesión ha expirado. Inicia sesión nuevamente."
+      );
+
       return;
     }
 
-    const usuarioActual = auth.currentUser;
+    if (!conversationId) {
+      setError(
+        "No se pudo cargar la conversación."
+      );
 
-    if (!usuarioActual) {
-      setError("Tu sesión ha expirado. Inicia sesión nuevamente.");
       return;
     }
 
@@ -132,162 +283,452 @@ function Chatbot() {
       text: trimmed,
     };
 
-    const nextMessages = [...messages, mensajeUsuario];
+    const nextMessages = [
+      ...messages,
+      mensajeUsuario,
+    ];
 
     setMessages(nextMessages);
+
     setMessage("");
+
     setLoading(true);
 
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
+
     try {
-      const resultadoUsuario = await crearMensajeChat({
-        idConversacion: conversationId,
-        uidUsuario: usuarioActual.uid,
-        remitente: "Usuario",
-        mensaje: trimmed,
-      });
+      // ========================================================
+      // GUARDAR MENSAJE DEL USUARIO
+      // ========================================================
+
+      const resultadoUsuario =
+        await crearMensajeChat({
+          idConversacion:
+            conversationId,
+
+          uidUsuario:
+            usuarioActual.uid,
+
+          remitente: "Usuario",
+
+          mensaje: trimmed,
+        });
 
       if (!resultadoUsuario.success) {
-        throw new Error("No se pudo guardar el mensaje del usuario: " + resultadoUsuario.error);
+        console.error(
+          "No se guardó el mensaje del usuario:",
+          resultadoUsuario.error
+        );
       }
 
-      const response = await queryGemini(trimmed, nextMessages);
+      // ========================================================
+      // GEMINI
+      // ========================================================
+
+      const aiResult =
+        await queryGemini(
+          trimmed,
+          nextMessages
+        );
+
+      const mensajeBot = {
+        sender: "bot",
+        text: aiResult.response,
+      };
 
       setMessages((prev) => [
         ...prev,
-        {
-          sender: "bot",
-          text: response,
-        },
+        mensajeBot,
       ]);
 
-      const resultadoBot = await crearMensajeChat({
-        idConversacion: conversationId,
-        uidUsuario: usuarioActual.uid,
-        remitente: "Bot",
-        mensaje: response,
-      });
+      setSupportLevel(
+        aiResult.level
+      );
+
+      setSupportRecommendation(
+        aiResult.recommendation
+      );
+
+      // ========================================================
+      // GUARDAR RESPUESTA DEL BOT
+      // ========================================================
+
+      const resultadoBot =
+        await crearMensajeChat({
+          idConversacion:
+            conversationId,
+
+          uidUsuario:
+            usuarioActual.uid,
+
+          remitente: "Bot",
+
+          mensaje:
+            aiResult.response,
+        });
 
       if (!resultadoBot.success) {
-        throw new Error("No se pudo guardar la respuesta del bot: " + resultadoBot.error);
+        console.error(
+          "No se guardó respuesta del bot:",
+          resultadoBot.error
+        );
       }
 
-      const actualizacion = await actualizarUltimoMensaje(conversationId);
+      // ========================================================
+      // ACTUALIZAR FECHA DE CONVERSACIÓN
+      // ========================================================
 
-      if (!actualizacion.success) {
-        console.error("No se pudo actualizar la conversación:", actualizacion.error);
-      }
+      await actualizarUltimoMensaje(
+        conversationId
+      );
     } catch (err) {
-      console.error("Error al procesar mensaje:", err);
-      setError(err.message || "Error al conectar con FeelSafe AI.");
+      console.error(
+        "Error al procesar mensaje:",
+        err
+      );
+
+      setError(
+        "No pude conectar con FeelSafe AI. Intenta de nuevo."
+      );
+
       setMessages((prev) => [
         ...prev,
         {
           sender: "bot",
-          text: "Lo siento, no pude procesar tu mensaje en este momento. Por favor inténtalo de nuevo.",
+          text:
+            "Lo siento, no pude procesar tu mensaje en este momento. Por favor inténtalo de nuevo.",
         },
       ]);
     } finally {
       setLoading(false);
+
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
   };
 
-  /*
-   * Limpiar conversación visual
-   */
-  const handleClear = () => {
-    setMessages([
-      {
-        sender: "bot",
-        text: "Hola 👋 Soy FeelSafe AI. Estoy aquí para escucharte y apoyarte con empatía.",
-      },
-    ]);
-    setError(null);
+  // ============================================================
+  // ENTER
+  // ============================================================
+
+  const handleKeyDown = (e) => {
+    if (
+      e.key === "Enter" &&
+      !e.shiftKey
+    ) {
+      e.preventDefault();
+
+      handleSend();
+    }
   };
+
+  // ============================================================
+  // LIMPIAR CHAT
+  // ============================================================
+
+  const handleClear = async () => {
+    if (!conversationId) {
+      setMessages([
+        {
+          sender: "bot",
+          text: MENSAJE_BIENVENIDA,
+        },
+      ]);
+
+      return;
+    }
+
+    try {
+      setLoadingChat(true);
+      setError(null);
+
+      // ========================================================
+      // ELIMINAR MENSAJES DE FIRESTORE
+      // ========================================================
+
+      const resultado =
+        await eliminarMensajesChat(
+          conversationId
+        );
+
+      if (!resultado.success) {
+        throw new Error(
+          resultado.error
+        );
+      }
+
+      // ========================================================
+      // REINICIAR CHAT VISUALMENTE
+      // ========================================================
+
+      setMessages([
+        {
+          sender: "bot",
+          text: MENSAJE_BIENVENIDA,
+        },
+      ]);
+
+      setSupportLevel("normal");
+
+      setSupportRecommendation("");
+
+      // ========================================================
+      // VOLVER A GUARDAR BIENVENIDA
+      // ========================================================
+
+      const usuarioActual =
+        auth.currentUser;
+
+      if (usuarioActual) {
+        await crearMensajeChat({
+          idConversacion:
+            conversationId,
+
+          uidUsuario:
+            usuarioActual.uid,
+
+          remitente: "Bot",
+
+          mensaje:
+            MENSAJE_BIENVENIDA,
+        });
+      }
+
+      console.log(
+        "Chat limpiado correctamente."
+      );
+    } catch (err) {
+      console.error(
+        "Error al limpiar chat:",
+        err
+      );
+
+      setError(
+        "No se pudo limpiar el historial. Intenta nuevamente."
+      );
+    } finally {
+      setLoadingChat(false);
+
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  };
+
+  // ============================================================
+  // RENDER
+  // ============================================================
 
   return (
     <MainLayout>
       <div className="chat-wrapper">
         <div className="chat-container">
-          
+
           {/* ENCABEZADO */}
+
           <div className="chat-header">
             <div className="chat-header-info">
               <h2>🤖 FeelSafe AI</h2>
-              <p>Tu asistente emocional inteligente</p>
+
+              <p>
+                Tu asistente emocional inteligente
+              </p>
             </div>
 
             <button
               className="clear-chat-btn"
               type="button"
               onClick={handleClear}
+              disabled={loadingChat}
               title="Limpiar chat"
             >
-              <FaTrash /> <span>Limpiar</span>
+              <FaTrash />
+
+              <span>
+                Limpiar
+              </span>
             </button>
           </div>
 
           {/* ESTADO CARGANDO */}
+
           {loadingChat && (
             <div className="chat-status">
               <div className="chat-spinner"></div>
-              <span>Iniciando espacio seguro...</span>
+
+              <span>
+                Cargando tu espacio seguro...
+              </span>
             </div>
           )}
 
-          {/* ÁREA DE MENSAJES */}
+          {/* MENSAJES */}
+
           <div className="chat-messages">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`message-wrapper ${msg.sender === "user" ? "wrapper-user" : "wrapper-bot"}`}
-              >
-                <div className={`message-bubble ${msg.sender}`}>
-                  {msg.text}
+
+            {messages.map(
+              (msg, index) => (
+                <div
+                  key={
+                    msg.id ||
+                    `${msg.sender}-${index}`
+                  }
+                  className={`message-wrapper ${
+                    msg.sender === "user"
+                      ? "wrapper-user"
+                      : "wrapper-bot"
+                  }`}
+                >
+                  <div
+                    className={`message-bubble ${msg.sender}`}
+                  >
+                    {msg.text}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
+
+            {/* TYPING */}
+
             {loading && (
               <div className="message-wrapper wrapper-bot">
                 <div className="message-bubble bot typing-indicator">
-                  <span></span><span></span><span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
                 </div>
               </div>
             )}
+
             <div ref={messagesEndRef} />
+
           </div>
 
-          {/* MENSAJES DE ERROR */}
+          {/* RECOMENDACIÓN APOYO */}
+
+          {supportLevel ===
+            "apoyo" && (
+            <div className="support-recommendation support-normal">
+
+              <div className="support-recommendation-icon">
+                💜
+              </div>
+
+              <div className="support-recommendation-content">
+
+                <h3>
+                  Puede ayudarte hablar con alguien
+                </h3>
+
+                <p>
+                  {supportRecommendation ||
+                    "Hablar con una persona de confianza puede ayudarte a sentirte acompañado."}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    (window.location.href =
+                      "/sos")
+                  }
+                >
+                  Ver opciones de apoyo
+                </button>
+
+              </div>
+            </div>
+          )}
+
+          {/* RECOMENDACIÓN URGENTE */}
+
+          {supportLevel ===
+            "urgente" && (
+            <div className="support-recommendation support-urgent">
+
+              <div className="support-recommendation-icon">
+                🆘
+              </div>
+
+              <div className="support-recommendation-content">
+
+                <h3>
+                  Busca apoyo humano ahora
+                </h3>
+
+                <p>
+                  {supportRecommendation ||
+                    "No tienes que afrontar esto solo. Busca a una persona de confianza que pueda acompañarte."}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    (window.location.href =
+                      "/sos")
+                  }
+                >
+                  Ir al Centro SOS
+                </button>
+
+              </div>
+            </div>
+          )}
+
+          {/* ERROR */}
+
           {error && (
             <div className="chat-error">
               {error}
             </div>
           )}
 
-          {/* INPUT DE TEXTO */}
+          {/* INPUT */}
+
           <div className="chat-input-container">
+
             <input
+              ref={inputRef}
               type="text"
               className="chat-input-field"
-              placeholder="Escribe cómo te sientes..."
+              placeholder={
+                loading
+                  ? "FeelSafe AI está respondiendo..."
+                  : "Escribe cómo te sientes..."
+              }
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              disabled={loading || loadingChat || !conversationId}
+              onChange={(e) =>
+                setMessage(
+                  e.target.value
+                )
+              }
+              onKeyDown={
+                handleKeyDown
+              }
+              disabled={loadingChat}
+              autoComplete="off"
             />
 
             <button
               className="chat-send-btn"
               type="button"
               onClick={handleSend}
-              disabled={loading || loadingChat || !conversationId || !message.trim()}
+              disabled={
+                loading ||
+                loadingChat ||
+                !message.trim()
+              }
+              title={
+                loading
+                  ? "FeelSafe AI está respondiendo..."
+                  : "Enviar mensaje"
+              }
             >
               <FaPaperPlane />
             </button>
+
           </div>
 
         </div>
