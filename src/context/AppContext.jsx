@@ -14,6 +14,7 @@ import {
   getDoc,
   onSnapshot,
   setDoc,
+  arrayUnion,
 } from "firebase/firestore";
 
 import {
@@ -21,6 +22,10 @@ import {
   db,
 } from "../services/firebase";
 
+import {
+  obtenerTokenFCM,
+  escucharMensajesFCM,
+} from "../services/messaging";
 const AppContext = createContext();
 
 const defaultUserData = {
@@ -158,6 +163,65 @@ export function AppProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+
+  // =========================================
+// REGISTRAR DISPOSITIVO PARA NOTIFICACIONES
+// =========================================
+
+const registrarNotificaciones = async (
+  firebaseUser,
+  tipoCuenta
+) => {
+  try {
+    if (!firebaseUser?.uid) {
+      return;
+    }
+
+    // Obtener token FCM
+    const token = await obtenerTokenFCM();
+
+    if (!token) {
+      console.warn(
+        "⚠️ No se pudo obtener token FCM."
+      );
+
+      return;
+    }
+
+    const collectionName =
+      tipoCuenta === "especialista"
+        ? "specialists"
+        : "usuarios";
+
+    const userRef = doc(
+      db,
+      collectionName,
+      firebaseUser.uid
+    );
+
+    // Guardamos el token sin eliminar tokens anteriores
+    await setDoc(
+      userRef,
+      {
+        fcmTokens: arrayUnion(token),
+        notificacionesPush: true,
+      },
+      {
+        merge: true,
+      }
+    );
+
+    console.log(
+      "✅ Token FCM guardado correctamente."
+    );
+
+  } catch (error) {
+    console.error(
+      "❌ Error registrando notificaciones:",
+      error
+    );
+  }
+};
   // =========================================
   // NUEVO: ESTADOS DE TEMA E IDIOMA
   // =========================================
@@ -283,6 +347,10 @@ export function AppProvider({ children }) {
               );
 
               setLoading(false);
+              registrarNotificaciones(
+              firebaseUser,
+              "especialista"
+            );
 
               unsubscribeProfile =
                 onSnapshot(
@@ -360,6 +428,11 @@ export function AppProvider({ children }) {
               );
 
               setLoading(false);
+
+              registrarNotificaciones(
+              firebaseUser,
+              "usuario"
+            );
 
               unsubscribeProfile =
                 onSnapshot(
@@ -464,6 +537,11 @@ export function AppProvider({ children }) {
 
             setLoading(false);
 
+            registrarNotificaciones(
+            firebaseUser,
+            "usuario"
+          );
+
           } catch (error) {
 
             console.error(
@@ -487,6 +565,51 @@ export function AppProvider({ children }) {
 
     };
 
+  }, []);
+
+    // =========================================
+  // ESCUCHAR NOTIFICACIONES FCM
+  // =========================================
+
+  useEffect(() => {
+    let unsubscribe = null;
+
+    const iniciarEscucha = async () => {
+      try {
+        unsubscribe = await escucharMensajesFCM(
+          (payload) => {
+            console.log(
+              "🔔 NOTIFICACIÓN RECIBIDA EN FEELSAFE:",
+              payload
+            );
+
+            const titulo =
+              payload.notification?.title ||
+              "FeelSafe";
+
+            const mensaje =
+              payload.notification?.body ||
+              "Tienes una nueva notificación.";
+
+            console.log("Título:", titulo);
+            console.log("Mensaje:", mensaje);
+          }
+        );
+      } catch (error) {
+        console.error(
+          "❌ Error iniciando escucha FCM:",
+          error
+        );
+      }
+    };
+
+    iniciarEscucha();
+
+    return () => {
+      if (typeof unsubscribe === "function") {
+        unsubscribe();
+      }
+    };
   }, []);
 
   // =========================================
@@ -537,6 +660,7 @@ export function AppProvider({ children }) {
         );
 
       }
+      
     };
 
   return (

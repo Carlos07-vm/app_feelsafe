@@ -41,6 +41,7 @@ import Profile from "./pages/Profile";
 import SpecialistAgenda from "./pages/SpecialistAgenda";
 // ================= Componentes =================
 import ProtectedRoute from "./components/ProtectedRoute";
+import SpecialistProtectedRoute from "./components/SpecialistProtectedRoute";
 
 
 function App() {
@@ -57,17 +58,24 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmail />} />
 
         {/* =================================================
-            RUTAS DEL ESPECIALISTA
+            RUTAS DEL ESPECIALISTA — Registro es público
         ================================================= */}
         <Route path="/specialist/register" element={<SpecialistRegister />} />
-        <Route path="/specialist/dashboard" element={<SpecialistDashboard />} />
-        <Route path="/specialist/messages" element={<SpecialistMessages />} />
-        <Route path="/specialist/profile" element={<SpecialistProfile />} />
-        <Route path="/specialist/users" element={<SpecialistUsers />} />
-        <Route path="/specialist-conversations" element={<SpecialistConversations />} />
-        <Route path="/specialist/agenda" element={<SpecialistAgenda />} />
-        <Route path="/specialist/settings" element={<SpecialistSettings />} />
-        <Route path="/specialist-chat/:conversationId" element={<SpecialistChat />} />
+
+        {/* =================================================
+            RUTAS DEL ESPECIALISTA — Requieren autenticación
+            como especialista (SpecialistProtectedRoute)
+        ================================================= */}
+        <Route element={<SpecialistProtectedRoute />}>
+          <Route path="/specialist/dashboard" element={<SpecialistDashboard />} />
+          <Route path="/specialist/messages" element={<SpecialistMessages />} />
+          <Route path="/specialist/profile" element={<SpecialistProfile />} />
+          <Route path="/specialist/users" element={<SpecialistUsers />} />
+          <Route path="/specialist-conversations" element={<SpecialistConversations />} />
+          <Route path="/specialist/agenda" element={<SpecialistAgenda />} />
+          <Route path="/specialist/settings" element={<SpecialistSettings />} />
+          <Route path="/specialist-chat/:conversationId" element={<SpecialistChat />} />
+        </Route>
 
         {/* =================================================
             RUTAS PROTEGIDAS DEL USUARIO

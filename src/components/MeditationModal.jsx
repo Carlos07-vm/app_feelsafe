@@ -1,64 +1,222 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { FaTimes, FaPlay, FaPause, FaRedo, FaLeaf, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
 import "../styles/MeditationModal.css";
 
-function MeditationModal({close}) {
-    const [seconds, setSeconds] = useState(60);
-    const [running,setRunning] = useState(false);
+const DURATIONS = [
+  { label: "1 min", value: 60 },
+  { label: "3 min", value: 180 },
+  { label: "5 min", value: 300 },
+];
 
+const MEDITATION_GUIDES = [
+  "Cierra suavemente los ojos y encuentra una postura cómoda.",
+  "Inhala profundo por la nariz... y suelta el aire con calma.",
+  "Lleva tu atención al peso de tu cuerpo apoyado sobre la superficie.",
+  "Relaja la mandíbula, los hombros y las manos.",
+  "Si surgen pensamientos o distracciones, obsérvalos y déjalos pasar como nubes en el cielo.",
+  "Siente el ritmo natural de tu respiración, sin juzgarlo ni forzarlo.",
+  "Estás en un espacio seguro. Este momento es solo para ti.",
+  "Permite que cada exhalación libere un poco más de tensión.",
+  "Agradece a tu cuerpo y a tu mente por regalarte esta pausa de bienestar.",
+];
 
-useEffect(()=>{
+function MeditationModal({ close }) {
+  const [selectedDuration, setSelectedDuration] = useState(60);
+  const [seconds, setSeconds] = useState(60);
+  const [running, setRunning] = useState(false);
+  const [guideIndex, setGuideIndex] = useState(0);
+  const [audioEnabled, setAudioEnabled] = useState(true);
 
-    if(!running) return;
+  const audioCtxRef = useRef(null);
 
-     const timer = setInterval(()=>{
+  // Background soothing tone via Web Audio API
+  const playCalmTone = () => {
+    try {
+      if (!audioEnabled) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
 
-        setSeconds(prev=>{
-             if(prev <= 1){
-            clearInterval(timer);
-            return 0;
-         }
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new AudioContext();
+      }
 
-            return prev - 1;
-        
-        });
+      if (audioCtxRef.current.state === "suspended") {
+        audioCtxRef.current.resume();
+      }
 
-     },1000);
+      const osc = audioCtxRef.current.createOscillator();
+      const gain = audioCtxRef.current.createGain();
 
-     return ()=>clearInterval(timer);
-    },[running]);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(432, audioCtxRef.current.currentTime); // 432Hz healing/calm frequency
 
-    return (
-         <div className="modal-background">
-             <div className="meditation-box">
-                <h2>Meditación Guiada</h2>
-                <p>Relaja tu mente y mejora tu concentración,
-                    respira lentamnte  y enfocate en el momneto presente 
-                </p>
+      gain.gain.setValueAtTime(0.001, audioCtxRef.current.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.04, audioCtxRef.current.currentTime + 1);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtxRef.current.currentTime + 4);
 
-                <h1>Tiempo restante: {seconds} segundos</h1>
+      osc.connect(gain);
+      gain.connect(audioCtxRef.current.destination);
 
-                {
-                    seconds === 0?
-                    <h3> secion completada  </h3>
-                    :
-                    null
-                }
+      osc.start();
+      osc.stop(audioCtxRef.current.currentTime + 4);
+    } catch {
+      // Audio not supported or blocked, ignore
+    }
+  };
 
-               < button onClick={()=>setRunning(true)}>
-               Iniciar 
-               </button>
+  useEffect(() => {
+    if (!running) return;
 
-               < button onClick={close}>
-               Cerrar 
-               </button>
+    // Trigger initial chime
+    playCalmTone();
 
+    const timer = setInterval(() => {
+      setSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setRunning(false);
+          return 0;
+        }
 
-             </div>
-         </div>
+        // Change guide every 12-15 seconds
+        if (prev % 15 === 0) {
+          setGuideIndex((g) => (g + 1) % MEDITATION_GUIDES.length);
+          playCalmTone();
+        }
 
-    )
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [running, audioEnabled]);
+
+  const handleDurationChange = (val) => {
+    setSelectedDuration(val);
+    setSeconds(val);
+    setRunning(false);
+    setGuideIndex(0);
+  };
+
+  const handleReset = () => {
+    setSeconds(selectedDuration);
+    setRunning(false);
+    setGuideIndex(0);
+  };
+
+  const formatTime = (secs) => {
+    const mins = Math.floor(secs / 60);
+    const remainderSecs = secs % 60;
+    return `${mins}:${remainderSecs < 10 ? "0" : ""}${remainderSecs}`;
+  };
+
+  const progressPercent = ((selectedDuration - seconds) / selectedDuration) * 100;
+
+  return (
+    <div className="meditation-modal-overlay" onClick={close}>
+      <div className="meditation-modal-box" onClick={(e) => e.stopPropagation()}>
+        <button className="meditation-close-btn" onClick={close} type="button">
+          <FaTimes />
+        </button>
+
+        <div className="meditation-header">
+          <div className="meditation-icon-bubble">
+            <FaLeaf />
+          </div>
+          <h2>Meditación Guiada</h2>
+          <p>Tómate un momento de pausa consciente para aquietar el ruido exterior y conectar contigo.</p>
+        </div>
+
+        {/* Duration selection */}
+        {!running && seconds === selectedDuration && (
+          <div className="meditation-duration-row">
+            {DURATIONS.map((d) => (
+              <button
+                key={d.value}
+                type="button"
+                className={`duration-chip ${selectedDuration === d.value ? "active" : ""}`}
+                onClick={() => handleDurationChange(d.value)}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Progress Ring / Timer Display */}
+        <div className="meditation-timer-display">
+          <svg className="meditation-ring-svg" viewBox="0 0 160 160">
+            <circle className="ring-bg" cx="80" cy="80" r="70" />
+            <circle
+              className="ring-progress"
+              cx="80"
+              cy="80"
+              r="70"
+              style={{
+                strokeDashoffset: 440 - (440 * progressPercent) / 100,
+              }}
+            />
+          </svg>
+
+          <div className="meditation-timer-center">
+            <span className="meditation-time-string">{formatTime(seconds)}</span>
+            <span className="meditation-time-label">
+              {seconds === 0 ? "Completado" : running ? "En curso..." : "Tiempo restante"}
+            </span>
+          </div>
+        </div>
+
+        {/* Guided prompt */}
+        <div className="meditation-prompt-card">
+          <p className="meditation-guide-text">
+            {seconds === 0
+              ? "✨ Sesión finalizada. Tómate unos segundos antes de volver a tus actividades con calma."
+              : `"${MEDITATION_GUIDES[guideIndex]}"`}
+          </p>
+        </div>
+
+        {/* Audio mute toggle */}
+        <div className="meditation-audio-toggle">
+          <button
+            type="button"
+            className="audio-pill-btn"
+            onClick={() => setAudioEnabled((prev) => !prev)}
+            title={audioEnabled ? "Silenciar campanilla" : "Activar campanilla suave"}
+          >
+            {audioEnabled ? <FaVolumeUp /> : <FaVolumeMute />}
+            <span>{audioEnabled ? "Campana suave activa (432Hz)" : "Sin sonido"}</span>
+          </button>
+        </div>
+
+        {/* Actions */}
+        <div className="meditation-actions">
+          {!running && seconds > 0 && (
+            <button className="med-start-btn" type="button" onClick={() => setRunning(true)}>
+              <FaPlay /> Iniciar Meditación
+            </button>
+          )}
+
+          {running && (
+            <button className="med-pause-btn" type="button" onClick={() => setRunning(false)}>
+              <FaPause /> Pausar
+            </button>
+          )}
+
+          {seconds === 0 && (
+            <button className="med-start-btn" type="button" onClick={handleReset}>
+              <FaRedo /> Meditar de nuevo
+            </button>
+          )}
+
+          {!running && seconds < selectedDuration && seconds > 0 && (
+            <button className="med-reset-btn" type="button" onClick={handleReset}>
+              <FaRedo /> Reiniciar
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default MeditationModal;
-
-

@@ -311,41 +311,6 @@ function SpecialistLayout({ children }) {
           {children}
         </main>
       </div>
-
-      {/* =================================================
-          BARRA DE NAVEGACIÓN MÓVIL INFERIOR
-      ================================================= */}
-      <nav className="specialist-mobile-bottom-bar">
-        {navPrincipal.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) =>
-              `specialist-mobile-item ${isActive ? "active" : ""}`
-            }
-          >
-            <span className="specialist-mobile-icon">
-              {item.icon}
-              {item.badge && (
-                <span className="specialist-mobile-badge">{item.badge}</span>
-              )}
-            </span>
-            <span className="specialist-mobile-label">{item.label}</span>
-          </NavLink>
-        ))}
-
-        <NavLink
-          to="/specialist/profile"
-          className={({ isActive }) =>
-            `specialist-mobile-item ${isActive ? "active" : ""}`
-          }
-        >
-          <span className="specialist-mobile-icon">
-            <FaUserMd />
-          </span>
-          <span className="specialist-mobile-label">Perfil</span>
-        </NavLink>
-      </nav>
     </div>
   );
 }
