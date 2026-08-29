@@ -1,5 +1,5 @@
 /* =========================================================
-   FEELSAFE - CALENDARIO EMOCIONAL
+   FEELSAFE - CALENDARIO EMOCIONAL NATIVO & ROBUSTO
    ========================================================= */
 
 .calendar-page-container {
@@ -13,7 +13,7 @@
    ========================================================= */
 .calendar-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 35px;
 }
 
 .calendar-header h1 {
@@ -21,21 +21,21 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  font-family: "Poppins", sans-serif;
-  font-size: 2.2rem;
-  color: #2D1B46;
+  font-family: var(--font-title, "Poppins", sans-serif);
+  font-size: 2.1rem;
+  color: var(--text, #2D1B46);
   font-weight: 800;
-  margin: 0 0 10px 0;
-  letter-spacing: -0.03em;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
 }
 
 .title-icon {
-  color: #7A3BBA;
+  color: var(--primary, #6D4C8F);
 }
 
 .calendar-header p {
-  color: #7A6A91;
-  font-size: 1rem;
+  color: var(--text-light, #79688E);
+  font-size: 0.95rem;
   margin: 0;
 }
 
@@ -44,8 +44,8 @@
    ========================================================= */
 .calendar-layout-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Mitad y mitad en PC */
-  gap: 35px;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
   align-items: start;
 }
 
@@ -53,87 +53,161 @@
    COLUMNA IZQUIERDA (CONTENEDOR DEL CALENDARIO)
    ========================================================= */
 .calendar-wrapper {
-  background: #FFFFFF;
+  background: var(--surface, #FFFFFF);
   border-radius: 24px;
-  padding: 30px;
-  box-shadow: 0 12px 30px rgba(45, 27, 70, 0.05);
-  border: 1px solid rgba(109, 76, 143, 0.08);
+  padding: 28px;
+  box-shadow: var(--shadow-sm, 0 8px 24px rgba(45, 27, 70, 0.06));
+  border: 1px solid var(--border, #E7E2F0);
 }
 
-/* SOBRESCRIBIENDO ESTILOS DE "REACT-CALENDAR" */
-.react-calendar {
-  width: 100% !important;
-  border: none !important; /* Quitamos el borde feo por defecto */
-  font-family: "Inter", sans-serif !important;
-  background: transparent !important;
+/* Barra de Navegación del Mes */
+.calendar-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
 }
 
-/* Encabezado del calendario (Mes y botones) */
-.react-calendar__navigation {
-  margin-bottom: 20px;
+.cal-month-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-.react-calendar__navigation button {
-  font-family: "Poppins", sans-serif;
+
+.cal-month-title h2 {
+  font-family: var(--font-title, "Poppins", sans-serif);
+  font-size: 1.35rem;
+  color: var(--text, #2D1B46);
+  margin: 0;
+  font-weight: 800;
+}
+
+.cal-today-pill {
+  background: var(--surface-soft, #F3EEFC);
+  color: var(--primary, #6D4C8F);
+  border: 1px solid var(--border, #E7E2F0);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
   font-weight: 700;
-  font-size: 1.1rem;
-  color: #2D1B46;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cal-today-pill:hover {
+  background: var(--primary, #6D4C8F);
+  color: white;
+}
+
+.cal-nav-btn {
+  background: var(--surface-soft, #F3EEFC);
+  border: 1px solid var(--border, #E7E2F0);
+  width: 38px;
+  height: 38px;
   border-radius: 12px;
-  transition: background 0.2s ease;
-  min-width: 44px;
-}
-.react-calendar__navigation button:hover {
-  background: #FAF8FB !important;
-  color: #7A3BBA;
-}
-.react-calendar__navigation button:disabled {
-  background: transparent !important;
+  color: var(--text, #2D1B46);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
 }
 
-/* Días de la semana (L, M, M, J...) */
-.react-calendar__month-view__weekdays {
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #7A6A91;
-  font-size: 0.75rem;
-  text-decoration: none !important;
+.cal-nav-btn:hover {
+  background: var(--primary, #6D4C8F);
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Encabezado de Días de la Semana */
+.calendar-weekdays-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
   margin-bottom: 10px;
-}
-.react-calendar__month-view__weekdays__weekday abbr {
-  text-decoration: none !important;
+  text-align: center;
 }
 
-/* Botones de los días individuales */
-.react-calendar__tile {
-  padding: 14px 10px !important;
-  border-radius: 12px !important;
-  transition: all 0.2s ease !important;
-  font-weight: 600 !important;
-  color: #5A4A6F;
-}
-.react-calendar__tile:hover {
-  background: #EBDFFF !important;
-  color: #7A3BBA !important;
+.cal-weekday-header {
+  font-family: var(--font-title, "Poppins", sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-light, #79688E);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 6px 0;
 }
 
-/* Día Seleccionado (El degradado morado) */
-.react-calendar__tile--active,
-.react-calendar__tile--active:enabled:hover,
-.react-calendar__tile--active:enabled:focus {
-  background: linear-gradient(135deg, #7A3BBA, #501D8A) !important;
-  color: white !important;
-  box-shadow: 0 6px 15px rgba(122, 59, 186, 0.3) !important;
+/* Cuadrícula de Días */
+.calendar-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
 }
 
-/* Día Actual (Hoy) */
-.react-calendar__tile--now {
-  background: #F8FAFC !important;
-  color: #3B82F6 !important;
-  border: 1px solid #BFDBFE !important;
+.cal-day-cell {
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  background: var(--surface-soft, #F8FAFC);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text, #2D1B46);
+  position: relative;
+  transition: all 0.2s ease;
+  padding: 4px;
 }
 
-/* Fines de semana (Quitar el rojo feo) */
-.react-calendar__month-view__days__day--weekend {
-  color: #2D1B46;
+.cal-day-cell.empty {
+  background: transparent;
+  cursor: default;
+}
+
+.cal-day-cell:hover:not(.empty):not(.selected) {
+  background: #ede4f9;
+  color: var(--primary, #6D4C8F);
+  transform: translateY(-2px);
+}
+
+/* Día Hoy */
+.cal-day-cell.today {
+  border-color: var(--primary-light, #C084FC);
+  background: #FAF5FF;
+}
+
+/* Día Seleccionado */
+.cal-day-cell.selected {
+  background: linear-gradient(135deg, var(--primary, #6D4C8F), var(--primary-dark, #4B2F77));
+  color: white;
+  box-shadow: 0 6px 16px rgba(109, 76, 143, 0.35);
+  transform: scale(1.02);
+}
+
+.cal-day-cell.selected .cal-day-num {
+  color: white;
+}
+
+.cal-day-num {
+  line-height: 1;
+}
+
+/* Indicador de Emoción (Puntos de Color) */
+.cal-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.cal-day-cell.selected .cal-dot {
+  background: #FFFFFF !important;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
 }
 
 /* =========================================================
@@ -143,43 +217,44 @@
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 15px;
-  margin-top: 25px;
+  gap: 12px;
+  margin-top: 22px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
-  color: #5A4A6F;
+  font-size: 0.82rem;
+  color: var(--text, #2D1B46);
   font-weight: 600;
-  background: #FFFFFF;
-  padding: 8px 16px;
+  background: var(--surface, #FFFFFF);
+  padding: 7px 14px;
   border-radius: 50px;
-  box-shadow: 0 4px 10px rgba(45, 27, 70, 0.04);
-  border: 1px solid rgba(109, 76, 143, 0.08);
+  box-shadow: 0 2px 8px rgba(45, 27, 70, 0.04);
+  border: 1px solid var(--border, #E7E2F0);
 }
 
 .dot {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
 }
+
 .dot-happy { background: #10B981; } /* Verde */
-.dot-neutral { background: #F59E0B; } /* Amarillo */
+.dot-neutral { background: #F59E0B; } /* Ámbar */
 .dot-anxious { background: #F97316; } /* Naranja */
 .dot-sad { background: #EF4444; } /* Rojo */
 
 /* =========================================================
-   COLUMNA DERECHA (EDITOR DE NOTAS)
+   COLUMNA DERECHA (EDITOR DE NOTAS Y REFLEXIÓN)
    ========================================================= */
 .note-editor-card {
-  background: #FFFFFF;
+  background: var(--surface, #FFFFFF);
   border-radius: 24px;
-  padding: 35px 30px;
-  box-shadow: 0 12px 30px rgba(45, 27, 70, 0.05);
-  border: 1px solid rgba(109, 76, 143, 0.08);
+  padding: 30px;
+  box-shadow: var(--shadow-sm, 0 8px 24px rgba(45, 27, 70, 0.06));
+  border: 1px solid var(--border, #E7E2F0);
   display: flex;
   flex-direction: column;
 }
@@ -188,79 +263,91 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(109, 76, 143, 0.1);
-  padding-bottom: 20px;
-  margin-bottom: 25px;
+  border-bottom: 1px solid var(--border, #E7E2F0);
+  padding-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .note-header h3 {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-title, "Poppins", sans-serif);
   font-size: 1.3rem;
-  color: #2D1B46;
-  margin: 0;
+  color: var(--text, #2D1B46);
+  margin: 2px 0 0 0;
+  font-weight: 800;
 }
 
 .mood-badge {
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 50px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
+  text-transform: capitalize;
 }
 
-.has-note { background: #EBDFFF; color: #7A3BBA; }
-.no-note { background: #F1F5F9; color: #64748B; }
+.has-note {
+  background: var(--surface-soft, #F3EEFC);
+  color: var(--primary, #6D4C8F);
+  border: 1px solid var(--border, #E7E2F0);
+}
+
+.no-note {
+  background: #F1F5F9;
+  color: #64748B;
+}
 
 .note-history {
-  margin-bottom: 30px;
-  min-height: 50px;
+  margin-bottom: 24px;
+  min-height: 48px;
 }
 
 .saved-text {
-  font-size: 1rem;
-  color: #2D1B46;
+  font-size: 0.95rem;
+  color: var(--text, #2D1B46);
   font-style: italic;
   line-height: 1.6;
-  border-left: 4px solid #7A3BBA;
-  padding-left: 20px;
-  background: #FAF8FB;
-  padding: 15px 20px;
+  border-left: 4px solid var(--primary, #6D4C8F);
+  background: var(--surface-soft, #F3EEFC);
+  padding: 14px 18px;
   border-radius: 0 16px 16px 0;
   margin: 0;
 }
 
 .empty-text {
-  color: #94A3B8;
-  font-size: 0.95rem;
+  color: var(--text-light, #79688E);
+  font-size: 0.9rem;
   margin: 0;
+  line-height: 1.5;
 }
 
 .note-input-group label {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-weight: 700;
-  color: #5A4A6F;
-  margin-bottom: 12px;
+  font-size: 0.9rem;
+  color: var(--text, #2D1B46);
+  margin-bottom: 10px;
 }
 
 .note-input-group textarea {
   width: 100%;
-  padding: 18px;
+  padding: 15px;
   border-radius: 16px;
-  border: 1px solid #E2E8F0;
-  background: #F8FAFC;
-  font-family: "Inter", sans-serif;
-  font-size: 0.95rem;
-  color: #2D1B46;
+  border: 1px solid var(--border, #E7E2F0);
+  background: var(--surface-soft, #F8FAFC);
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 0.92rem;
+  color: var(--text, #2D1B46);
   resize: vertical;
   outline: none;
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .note-input-group textarea:focus {
-  border-color: #A855F7;
+  border-color: var(--primary, #6D4C8F);
   background: #FFFFFF;
-  box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.1);
+  box-shadow: 0 0 0 4px rgba(109, 76, 143, 0.1);
 }
 
 .save-btn {
@@ -269,30 +356,38 @@
   justify-content: center;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(135deg, #7A3BBA, #501D8A);
+  background: linear-gradient(135deg, var(--primary, #6D4C8F), var(--primary-dark, #4B2F77));
   color: white;
   border: none;
-  padding: 16px;
+  padding: 14px;
   border-radius: 50px;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  margin-top: 25px;
-  box-shadow: 0 6px 15px rgba(122, 59, 186, 0.25);
+  margin-top: 20px;
+  box-shadow: 0 6px 16px rgba(109, 76, 143, 0.25);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.save-btn:hover {
+.save-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(122, 59, 186, 0.35);
+  box-shadow: 0 10px 22px rgba(109, 76, 143, 0.35);
+}
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .calendar-status {
   text-align: center;
   font-weight: 600;
-  margin-top: 20px;
-  font-size: 0.95rem;
-  color: #7A3BBA;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: var(--primary, #6D4C8F);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .calendar-status.success {
@@ -304,11 +399,11 @@
    ========================================================= */
 @media (max-width: 900px) {
   .calendar-layout-grid {
-    grid-template-columns: 1fr; /* Apila las columnas */
-    gap: 25px;
+    grid-template-columns: 1fr;
+    gap: 22px;
   }
 
   .calendar-header h1 {
-    font-size: 1.8rem;
+    font-size: 1.75rem;
   }
 }

@@ -1,7 +1,7 @@
 /* =========================================================
-   FEELSAFE - MODAL DE MEDITACIÓN GUIADA
+   FEELSAFE - MODAL DE RESPIRACIÓN CONSCIENTE
    ========================================================= */
-.meditation-modal-overlay {
+.breathing-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(45, 27, 70, 0.6);
@@ -13,7 +13,7 @@
   padding: 16px;
 }
 
-.meditation-modal-box {
+.breathing-modal-box {
   background: var(--surface, #ffffff);
   border-radius: 28px;
   padding: 32px 28px;
@@ -26,7 +26,12 @@
   animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.meditation-close-btn {
+@keyframes modalPop {
+  0% { transform: scale(0.92); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.breathing-close-btn {
   position: absolute;
   top: 18px;
   right: 18px;
@@ -44,12 +49,12 @@
   transition: all 0.2s ease;
 }
 
-.meditation-close-btn:hover {
+.breathing-close-btn:hover {
   background: #fee2e2;
   color: #ef4444;
 }
 
-.meditation-icon-bubble {
+.breathing-icon-bubble {
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -62,158 +67,159 @@
   margin: 0 auto 12px;
 }
 
-.meditation-header h2 {
+.breathing-header h2 {
   font-family: var(--font-title, "Poppins", sans-serif);
   font-size: 1.35rem;
   color: var(--text, #2D1B46);
   margin: 0 0 6px;
 }
 
-.meditation-header p {
+.breathing-header p {
   font-size: 0.88rem;
   color: var(--text-muted, #6B7280);
   margin: 0 0 16px;
   line-height: 1.45;
 }
 
-.meditation-duration-row {
+.breathing-tech-selector {
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
-.duration-chip {
+.tech-pill-btn {
   background: var(--surface-soft, #F3EEFC);
   border: 1.5px solid transparent;
   color: var(--text, #2D1B46);
-  padding: 6px 16px;
+  padding: 6px 14px;
   border-radius: 20px;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.duration-chip.active {
+.tech-pill-btn.active {
   background: var(--primary, #6D4C8F);
   color: white;
   box-shadow: 0 4px 12px rgba(109, 76, 143, 0.3);
 }
 
-/* Progress Ring */
-.meditation-timer-display {
-  position: relative;
-  width: 170px;
-  height: 170px;
-  margin: 12px auto;
+.tech-desc-hint {
+  font-size: 0.8rem;
+  color: var(--primary, #6D4C8F);
+  margin-top: 8px;
+  font-weight: 500;
+  width: 100%;
+}
+
+/* Visual Breathing Circle */
+.breathing-visual-container {
   display: flex;
   justify-content: center;
   align-items: center;
+  height: 200px;
+  margin: 10px 0;
 }
 
-.meditation-ring-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
+.breathing-circle-outer {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 1s ease-in-out, box-shadow 1s ease-in-out, background 0.5s ease;
+  background: radial-gradient(circle, #D9C3F2 0%, #B899DE 100%);
+  box-shadow: 0 0 20px rgba(109, 76, 143, 0.2);
 }
 
-.ring-bg {
-  fill: none;
-  stroke: var(--surface-soft, #F3EEFC);
-  stroke-width: 8;
+.circle-inhale {
+  transform: scale(1.22);
+  background: radial-gradient(circle, #A855F7 0%, #6D4C8F 100%);
+  box-shadow: 0 0 40px rgba(168, 85, 247, 0.45);
 }
 
-.ring-progress {
-  fill: none;
-  stroke: var(--primary, #6D4C8F);
-  stroke-width: 8;
-  stroke-linecap: round;
-  stroke-dasharray: 440;
-  transition: stroke-dashoffset 0.8s ease;
+.circle-hold {
+  transform: scale(1.22);
+  background: radial-gradient(circle, #35C2A6 0%, #208D79 100%);
+  box-shadow: 0 0 35px rgba(53, 194, 166, 0.45);
 }
 
-.meditation-timer-center {
+.circle-exhale {
+  transform: scale(0.85);
+  background: radial-gradient(circle, #8A92FF 0%, #501D8A 100%);
+  box-shadow: 0 0 20px rgba(138, 146, 255, 0.3);
+}
+
+.circle-ready {
+  transform: scale(1);
+}
+
+.breathing-circle-inner {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: white;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  z-index: 2;
-}
-
-.meditation-time-string {
-  font-family: var(--font-title, "Poppins", sans-serif);
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--text, #2D1B46);
-  line-height: 1;
-}
-
-.meditation-time-label {
-  font-size: 0.76rem;
-  color: var(--text-light, #79688E);
-  font-weight: 600;
-  margin-top: 4px;
-}
-
-/* Prompt Card */
-.meditation-prompt-card {
-  background: var(--surface-soft, #F3EEFC);
-  border-radius: 18px;
-  padding: 14px 18px;
-  margin: 14px 0;
-  min-height: 54px;
-  display: flex;
   align-items: center;
-  justify-content: center;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.meditation-guide-text {
-  font-size: 0.92rem;
-  color: var(--primary-dark, #4B2F77);
-  font-weight: 500;
-  line-height: 1.45;
-  margin: 0;
-  font-style: italic;
-}
-
-.meditation-audio-toggle {
-  margin-bottom: 16px;
-}
-
-.audio-pill-btn {
-  background: transparent;
-  border: 1px solid var(--border, #E7E2F0);
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 0.76rem;
-  color: var(--text-muted, #6B7280);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-
-.audio-pill-btn:hover {
-  background: var(--surface-soft, #F3EEFC);
+.breathing-phase-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   color: var(--primary, #6D4C8F);
 }
 
-.meditation-actions {
+.breathing-countdown {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text, #2D1B46);
+  font-family: var(--font-title, "Poppins", sans-serif);
+}
+
+.done-check-icon {
+  font-size: 2.2rem;
+  color: #10B981;
+}
+
+.breathing-instruction-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text, #2D1B46);
+  min-height: 28px;
+  margin: 8px 0;
+}
+
+.breathing-cycles-tag {
+  display: inline-block;
+  background: var(--surface-soft, #F3EEFC);
+  color: var(--primary, #6D4C8F);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.breathing-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
+  margin-top: 14px;
 }
 
-.med-start-btn {
+.breathing-start-btn {
   background: linear-gradient(135deg, var(--primary, #6D4C8F), var(--primary-dark, #4B2F77));
   color: white;
   border: none;
-  padding: 12px 26px;
+  padding: 12px 24px;
   border-radius: 14px;
   font-weight: 600;
   font-size: 0.92rem;
@@ -225,16 +231,16 @@
   transition: all 0.2s ease;
 }
 
-.med-start-btn:hover {
+.breathing-start-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(109, 76, 143, 0.4);
 }
 
-.med-pause-btn {
+.breathing-pause-btn {
   background: #F59E0B;
   color: white;
   border: none;
-  padding: 12px 26px;
+  padding: 12px 24px;
   border-radius: 14px;
   font-weight: 600;
   font-size: 0.92rem;
@@ -245,11 +251,11 @@
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
-.med-reset-btn {
+.breathing-reset-btn {
   background: var(--surface-soft, #F3EEFC);
   color: var(--text, #2D1B46);
   border: 1px solid var(--border, #E7E2F0);
-  padding: 12px 20px;
+  padding: 12px 18px;
   border-radius: 14px;
   font-weight: 600;
   font-size: 0.92rem;
@@ -258,3 +264,4 @@
   align-items: center;
   gap: 6px;
 }
+

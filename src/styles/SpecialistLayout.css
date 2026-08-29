@@ -343,63 +343,6 @@
   box-sizing: border-box;
 }
 
-/* =========================================================
-   BARRA MÓVIL INFERIOR
-   ========================================================= */
-.specialist-mobile-bottom-bar {
-  display: none;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 64px;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
-  z-index: 95;
-  justify-content: space-around;
-  align-items: center;
-  padding: 0 6px;
-}
-
-.specialist-mobile-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-light);
-  text-decoration: none;
-  font-size: 0.72rem;
-  font-weight: 600;
-  gap: 3px;
-  padding: 6px 10px;
-  border-radius: var(--radius-sm);
-  transition: color 0.2s;
-  position: relative;
-}
-
-.specialist-mobile-icon {
-  font-size: 1.15rem;
-  position: relative;
-  display: flex;
-}
-
-.specialist-mobile-badge {
-  position: absolute;
-  top: -4px;
-  right: -8px;
-  background: #ef4444;
-  color: white;
-  font-size: 0.6rem;
-  font-weight: 800;
-  padding: 1px 4px;
-  border-radius: 10px;
-}
-
-.specialist-mobile-item.active {
-  color: var(--primary);
-}
-
 .specialist-sidebar-overlay {
   display: none;
 }
@@ -433,14 +376,9 @@
 
   .specialist-main-wrapper {
     margin-left: 0;
-    padding-bottom: 70px;
   }
 
   .specialist-topbar {
-    display: flex;
-  }
-
-  .specialist-mobile-bottom-bar {
     display: flex;
   }
 

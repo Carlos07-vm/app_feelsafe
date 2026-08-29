@@ -1,0 +1,264 @@
+/* =========================================================
+   FEELSAFE - MODAL DE RETO DEL DÍA
+   ========================================================= */
+.challenge-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 27, 70, 0.6);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.challenge-modal-box {
+  background: var(--surface, #ffffff);
+  border-radius: 28px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 500px;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(45, 27, 70, 0.2);
+  border: 1px solid var(--border, #E7E2F0);
+  animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.challenge-close-btn {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: var(--surface-soft, #F3EEFC);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: var(--text-light, #79688E);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.challenge-close-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.challenge-modal-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.challenge-icon-bubble {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #FEF3C7;
+  color: #D97706;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.challenge-modal-header h2 {
+  font-family: var(--font-title, "Poppins", sans-serif);
+  font-size: 1.35rem;
+  color: var(--text, #2D1B46);
+  margin: 0 0 6px;
+}
+
+.challenge-modal-header p {
+  font-size: 0.88rem;
+  color: var(--text-muted, #6B7280);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.prompt-selector-tabs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.prompt-tab-btn {
+  background: var(--surface-soft, #F3EEFC);
+  border: 1px solid var(--border, #E7E2F0);
+  color: var(--text, #2D1B46);
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.prompt-tab-btn.active {
+  background: var(--primary, #6D4C8F);
+  color: white;
+  border-color: var(--primary, #6D4C8F);
+}
+
+.prompt-instructions-box {
+  background: var(--surface-soft, #F3EEFC);
+  border-left: 4px solid var(--primary, #6D4C8F);
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.prompt-instructions-box p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--primary-dark, #4B2F77);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.challenge-inputs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.challenge-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-number-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary, #6D4C8F);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.challenge-text-input {
+  flex: 1;
+  background: #FAFAFD;
+  border: 1.5px solid var(--border, #E7E2F0);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 0.88rem;
+  color: var(--text, #2D1B46);
+  transition: all 0.2s ease;
+}
+
+.challenge-text-input:focus {
+  outline: none;
+  background: white;
+  border-color: var(--primary, #6D4C8F);
+  box-shadow: 0 0 0 3px rgba(109, 76, 143, 0.1);
+}
+
+.challenge-error-text {
+  color: #DC2626;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin: -6px 0 10px;
+  text-align: center;
+}
+
+.challenge-modal-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.challenge-submit-btn {
+  background: linear-gradient(135deg, var(--primary, #6D4C8F), var(--primary-dark, #4B2F77));
+  color: white;
+  border: none;
+  padding: 13px 26px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  box-shadow: 0 4px 15px rgba(109, 76, 143, 0.3);
+  transition: all 0.2s ease;
+}
+
+.challenge-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(109, 76, 143, 0.4);
+}
+
+/* Success View */
+.challenge-success-view {
+  text-align: center;
+  padding: 12px 6px;
+}
+
+.success-badge-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #D1FAE5;
+  color: #059669;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.challenge-success-view h2 {
+  font-family: var(--font-title, "Poppins", sans-serif);
+  font-size: 1.4rem;
+  color: var(--text, #2D1B46);
+  margin: 0 0 8px;
+}
+
+.challenge-success-view p {
+  font-size: 0.92rem;
+  color: var(--text-muted, #6B7280);
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.summary-tags-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.summary-pill {
+  background: var(--surface-soft, #F3EEFC);
+  color: var(--primary, #6D4C8F);
+  border: 1px solid var(--border, #E7E2F0);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+

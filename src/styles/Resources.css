@@ -10,14 +10,27 @@
   gap: 24px;
 }
 
-.resources-main-title {
-  font-family: var(--font-title);
-  font-size: 1.8rem;
-  color: var(--text);
-  margin-bottom: 5px;
+.resources-header-row {
+  margin-bottom: 4px;
 }
 
-/* Grid superior de 4 tarjetas */
+.resources-main-title {
+  font-family: var(--font-title, "Poppins", sans-serif);
+  font-size: 1.8rem;
+  color: var(--text, #2D1B46);
+  margin: 0 0 6px 0;
+}
+
+.resources-subtitle {
+  font-size: 0.92rem;
+  color: var(--text-muted, #6B7280);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   GRID SUPERIOR DE 4 TARJETAS
+   ========================================================= */
 .resources-grid-top {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -25,68 +38,126 @@
 }
 
 .res-card {
-  background: var(--surface);
+  background: var(--surface, #ffffff);
   border-radius: 24px;
   padding: 24px 20px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(45, 27, 70, 0.05);
+  border: 1px solid var(--border, #E7E2F0);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .res-card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(109, 76, 143, 0.12);
 }
 
 .res-card-icon {
   font-size: 1.4rem;
-  color: var(--primary);
-  margin-bottom: 12px;
-  background: var(--surface-soft);
-  width: 45px;
-  height: 45px;
+  color: var(--primary, #6D4C8F);
+  margin-bottom: 14px;
+  background: var(--surface-soft, #F3EEFC);
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.heartbeat-icon {
+  color: #E11D48;
+  background: #FFE4E6;
+}
+
+.music-icon {
+  color: #3B82F6;
+  background: #EFF6FF;
+}
+
+.quote-icon {
+  color: #8B5CF6;
+  background: #F5F3FF;
+}
+
 .res-card h3 {
-  font-family: var(--font-title);
+  font-family: var(--font-title, "Poppins", sans-serif);
   font-size: 1.05rem;
-  color: var(--text);
+  color: var(--text, #2D1B46);
   margin: 0 0 8px 0;
 }
 
 .res-card p {
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin: 0 0 20px 0;
+  font-size: 0.86rem;
+  color: var(--text-muted, #6B7280);
+  line-height: 1.45;
+  margin: 0 0 18px 0;
   flex-grow: 1;
 }
 
+.res-card .quote-text {
+  font-style: italic;
+  color: var(--primary-dark, #4B2F77);
+  font-weight: 500;
+}
+
 .res-btn {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary, #6D4C8F), var(--primary-dark, #4B2F77));
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 12px;
+  padding: 11px 20px;
+  border-radius: 14px;
   font-weight: 600;
   font-size: 0.88rem;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
   width: 100%;
+  box-shadow: 0 4px 12px rgba(109, 76, 143, 0.2);
 }
 
 .res-btn:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(109, 76, 143, 0.35);
 }
 
-/* Grid inferior de 2 columnas */
+/* Quote card buttons */
+.quote-btn-group {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.quote-renew-btn {
+  flex: 1;
+}
+
+.quote-copy-icon-btn {
+  background: var(--surface-soft, #F3EEFC);
+  border: 1px solid var(--border, #E7E2F0);
+  color: var(--primary, #6D4C8F);
+  border-radius: 14px;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.quote-copy-icon-btn:hover {
+  background: #ede4f9;
+  transform: translateY(-2px);
+}
+
+/* =========================================================
+   GRID INFERIOR: GUÍAS INTERACTIVAS + RETO DEL DÍA
+   ========================================================= */
 .resources-grid-bottom {
   display: grid;
   grid-template-columns: 2fr 1fr;
@@ -95,27 +166,151 @@
 
 .res-info-card,
 .res-challenge-card {
-  background: var(--surface);
+  background: var(--surface, #ffffff);
   border-radius: 24px;
   padding: 28px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(45, 27, 70, 0.05);
+  border: 1px solid var(--border, #E7E2F0);
 }
 
-.res-info-card h3,
-.res-challenge-card h3 {
-  font-family: var(--font-title);
-  font-size: 1.15rem;
-  color: var(--text);
-  margin: 0 0 8px 0;
+.info-card-header {
+  margin-bottom: 16px;
 }
 
-.res-info-card p,
-.res-challenge-card p {
-  font-size: 0.92rem;
-  color: var(--text-muted);
+.info-card-header h3 {
+  font-family: var(--font-title, "Poppins", sans-serif);
+  font-size: 1.18rem;
+  color: var(--text, #2D1B46);
+  margin: 0 0 4px 0;
+}
+
+.info-card-desc {
+  font-size: 0.86rem;
+  color: var(--text-muted, #6B7280);
   margin: 0;
-  line-height: 1.5;
+}
+
+/* Wellness Tabs Nav */
+.wellness-tabs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.wellness-tab-pill {
+  background: var(--surface-soft, #F3EEFC);
+  border: 1.5px solid transparent;
+  color: var(--text, #2D1B46);
+  padding: 8px 14px;
+  border-radius: 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.wellness-tab-pill:hover {
+  border-color: var(--primary-light, #D9C3F2);
+  transform: translateY(-1px);
+}
+
+.wellness-tab-pill.active {
+  background: var(--primary, #6D4C8F);
+  color: white;
+  box-shadow: 0 4px 12px rgba(109, 76, 143, 0.25);
+}
+
+.tab-pill-icon {
+  font-size: 0.9rem;
+  display: flex;
+}
+
+/* Active Guide Content */
+.active-guide-content {
+  background: var(--surface-soft, #F3EEFC);
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid rgba(109, 76, 143, 0.1);
+}
+
+.active-guide-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.active-guide-badge-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: white;
+  color: var(--primary, #6D4C8F);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.active-guide-head h4 {
+  margin: 0 0 2px 0;
+  font-size: 1rem;
+  color: var(--text, #2D1B46);
+  font-weight: 700;
+}
+
+.active-guide-head p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted, #6B7280);
+}
+
+.guide-steps-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guide-step-item {
+  background: white;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border, #E7E2F0);
+  font-size: 0.86rem;
+  color: var(--text, #2D1B46);
+  line-height: 1.4;
+}
+
+.step-bullet {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-soft, #F3EEFC);
+  color: var(--primary, #6D4C8F);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   RETO DEL DÍA
+   ========================================================= */
+.res-challenge-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .challenge-header {
@@ -126,24 +321,84 @@
 }
 
 .challenge-icon {
-  color: #EAB308;
-  font-size: 1.2rem;
+  color: #D97706;
+  font-size: 1.3rem;
+}
+
+.res-challenge-card h3 {
+  font-family: var(--font-title, "Poppins", sans-serif);
+  font-size: 1.15rem;
+  color: var(--text, #2D1B46);
+  margin: 0;
+}
+
+.res-challenge-card p {
+  font-size: 0.88rem;
+  color: var(--text-muted, #6B7280);
+  margin: 0 0 16px;
+  line-height: 1.45;
+}
+
+.challenge-completed-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #D1FAE5;
+  border: 1px solid #A7F3D0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  margin-bottom: 16px;
+}
+
+.check-done-icon {
+  font-size: 1.5rem;
+  color: #059669;
+  flex-shrink: 0;
+}
+
+.challenge-completed-badge strong {
+  display: block;
+  font-size: 0.88rem;
+  color: #065F46;
+}
+
+.challenge-completed-badge span {
+  font-size: 0.78rem;
+  color: #047857;
+}
+
+.challenge-pending-hint {
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-size: 0.8rem;
+  color: #B45309;
 }
 
 .res-btn-challenge {
-  margin-top: 15px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  background: linear-gradient(135deg, #D97706, #B45309);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 12px;
+  padding: 12px 20px;
+  border-radius: 14px;
   font-weight: 600;
   font-size: 0.88rem;
   cursor: pointer;
   width: 100%;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+  transition: all 0.2s ease;
 }
 
-/* Responsive */
+.res-btn-challenge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.35);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
 @media (max-width: 1024px) {
   .resources-grid-top {
     grid-template-columns: repeat(2, 1fr);
@@ -156,5 +411,9 @@
 @media (max-width: 600px) {
   .resources-grid-top {
     grid-template-columns: 1fr;
+  }
+  .res-info-card,
+  .res-challenge-card {
+    padding: 20px;
   }
 }
