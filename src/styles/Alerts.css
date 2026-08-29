@@ -2,10 +2,12 @@
    FEELSAFE - CENTRO DE ALERTAS
    ========================================================= */
 
+.alerts-page, /* Añadido para compatibilidad con el JSX */
 .alerts-container {
   max-width: 1100px;
   margin: 0 auto;
   padding: 20px 0 50px 0;
+  animation: fadeIn 0.4s ease-in-out;
 }
 
 /* =========================================================
@@ -23,12 +25,14 @@
   font-weight: 800;
   margin: 0 0 10px 0;
   letter-spacing: -0.03em;
+  transition: color 0.3s ease;
 }
 
 .alerts-header p {
   color: #7A6A91;
   font-size: 1rem;
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 /* =========================================================
@@ -42,7 +46,7 @@
 }
 
 /* =========================================================
-   ESTILO BASE DE LAS TARJETAS (Blancas, modernas, limpias)
+   ESTILO BASE DE LAS TARJETAS
    ========================================================= */
 .alert-card {
   display: flex;
@@ -53,7 +57,7 @@
   padding: 30px;
   box-shadow: 0 12px 30px rgba(45, 27, 70, 0.05);
   border: 1px solid rgba(109, 76, 143, 0.08);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.3s ease, border-color 0.3s ease;
 }
 
 .alert-card:hover {
@@ -83,7 +87,7 @@
   flex-direction: column;
 }
 
-.alert-content h2 {
+.alert-content h4 {
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -108,25 +112,27 @@
 }
 
 /* =========================================================
-   COLORES ESPECÍFICOS POR TARJETA (El acento elegante)
+   COLORES DINÁMICOS POR TARJETA (Conectado con el JSX)
    ========================================================= */
-
 /* VERDE (Estado General) */
-.card-green .alert-icon-wrapper { background: rgba(16, 185, 129, 0.12); color: #10B981; }
-.card-green .alert-content h3 { color: #10B981; }
+.icon-green { background: rgba(16, 185, 129, 0.12); color: #10B981; }
+.text-green { color: #10B981; }
 
 /* NARANJA (Estrés) */
-.card-orange .alert-icon-wrapper { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
-.card-orange .alert-content h3 { color: #F59E0B; }
+.icon-orange { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
+.text-orange { color: #F59E0B; }
+
+/* ROJO (Crítico - Generado por la IA si el bienestar baja) */
+.icon-red { background: rgba(239, 68, 68, 0.12); color: #EF4444; }
+.text-red { color: #EF4444; }
 
 /* MORADO (Bienestar) */
-.card-purple .alert-icon-wrapper { background: rgba(122, 59, 186, 0.12); color: #7A3BBA; }
-.card-purple .alert-content h3 { color: #7A3BBA; }
+.icon-purple { background: rgba(122, 59, 186, 0.12); color: #7A3BBA; }
+.text-purple { color: #7A3BBA; }
 
 /* AZUL (IA) */
-.card-blue .alert-icon-wrapper { background: rgba(59, 130, 246, 0.12); color: #3B82F6; }
-.card-blue .alert-content h3 { color: #3B82F6; }
-
+.icon-blue { background: rgba(59, 130, 246, 0.12); color: #3B82F6; }
+.text-blue { color: #3B82F6; }
 
 /* =========================================================
    BANNER INFERIOR (Llamado a la acción)
@@ -177,10 +183,43 @@
   box-shadow: 0 12px 25px rgba(185, 29, 115, 0.5);
 }
 
+/* =========================================================
+   MODO OSCURO (.theme-dark)
+   ========================================================= */
+.theme-dark .alerts-header h1 {
+  color: #FFFFFF;
+}
+
+.theme-dark .alerts-header p {
+  color: #A09BBA;
+}
+
+.theme-dark .alert-card {
+  background: #252542;
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.theme-dark .alert-content h4,
+.theme-dark .alert-content p {
+  color: #A09BBA;
+}
+
+/* Oscurecemos ligeramente el fondo de los iconos para que no deslumbren en modo oscuro */
+.theme-dark .icon-green { background: rgba(16, 185, 129, 0.18); }
+.theme-dark .icon-orange { background: rgba(245, 158, 11, 0.18); }
+.theme-dark .icon-red { background: rgba(239, 68, 68, 0.18); }
+.theme-dark .icon-purple { background: rgba(122, 59, 186, 0.18); }
+.theme-dark .icon-blue { background: rgba(59, 130, 246, 0.18); }
 
 /* =========================================================
    RESPONSIVE (TABLETS Y MÓVILES)
    ========================================================= */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 900px) {
   .alerts-cta-banner {
     flex-direction: column;
