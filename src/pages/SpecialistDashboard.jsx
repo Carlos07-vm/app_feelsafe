@@ -34,9 +34,9 @@ function SpecialistDashboard() {
   const [appointmentsCount, setAppointmentsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [conversationsLoading, setConversationsLoading] = useState(true);
-  const [totalConversationsCount, setTotalConversationsCount] = useState(0);
-  const [totalUsersCount, setTotalUsersCount] = useState(0);
-  const [totalUnreadCount, setTotalUnreadCount] = useState(0);  
+  const [totalConversations, setTotalConversations] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalUnread, setTotalUnread] = useState(0);
   // =======================================================
   // 1. AUTENTICACIÓN
   // =======================================================
@@ -192,17 +192,9 @@ const unreadCount = uniqueConversations.reduce(
   0
 );
 
-setTotalConversationsCount(
-  uniqueConversations.length
-);
-
-setTotalUsersCount(
-  uniqueUsers.size
-);
-
-setTotalUnreadCount(
-  unreadCount
-);
+        setTotalConversations(uniqueConversations.length);
+        setTotalUsers(uniqueUsers.size);
+        setTotalUnread(unreadCount);
 
         // ===================================================
         // 4. DEBUG

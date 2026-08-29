@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import {
   FaUserMd,
   FaCamera,
@@ -42,10 +42,12 @@ function SpecialistProfile() {
   });
 
   // =====================================================
-  // 1. CARGAR PERFIL
+  // 1. CARGAR Y ESCUCHAR PERFIL EN TIEMPO REAL
   // =====================================================
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubSnapshot = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
         navigate("/login", { replace: true });
         return;
@@ -53,35 +55,40 @@ function SpecialistProfile() {
 
       setUser(firebaseUser);
 
-      try {
-        const specialistRef = doc(db, "specialists", firebaseUser.uid);
-        const specialistSnap = await getDoc(specialistRef);
+      const specialistRef = doc(db, "specialists", firebaseUser.uid);
+      unsubSnapshot = onSnapshot(
+        specialistRef,
+        (specialistSnap) => {
+          if (!specialistSnap.exists()) {
+            setError("No se encontró el registro del especialista.");
+            setLoading(false);
+            return;
+          }
 
-        if (!specialistSnap.exists()) {
-          setError("No se encontró el registro del especialista.");
+          const data = specialistSnap.data();
+          setProfile({ uid: firebaseUser.uid, ...data });
+          setForm({
+            nombre: data.nombre || firebaseUser.displayName || "",
+            especialidad: data.especialidad || "",
+            experiencia: data.experiencia ? String(data.experiencia) : "",
+            telefono: data.telefono || "",
+            ciudad: data.ciudad || "",
+            descripcion: data.descripcion || "",
+          });
           setLoading(false);
-          return;
+        },
+        (err) => {
+          console.error("Error escuchando perfil en tiempo real:", err);
+          setError("Error al cargar la información del perfil.");
+          setLoading(false);
         }
-
-        const data = specialistSnap.data();
-        setProfile({ uid: firebaseUser.uid, ...data });
-        setForm({
-          nombre: data.nombre || firebaseUser.displayName || "",
-          especialidad: data.especialidad || "",
-          experiencia: data.experiencia ? String(data.experiencia) : "",
-          telefono: data.telefono || "",
-          ciudad: data.ciudad || "",
-          descripcion: data.descripcion || "",
-        });
-      } catch (err) {
-        console.error("Error cargando perfil:", err);
-        setError("Error al cargar la información del perfil.");
-      } finally {
-        setLoading(false);
-      }
+      );
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (unsubSnapshot) unsubSnapshot();
+    };
   }, [navigate]);
 
   // =====================================================

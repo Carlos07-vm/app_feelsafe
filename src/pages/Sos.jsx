@@ -20,7 +20,8 @@ import {
   addDoc,       
   getDocs,      
   deleteDoc,    
-  doc           
+  doc,
+  onSnapshot
 } from "firebase/firestore";
 import { db } from "../services/firebase";
 
@@ -37,34 +38,33 @@ function SOS() {
   const [newName, setNewName] = useState(""); 
   const [newPhone, setNewPhone] = useState(""); 
 
-  // ==================== LÓGICA DE FIREBASE ====================
+  // ==================== LÓGICA DE FIREBASE (TIEMPO REAL) ====================
 
-  const fetchContacts = async () => {
-    if (!user?.uid) return; 
-    setLoadingContacts(true); 
-    try {
-      // Apuntamos a la subcolección específica del usuario logueado
-      const contactsRef = collection(db, "usuarios", user.uid, "contactos_emergencia");
-      const snapshot = await getDocs(contactsRef); 
-      
-      // Transformamos el formato crudo de Firebase a un arreglo de objetos manejable en React
-      const contactList = snapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
-      }));
-      setContacts(contactList); 
-    } catch (error) {
-      console.error("Error al obtener contactos:", error);
-      setStatus(`Error de Firebase: ${error.message}`); 
-    } finally {
-      setLoadingContacts(false); 
-    }
-  };
-
-  // Solo hacemos la petición a Firebase cuando el usuario abre el modal (ahorra lecturas)
   useEffect(() => {
-    if (showContactModal) fetchContacts();
-  }, [showContactModal, user]);
+    if (!user?.uid || !showContactModal) return;
+
+    setLoadingContacts(true);
+    const contactsRef = collection(db, "usuarios", user.uid, "contactos_emergencia");
+
+    const unsubscribe = onSnapshot(
+      contactsRef,
+      (snapshot) => {
+        const contactList = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        setContacts(contactList);
+        setLoadingContacts(false);
+      },
+      (error) => {
+        console.error("Error escuchando contactos en tiempo real:", error);
+        setStatus(`Error de Firebase: ${error.message}`);
+        setLoadingContacts(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [showContactModal, user?.uid]);
 
   const handleAddContact = async (e) => {
     e.preventDefault(); 
@@ -85,7 +85,6 @@ function SOS() {
       setNewPhone(""); 
       setIsAddingContact(false); 
       
-      await fetchContacts(); 
       setStatus("Contacto guardado correctamente.");
     } catch (error) {
       console.error("Error al guardar el contacto:", error);
@@ -103,7 +102,6 @@ function SOS() {
       // doc() crea una referencia exacta al documento usando su ID único
       const contactRef = doc(db, "usuarios", user.uid, "contactos_emergencia", contactId);
       await deleteDoc(contactRef); 
-      await fetchContacts(); 
       setStatus("Contacto eliminado.");
     } catch (error) {
       console.error("Error al eliminar:", error);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import {
   FaUserCog,
   FaUserShield,
@@ -35,10 +35,12 @@ function SpecialistSettings() {
   const [error, setError] = useState("");
 
   // =====================================================
-  // 1. AUTENTICACIÓN Y CARGA
+  // 1. AUTENTICACIÓN Y ESCUCHA EN TIEMPO REAL
   // =====================================================
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubSnapshot = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
         navigate("/login", { replace: true });
         return;
@@ -46,27 +48,32 @@ function SpecialistSettings() {
 
       setUser(firebaseUser);
 
-      try {
-        const specialistRef = doc(db, "specialists", firebaseUser.uid);
-        const specialistSnap = await getDoc(specialistRef);
-
-        if (specialistSnap.exists()) {
-          const data = specialistSnap.data();
-          setSpecialist(data);
-          setAvailable(data.disponible !== false);
-          setNotifications(data.notificaciones !== false);
-        } else {
-          setError("No se encontró el perfil profesional.");
+      const specialistRef = doc(db, "specialists", firebaseUser.uid);
+      unsubSnapshot = onSnapshot(
+        specialistRef,
+        (specialistSnap) => {
+          if (specialistSnap.exists()) {
+            const data = specialistSnap.data();
+            setSpecialist(data);
+            setAvailable(data.disponible !== false);
+            setNotifications(data.notificaciones !== false);
+          } else {
+            setError("No se encontró el perfil profesional.");
+          }
+          setLoading(false);
+        },
+        (err) => {
+          console.error("Error escuchando configuración:", err);
+          setError("Error al cargar la configuración.");
+          setLoading(false);
         }
-      } catch (err) {
-        console.error("Error cargando configuración:", err);
-        setError("Error al cargar la configuración.");
-      } finally {
-        setLoading(false);
-      }
+      );
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (unsubSnapshot) unsubSnapshot();
+    };
   }, [navigate]);
 
   // =====================================================

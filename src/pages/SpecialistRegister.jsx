@@ -64,8 +64,8 @@ function SpecialistRegister() {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres.");
+    if (formData.password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres.");
       return;
     }
 
@@ -100,8 +100,8 @@ function SpecialistRegister() {
         descripcion: formData.descripcion.trim(),
         fotoPerfil: "",
         tipoCuenta: "especialista",
-        estado: "Activo",
-        disponible: true,
+        estado: "Pendiente", // Requiere aprobación antes de operar
+        disponible: false,
         correoVerificado: false,
         fechaRegistro: serverTimestamp(),
         ultimoAcceso: serverTimestamp(),
