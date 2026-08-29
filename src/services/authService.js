@@ -118,13 +118,6 @@ export const register = async (
 
     }
 
-    console.log(
-      "Cuenta creada correctamente:",
-      usuario.uid,
-      "Rol:",
-      rol
-    );
-
     return {
       success: true,
       user: usuario,
@@ -246,7 +239,7 @@ const obtenerMensajeError = (
       return "El correo electrónico no es válido.";
 
     case "auth/weak-password":
-      return "La contraseña debe tener al menos 6 caracteres.";
+      return "La contraseña debe tener al menos 8 caracteres.";
 
     case "auth/invalid-credential":
       return "Correo o contraseña incorrectos.";

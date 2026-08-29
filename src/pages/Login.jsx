@@ -3,7 +3,7 @@ import "../styles/Auth.css";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   Link,
@@ -59,12 +59,6 @@ const redirectByRole = async (
 
   try {
 
-    console.log(
-      "Buscando rol del usuario:",
-      user.uid
-    );
-
-
     // =================================================
     // 1. BUSCAR ESPECIALISTA
     // =================================================
@@ -85,10 +79,6 @@ const redirectByRole = async (
     if (
       specialistSnap.exists()
     ) {
-
-      console.log(
-        "✅ Rol detectado: ESPECIALISTA"
-      );
 
       navigate(
         "/specialist/dashboard",
@@ -121,10 +111,6 @@ const redirectByRole = async (
     if (
       usuarioSnap.exists()
     ) {
-
-      console.log(
-        "✅ Rol detectado: USUARIO"
-      );
 
       navigate(
         "/dashboard",
@@ -222,8 +208,32 @@ function Login() {
   const [error, setError] =
     useState("");
 
+  const [failedAttempts, setFailedAttempts] =
+    useState(0);
+
+  const [lockoutSeconds, setLockoutSeconds] =
+    useState(0);
+
   const navigate =
     useNavigate();
+
+  // Contador regresivo para bloqueo tras 5 intentos fallidos
+  useEffect(() => {
+    if (lockoutSeconds <= 0) return;
+
+    const timer = setInterval(() => {
+      setLockoutSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setError("");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [lockoutSeconds]);
 
 
   // ===================================================
@@ -641,6 +651,11 @@ function Login() {
 
       event.preventDefault();
 
+      if (lockoutSeconds > 0) {
+        setError(`Demasiados intentos fallidos. Espera ${lockoutSeconds} segundos.`);
+        return;
+      }
+
       setLoading(true);
       setError("");
 
@@ -657,12 +672,8 @@ function Login() {
         const user =
           result.user;
 
-
-        console.log(
-          "Inicio correcto:",
-          user.uid
-        );
-
+        // Reiniciar contador de intentos en caso de éxito
+        setFailedAttempts(0);
 
         // =============================================
         // DETECTAR ROL
@@ -679,9 +690,19 @@ function Login() {
 
         console.error(
           "Error login:",
-          error
+          error.code
         );
 
+        // Contabilizar intento fallido
+        const nuevosIntentos = failedAttempts + 1;
+        setFailedAttempts(nuevosIntentos);
+
+        if (nuevosIntentos >= 5) {
+          setFailedAttempts(0);
+          setLockoutSeconds(30);
+          setError("Has superado el límite de 5 intentos. Formulario bloqueado por 30 segundos por seguridad.");
+          return;
+        }
 
         switch (
           error.code
@@ -690,7 +711,7 @@ function Login() {
           case "auth/user-not-found":
 
             setError(
-              "No existe una cuenta con ese correo."
+              `No existe una cuenta con ese correo. (Intento ${nuevosIntentos}/5)`
             );
 
             break;
@@ -699,7 +720,7 @@ function Login() {
           case "auth/wrong-password":
 
             setError(
-              "La contraseña es incorrecta."
+              `La contraseña es incorrecta. (Intento ${nuevosIntentos}/5)`
             );
 
             break;
@@ -717,7 +738,7 @@ function Login() {
           case "auth/invalid-credential":
 
             setError(
-              "Correo o contraseña incorrectos."
+              `Correo o contraseña incorrectos. (Intento ${nuevosIntentos}/5)`
             );
 
             break;
@@ -725,8 +746,9 @@ function Login() {
 
           case "auth/too-many-requests":
 
+            setLockoutSeconds(60);
             setError(
-              "Demasiados intentos. Espera unos minutos e inténtalo nuevamente."
+              "Demasiados intentos detectados por el servidor. Espera 60 segundos."
             );
 
             break;
@@ -735,7 +757,7 @@ function Login() {
           default:
 
             setError(
-              "No se pudo iniciar sesión."
+              "No se pudo iniciar sesión. Verifica tus datos."
             );
         }
 
@@ -803,6 +825,7 @@ function Login() {
                 e.target.value
               )
             }
+            disabled={loading || lockoutSeconds > 0}
             required
           />
 
@@ -816,16 +839,19 @@ function Login() {
                 e.target.value
               )
             }
+            disabled={loading || lockoutSeconds > 0}
             required
           />
 
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || lockoutSeconds > 0}
           >
 
-            {loading
+            {lockoutSeconds > 0
+              ? `Bloqueado (${lockoutSeconds}s)`
+              : loading
               ? "Ingresando..."
               : "Iniciar sesión"}
 

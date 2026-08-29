@@ -51,9 +51,9 @@ function Register() {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       setError(
-        "La contraseña debe tener al menos 6 caracteres."
+        "La contraseña debe tener al menos 8 caracteres."
       );
       setLoading(false);
       return;
@@ -83,11 +83,6 @@ function Register() {
       }
 
       const firebaseUser = resultado.user;
-
-      console.log(
-        "Usuario creado correctamente:",
-        firebaseUser.uid
-      );
 
       // ==============================
       // CREAR PERFIL DEL USUARIO

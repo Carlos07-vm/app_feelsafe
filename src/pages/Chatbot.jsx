@@ -709,6 +709,7 @@ function Chatbot() {
               }
               disabled={loadingChat}
               autoComplete="off"
+              maxLength={2000}
             />
 
             <button
