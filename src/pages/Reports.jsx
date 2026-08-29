@@ -1,7 +1,7 @@
 import "../styles/Reports.css";
 import MainLayout from "../layouts/MainLayout";
 import { useApp } from "../context/AppContext";
-import { translations } from "../constants/translations"; // <-- IMPORTAMOS EL DICCIONARIO
+import { translations } from "../constants/translations"; 
 import {
   LineChart,
   Line,
@@ -12,26 +12,47 @@ import {
   CartesianGrid,
 } from "recharts";
 
+// Mapeo inteligente en minúsculas para evitar errores de tipeo
 const moodScores = {
-  "Muy feliz": 95,
-  Feliz: 85,
-  Tranquilo: 75,
-  Neutral: 65,
-  Triste: 45,
-  "Muy triste": 30,
-  Cansado: 55,
+  "muy feliz": 95,
+  "feliz": 80,
+  "tranquilo": 65,
+  "neutral": 50,
+  "cansado": 40,
+  "ansioso": 30,
+  "triste": 25,
+  "abrumado": 15,
+  "muy triste": 10,
 };
 
-const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const getTrafficStatus = (wellbeing, lang) => {
+  if (wellbeing >= 70) return lang === 'es' ? "🟢 Estable" : "🟢 Stable";
+  if (wellbeing >= 40) return lang === 'es' ? "🟡 Atento" : "🟡 Attentive";
+  return lang === 'es' ? "🔴 Necesita apoyo" : "🔴 Needs support";
+};
 
-const buildWeekTrend = (notes = []) => {
+// Genera la semana actual fija de Lunes a Domingo
+const buildWeekTrend = (notes = [], lang) => {
   const today = new Date();
+  
+  const dayNamesEs = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+  const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const names = lang === 'es' ? dayNamesEs : dayNamesEn;
+
+  // 1. Calcular exactamente qué día fue el Lunes de esta semana
+  const currentDay = today.getDay();
+  const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1; // Ajuste si hoy es domingo
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - distanceToMonday);
+
+  // 2. Generar el array de 7 días estrictamente desde ese Lunes hasta el Domingo
   const days = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() - (6 - index));
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
     return date;
   });
 
+  // 3. Agrupar las notas por fecha
   const grouped = notes.reduce((acc, note) => {
     if (!note?.date) return acc;
     acc[note.date] = acc[note.date] || [];
@@ -39,34 +60,29 @@ const buildWeekTrend = (notes = []) => {
     return acc;
   }, {});
 
+  // 4. Mapear y calcular los promedios en orden
   return days.map((date) => {
     const key = date.toISOString().split("T")[0];
     const dayNotes = grouped[key] || [];
-    const averageMood =
-      dayNotes.length > 0
-        ? Math.round(
-            dayNotes.reduce((sum, entry) => sum + (moodScores[entry.mood] ?? 65), 0) /
-              dayNotes.length
-          )
-        : 0;
+    
+    let averageMood = 0;
+    if (dayNotes.length > 0) {
+      const sum = dayNotes.reduce((acc, entry) => {
+        const moodName = entry.mood ? entry.mood.toLowerCase() : "";
+        return acc + (moodScores[moodName] ?? 50);
+      }, 0);
+      averageMood = Math.round(sum / dayNotes.length);
+    }
 
     return {
-      day: dayNames[date.getDay()],
+      day: names[date.getDay()], // Extrae el nombre correcto (Ej: "Lun", "Mar")
       mood: averageMood,
     };
   });
 };
 
-const getTrafficStatus = (wellbeing, lang) => {
-  if (wellbeing >= 80) return lang === 'es' ? "🟢 Estable" : "🟢 Stable";
-  if (wellbeing >= 55) return lang === 'es' ? "🟡 Atento" : "🟡 Attentive";
-  return lang === 'es' ? "🔴 Necesita apoyo" : "🔴 Needs support";
-};
-
 function Reports() {
-  const { user, loading, language } = useApp(); // <-- EXTRAEMOS EL IDIOMA GLOBAL
-  
-  // ACTIVAMOS EL DICCIONARIO
+  const { user, loading, language, darkMode } = useApp();
   const t = translations[language] || translations.es;
 
   if (loading) {
@@ -88,51 +104,68 @@ function Reports() {
   }
 
   const notes = user.notes || [];
-  const trendData = buildWeekTrend(notes);
-  const wellbeing = user.wellbeing ?? 0;
-  const currentMood = user.currentMood || "Neutral";
+  const trendData = buildWeekTrend(notes, language);
+  const wellbeing = user.wellbeing ?? 72;
+  const currentMood = user.currentMood || (language === 'es' ? "Sin registrar" : "Unrecorded");
   const trafficLabel = getTrafficStatus(wellbeing, language);
 
   return (
     <MainLayout>
-      <h1 className="page-title">📊 {language === 'es' ? "Reportes Emocionales" : "Emotional Reports"}</h1>
-
-      <div className="report-cards">
-        <div className="report-card">
-          <h3>{language === 'es' ? "Bienestar General" : "General Wellbeing"}</h3>
-          <h2>{wellbeing}%</h2>
+      <div className={`reports-page ${darkMode ? "theme-dark" : ""}`}>
+        
+        <div className="reports-header">
+          <h1 className="page-title">📊 {language === 'es' ? "Reportes Emocionales" : "Emotional Reports"}</h1>
         </div>
 
-        <div className="report-card">
-          <h3>{language === 'es' ? "Estado Actual" : "Current Status"}</h3>
-          <h2>{currentMood}</h2>
+        {/* Tarjetas Apiladas */}
+        <div className="report-cards-stacked">
+          <div className="report-card">
+            <h3>{language === 'es' ? "Bienestar General" : "General Wellbeing"}</h3>
+            <h2>{wellbeing}%</h2>
+          </div>
+
+          <div className="report-card">
+            <h3>{language === 'es' ? "Estado Actual" : "Current Status"}</h3>
+            <h2>{currentMood}</h2>
+          </div>
+
+          <div className="report-card traffic-card">
+            <h3>{language === 'es' ? "Semáforo" : "Traffic Light"}</h3>
+            <h2>{trafficLabel}</h2>
+          </div>
         </div>
 
-        <div className="report-card success">
-          <h3>{language === 'es' ? "Semáforo" : "Traffic Light"}</h3>
-          <h2>{trafficLabel}</h2>
+        {/* Gráfica */}
+        <div className="chart-card">
+          <h2>{language === 'es' ? "Evolución Semanal" : "Weekly Evolution"}</h2>
+          <div className="chart-wrapper">
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart data={trendData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#3a3a5a" : "#e2e8f0"} vertical={false} />
+                <XAxis dataKey="day" stroke={darkMode ? "#a09bba" : "#64748b"} tickLine={false} axisLine={false} />
+                <YAxis stroke={darkMode ? "#a09bba" : "#64748b"} tickLine={false} axisLine={false} domain={[0, 100]} />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: darkMode ? '#252542' : '#ffffff', 
+                    borderColor: darkMode ? 'rgba(255,255,255,0.1)' : '#e2e8f0', 
+                    color: darkMode ? '#ffffff' : '#1e293b',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
+                  }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="mood" 
+                  stroke="#7c55ff" 
+                  strokeWidth={4} 
+                  dot={{ r: 6, fill: '#7c55ff', strokeWidth: 2, stroke: darkMode ? '#1a1a2e' : '#ffffff' }}
+                  activeDot={{ r: 8 }} 
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
 
-      <div className="chart-card">
-        <h2>{language === 'es' ? "Evolución Semanal" : "Weekly Evolution"}</h2>
-
-        <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={trendData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis dataKey="day" stroke="var(--text-muted)" />
-            <YAxis stroke="var(--text-muted)" />
-            <Tooltip 
-              contentStyle={{ 
-                backgroundColor: 'var(--surface)', 
-                borderColor: 'var(--border)', 
-                color: 'var(--text)',
-                borderRadius: '12px' 
-              }} 
-            />
-            <Line type="monotone" dataKey="mood" stroke="var(--primary)" strokeWidth={4} />
-          </LineChart>
-        </ResponsiveContainer>
       </div>
     </MainLayout>
   );
