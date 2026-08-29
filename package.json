@@ -11,7 +11,7 @@
     "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
-    "firebase": "^12.15.0",
+    "firebase": "^12.18.0",
     "react": "^19.2.7",
     "react-calendar": "^6.0.1",
     "react-dom": "^19.2.7",
