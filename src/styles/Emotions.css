@@ -2,10 +2,11 @@
   max-width: 980px;
   margin: auto;
   padding: 32px;
-  background: #F8F9FE;
+  background: var(--surface, #FFFFFF);
   border-radius: 32px;
-  box-shadow: 0 26px 60px rgba(44, 49, 99, 0.08);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--border, #E7E2F0);
+  box-shadow: var(--shadow-sm, 0 10px 25px rgba(109, 76, 143, 0.10));
+  transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 /* ================= Encabezado ================= */
@@ -16,17 +17,18 @@
 }
 
 .mood-header h1 {
-  font-size: clamp(2rem, 2.6vw, 2.5rem);
-  color: #3b1f7a;
+  font-size: clamp(1.8rem, 2.6vw, 2.5rem);
+  color: var(--text, #2D1B46);
   margin-bottom: 12px;
-  line-height: 1.05;
+  line-height: 1.1;
+  font-weight: 800;
   transition: color 0.3s ease;
 }
 
 .mood-header p {
   max-width: 700px;
   margin: 0 auto;
-  color: #585f7a;
+  color: var(--text-muted, #79688E);
   line-height: 1.75;
   font-size: 1rem;
   transition: color 0.3s ease;
@@ -36,47 +38,57 @@
 
 .emotion-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 18px;
-  margin-top: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 16px;
+  margin-top: 28px;
 }
 
 .emotion-card {
-  background: #ffffff;
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: 26px;
-  padding: 28px 20px;
+  background: var(--surface-soft, #F3EEFC);
+  border: 1.5px solid var(--border, #E7E2F0);
+  border-radius: 24px;
+  padding: 24px 16px;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease, background 0.3s ease;
-  box-shadow: 0 18px 40px rgba(67, 56, 141, 0.08);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+  box-shadow: 0 4px 12px rgba(109, 76, 143, 0.05);
 }
 
 .emotion-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(99, 102, 241, 0.28);
-  box-shadow: 0 24px 55px rgba(67, 56, 141, 0.14);
+  transform: translateY(-4px);
+  border-color: var(--primary, #6D4C8F);
+  box-shadow: var(--shadow-sm);
+}
+
+.emotion-card:active {
+  transform: scale(0.96);
 }
 
 .emotion-card span {
   display: block;
-  font-size: 3rem;
-  margin-bottom: 14px;
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+  transition: transform 0.2s ease;
+}
+
+.emotion-card:hover span {
+  transform: scale(1.1);
 }
 
 .emotion-card p {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: #2f2f4a;
+  color: var(--text, #2D1B46);
   transition: color 0.3s ease;
 }
 
 .emotion-card.active {
-  background: linear-gradient(135deg, #6d4c8f, #7c55ff);
+  background: linear-gradient(135deg, var(--primary, #6D4C8F), var(--secondary, #8A92FF));
   color: white;
-  border-color: rgba(255, 255, 255, 0.28);
-  transform: translateY(-4px);
+  border-color: transparent;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(109, 76, 143, 0.3);
 }
 
 .emotion-card.active p {
@@ -85,13 +97,13 @@
 
 /* ================= Nota e Intensidad ================= */
 .mood-note {
-  margin-top: 42px;
+  margin-top: 36px;
 }
 
 .mood-note h2 {
-  font-size: 1.35rem;
-  color: #312b55;
-  margin-bottom: 16px;
+  font-size: 1.25rem;
+  color: var(--text, #2D1B46);
+  margin-bottom: 14px;
   font-weight: 700;
   transition: color 0.3s ease;
 }
@@ -172,67 +184,82 @@
 }
 
 
-/* =================================================
-   MODO OSCURO (.theme-dark)
-================================================= */
+/* =========================================================
+   MODO OSCURO (DARK MODE UNIVERSAL)
+   ========================================================= */
+body.dark-mode .mood-page,
 .mood-page.theme-dark {
-  background: #1a1a2e;
-  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.3);
+  background: var(--surface, #1E1A29);
+  border-color: var(--border, #3A324C);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
 }
 
+body.dark-mode .mood-page .mood-header h1,
 .mood-page.theme-dark .mood-header h1 {
   color: #ffffff;
 }
 
+body.dark-mode .mood-page .mood-header p,
+body.dark-mode .mood-page .mood-note p,
 .mood-page.theme-dark .mood-header p,
 .mood-page.theme-dark .mood-note p {
   color: #a09bba;
 }
 
+body.dark-mode .mood-page .emotion-card,
 .mood-page.theme-dark .emotion-card {
   background: #252542;
-  border-color: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
+body.dark-mode .mood-page .emotion-card:hover,
 .mood-page.theme-dark .emotion-card:hover {
   border-color: rgba(124, 85, 255, 0.5);
-  box-shadow: 0 24px 55px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.3);
 }
 
+body.dark-mode .mood-page .emotion-card p,
 .mood-page.theme-dark .emotion-card p {
   color: #e2d9f3;
 }
 
+body.dark-mode .mood-page .emotion-card.active,
 .mood-page.theme-dark .emotion-card.active {
   background: linear-gradient(135deg, #6d4c8f, #7c55ff);
   border-color: rgba(255, 255, 255, 0.15);
 }
 
+body.dark-mode .mood-page .emotion-card.active p,
 .mood-page.theme-dark .emotion-card.active p {
   color: #ffffff;
 }
 
+body.dark-mode .mood-page .mood-note h2,
 .mood-page.theme-dark .mood-note h2 {
   color: #ffffff;
 }
 
+body.dark-mode .mood-page textarea,
 .mood-page.theme-dark textarea {
   background: #252542;
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.12);
   color: #ffffff;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
+body.dark-mode .mood-page textarea::placeholder,
 .mood-page.theme-dark textarea::placeholder {
   color: #7a7a9a;
 }
 
+body.dark-mode .mood-page textarea:focus,
 .mood-page.theme-dark textarea:focus {
   border-color: #7c55ff;
   box-shadow: 0 0 0 4px rgba(124, 85, 255, 0.25), inset 0 0 0 1px rgba(124, 85, 255, 0.3);
 }
 
+body.dark-mode .mood-page .mood-status,
 .mood-page.theme-dark .mood-status {
   color: #e2d9f3;
 }
@@ -241,18 +268,36 @@
 /* ================= Media Queries ================= */
 @media (max-width: 740px) {
   .mood-page {
-    padding: 26px;
+    padding: 22px 18px;
+    border-radius: 24px;
   }
 
   .emotion-grid {
-    gap: 14px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
   }
 
   .emotion-card {
-    padding: 24px 18px;
+    padding: 18px 10px;
+    border-radius: 18px;
+  }
+
+  .emotion-card span {
+    font-size: 2.2rem;
+    margin-bottom: 6px;
+  }
+
+  .emotion-card p {
+    font-size: 0.85rem;
   }
 
   .mood-page textarea {
-    min-height: 160px;
+    min-height: 140px;
   }
 }
+
+@media (max-width: 420px) {
+  .emotion-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

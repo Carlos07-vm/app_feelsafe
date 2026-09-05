@@ -17,16 +17,16 @@
 }
 
 .goals-header h1 {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-title, "Poppins", sans-serif);
   font-size: 2.2rem;
-  color: #2D1B46;
+  color: var(--text, #2D1B46);
   font-weight: 800;
   margin: 0 0 10px 0;
   letter-spacing: -0.03em;
 }
 
 .goals-header p {
-  color: #7A6A91;
+  color: var(--text-light, #7A6A91);
   font-size: 1rem;
   margin: 0;
 }
@@ -35,9 +35,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-title, "Poppins", sans-serif);
   font-size: 1.4rem;
-  color: #2D1B46;
+  color: var(--text, #2D1B46);
   font-weight: 800;
   margin-bottom: 20px;
 }
@@ -56,11 +56,11 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  background: #FFFFFF;
+  background: var(--surface, #FFFFFF);
   border-radius: 24px;
   padding: 30px;
-  box-shadow: 0 12px 30px rgba(45, 27, 70, 0.05);
-  border: 1px solid rgba(109, 76, 143, 0.08);
+  box-shadow: var(--shadow-sm, 0 12px 30px rgba(45, 27, 70, 0.05));
+  border: 1px solid var(--border, rgba(109, 76, 143, 0.08));
 }
 
 .goal-icon-wrapper {
@@ -78,29 +78,29 @@
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #7A6A91;
+  color: var(--text-light, #7A6A91);
   margin: 0 0 4px 0;
   font-weight: 700;
 }
 
 .goal-top-content h3 {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-title, "Poppins", sans-serif);
   font-size: 1.6rem;
   font-weight: 800;
-  color: #2D1B46;
+  color: var(--text, #2D1B46);
   margin: 0 0 6px 0;
   line-height: 1.1;
 }
 
 .goal-top-content p {
   font-size: 0.85rem;
-  color: #5A4A6F;
+  color: var(--text-muted, #5A4A6F);
   margin: 0;
 }
 
 /* Colores de las tarjetas superiores */
-.card-orange .goal-icon-wrapper { background: rgba(245, 158, 11, 0.12); color: #F59E0B; }
-.card-purple .goal-icon-wrapper { background: rgba(122, 59, 186, 0.12); color: #7A3BBA; }
+.card-orange .goal-icon-wrapper { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+.card-purple .goal-icon-wrapper { background: rgba(122, 59, 186, 0.15); color: #9D5BD2; }
 
 /* =========================================================
    OBJETIVOS SEMANALES (BARRAS DE PROGRESO)
@@ -119,23 +119,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #FFFFFF;
+  background: var(--surface, #FFFFFF);
   border-radius: 20px;
   padding: 24px 28px;
-  box-shadow: 0 8px 20px rgba(45, 27, 70, 0.04);
-  border: 1px solid rgba(109, 76, 143, 0.08);
+  box-shadow: var(--shadow-sm, 0 8px 20px rgba(45, 27, 70, 0.04));
+  border: 1px solid var(--border, rgba(109, 76, 143, 0.08));
   gap: 30px;
   transition: all 0.3s ease;
 }
 
-/* Estado completado sutil */
 .progress-card.completed {
-  background: #FAFAFA;
-  border-color: #E2E8F0;
+  background: var(--surface-soft, #FAFAFA);
+  border-color: var(--border, #E2E8F0);
 }
 
 .progress-info {
-  flex: 1; /* Ocupa todo el espacio izquierdo disponible */
+  flex: 1;
 }
 
 .progress-title {
@@ -146,21 +145,20 @@
 
 .progress-title strong {
   font-size: 1.05rem;
-  color: #2D1B46;
+  color: var(--text, #2D1B46);
   font-weight: 700;
 }
 
 .progress-title span {
   font-size: 0.95rem;
-  color: #7A6A91;
+  color: var(--text-light, #7A6A91);
   font-weight: 700;
 }
 
-/* Diseño de la barra gruesa y redondeada */
 .progress-bar-bg {
   width: 100%;
   height: 14px;
-  background-color: #F1F5F9;
+  background-color: var(--surface-soft, #F1F5F9);
   border-radius: 50px;
   overflow: hidden;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
@@ -172,10 +170,9 @@
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Botón compacto a la derecha */
 .goal-action-btn {
   white-space: nowrap;
-  background: linear-gradient(135deg, #7A3BBA, #501D8A);
+  background: linear-gradient(135deg, var(--primary, #7A3BBA), var(--primary-dark, #501D8A));
   color: white;
   border: none;
   padding: 12px 24px;
@@ -193,8 +190,8 @@
 }
 
 .goal-action-btn:disabled {
-  background: #E2E8F0;
-  color: #94A3B8;
+  background: var(--surface-soft, #E2E8F0);
+  color: var(--text-light, #94A3B8);
   box-shadow: none;
   cursor: not-allowed;
 }
@@ -217,31 +214,55 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #FFFFFF;
+  background: var(--surface, #FFFFFF);
   border-radius: 24px;
   padding: 25px 20px;
   text-align: center;
-  box-shadow: 0 8px 20px rgba(45, 27, 70, 0.04);
-  border: 1px solid rgba(109, 76, 143, 0.08);
+  box-shadow: var(--shadow-sm, 0 8px 20px rgba(45, 27, 70, 0.04));
+  border: 1px solid var(--border, rgba(109, 76, 143, 0.08));
   transition: transform 0.2s ease;
 }
 
 .badge-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(45, 27, 70, 0.08);
+  box-shadow: var(--shadow-md, 0 15px 30px rgba(45, 27, 70, 0.08));
 }
 
-/* Círculo de la medalla */
 .badge-icon-bg {
+  position: relative;
   width: 70px;
   height: 70px;
   border-radius: 50%;
-  background: #F9F5FF;
+  background: var(--surface-soft, #F9F5FF);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 15px;
-  border: 2px solid #E9D8FD;
+  border: 2px solid var(--border, #E9D8FD);
+  transition: all 0.3s ease;
+}
+
+.badge-card.unlocked .badge-icon-bg {
+  background: linear-gradient(135deg, rgba(122, 59, 186, 0.12), rgba(245, 158, 11, 0.15));
+  border-color: #F59E0B;
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+}
+
+.badge-card.locked {
+  opacity: 0.65;
+  filter: grayscale(0.5);
+}
+
+.badge-lock-overlay {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  background: #64748B;
+  color: white;
+  padding: 4px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .badge-emoji {
@@ -249,10 +270,106 @@
 }
 
 .badge-text {
-  font-size: 0.9rem;
-  color: #5A4A6F;
+  font-size: 0.95rem;
+  color: var(--text, #2D1B46);
   font-weight: 700;
   line-height: 1.3;
+  margin-bottom: 6px;
+}
+
+.badge-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted, #7A6A91);
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.badge-status-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.badge-card.unlocked .badge-status-tag {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.badge-card.locked .badge-status-tag {
+  background: var(--surface-soft, #F1F5F9);
+  color: var(--text-light, #94A3B8);
+  border: 1px solid var(--border, #E2E8F0);
+}
+
+.goal-auto-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563EB;
+}
+
+.goal-completed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #059669;
+  padding: 8px 14px;
+  background: rgba(16, 185, 129, 0.1);
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   MODO OSCURO UNIVERSAL
+   ========================================================= */
+body.dark-mode .goals-header h1,
+body.dark-mode .section-title,
+body.dark-mode .goal-top-content h3,
+body.dark-mode .progress-title strong {
+  color: var(--text, #FFFFFF);
+}
+
+body.dark-mode .goals-header p,
+body.dark-mode .goal-top-content h2,
+body.dark-mode .progress-title span {
+  color: var(--text-light, #A09BBA);
+}
+
+body.dark-mode .goal-top-content p,
+body.dark-mode .badge-text {
+  color: var(--text-muted, #D1CDE0);
+}
+
+body.dark-mode .goal-top-card,
+body.dark-mode .progress-card,
+body.dark-mode .badge-card {
+  background: var(--surface, #1E1A29);
+  border-color: var(--border, #3A324C);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .progress-card.completed {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+body.dark-mode .progress-bar-bg {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .badge-icon-bg {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* =========================================================
@@ -267,7 +384,6 @@
     font-size: 1.8rem;
   }
 
-  /* En tablet/móvil, el botón pasa abajo pero centrado y pequeño */
   .progress-card {
     flex-direction: column;
     align-items: flex-start;

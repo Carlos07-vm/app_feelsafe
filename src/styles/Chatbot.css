@@ -7,8 +7,9 @@
   justify-content: center;
   align-items: center;
   padding: 10px;
-  height: calc(100vh - 100px); /* Ocupa la altura de la pantalla menos el menú */
-  min-height: 500px;
+  height: calc(100vh - 100px);
+  height: calc(100dvh - 100px);
+  min-height: 480px;
 }
 
 .chat-container {
@@ -18,13 +19,11 @@
   max-width: 900px; 
   height: 100%;
   
-  /* Panel completo en color morado claro y acogedor */
-  background-color: #EBDFFF; 
-  
+  background-color: var(--surface-soft, #EBDFFF); 
   border-radius: 24px;
   overflow: hidden;
   box-shadow: 0 15px 35px rgba(45, 27, 70, 0.12);
-  border: 1px solid rgba(109, 76, 143, 0.15);
+  border: 1px solid var(--border, rgba(109, 76, 143, 0.15));
 }
 
 /* =========================================================
@@ -362,3 +361,48 @@
 .support-recommendation-content button:hover {
   opacity: 0.9;
 }
+
+/* =========================================================
+   MODO OSCURO PARA CHATBOT IA
+   ========================================================= */
+body.dark-mode .chat-container {
+  background-color: var(--surface, #1E1A29);
+  border-color: var(--border, #3A324C);
+}
+
+body.dark-mode .chat-status {
+  background-color: var(--surface-soft, #2A2438);
+  color: #D9C3F2;
+  border-bottom-color: var(--border, #3A324C);
+}
+
+body.dark-mode .wrapper-bot .message-bubble {
+  background: var(--surface-soft, #2A2438);
+  color: var(--text, #F7F4FB);
+  border: 1px solid var(--border, #3A324C);
+}
+
+body.dark-mode .chat-input-container {
+  background: var(--surface, #1E1A29);
+  border-top-color: var(--border, #3A324C);
+}
+
+body.dark-mode .chat-input-field {
+  background: var(--surface-soft, #2A2438);
+  color: var(--text, #F7F4FB);
+  border-color: var(--border, #3A324C);
+}
+
+body.dark-mode .chat-input-field::placeholder {
+  color: var(--text-muted, #9CA3AF);
+}
+
+body.dark-mode .support-normal {
+  background: #252033;
+  border-color: #3e3352;
+}
+
+body.dark-mode .support-urgent {
+  background: #331d24;
+  border-color: #5c2633;
+}
