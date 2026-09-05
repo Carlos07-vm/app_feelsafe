@@ -60,58 +60,66 @@ function BreathingModal({ close }) {
     setCycle(1);
   };
 
+  // Timer: purely decrements counter, no side effects
   useEffect(() => {
     if (!isActive) return;
 
     timerRef.current = setInterval(() => {
-      setCounter((prev) => {
-        if (prev > 1) return prev - 1;
-
-        // Transition to next phase
-        if (phase === "inhale") {
-          if (selectedTech.hold1 > 0) {
-            setPhase("hold1");
-            return selectedTech.hold1;
-          } else {
-            setPhase("exhale");
-            return selectedTech.exhale;
-          }
-        } else if (phase === "hold1") {
-          setPhase("exhale");
-          return selectedTech.exhale;
-        } else if (phase === "exhale") {
-          if (selectedTech.hold2 > 0) {
-            setPhase("hold2");
-            return selectedTech.hold2;
-          } else {
-            if (cycle >= totalCycles) {
-              setPhase("done");
-              setIsActive(false);
-              return 0;
-            } else {
-              setCycle((c) => c + 1);
-              setPhase("inhale");
-              return selectedTech.inhale;
-            }
-          }
-        } else if (phase === "hold2") {
-          if (cycle >= totalCycles) {
-            setPhase("done");
-            setIsActive(false);
-            return 0;
-          } else {
-            setCycle((c) => c + 1);
-            setPhase("inhale");
-            return selectedTech.inhale;
-          }
-        }
-
-        return 0;
-      });
+      setCounter((prev) => (prev > 1 ? prev - 1 : 0));
     }, 1000);
 
     return () => clearInterval(timerRef.current);
-  }, [isActive, phase, cycle, selectedTech, totalCycles]);
+  }, [isActive]);
+
+  // Phase transitions: handles logic when counter reaches 0
+  useEffect(() => {
+    if (!isActive || counter > 0) return;
+
+    // Counter reached 0, transition to next phase
+    if (phase === "inhale") {
+      if (selectedTech.hold1 > 0) {
+        setPhase("hold1");
+        setCounter(selectedTech.hold1);
+      } else {
+        setPhase("exhale");
+        setCounter(selectedTech.exhale);
+      }
+    } else if (phase === "hold1") {
+      setPhase("exhale");
+      setCounter(selectedTech.exhale);
+    } else if (phase === "exhale") {
+      if (selectedTech.hold2 > 0) {
+        setPhase("hold2");
+        setCounter(selectedTech.hold2);
+      } else {
+        if (cycle >= totalCycles) {
+          setPhase("done");
+          setIsActive(false);
+        } else {
+          setCycle((c) => c + 1);
+          setPhase("inhale");
+          setCounter(selectedTech.inhale);
+        }
+      }
+    } else if (phase === "hold2") {
+      if (cycle >= totalCycles) {
+        setPhase("done");
+        setIsActive(false);
+      } else {
+        setCycle((c) => c + 1);
+        setPhase("inhale");
+        setCounter(selectedTech.inhale);
+      }
+    }
+
+    if (phase === "done") {
+      try {
+        const count = parseInt(localStorage.getItem("feelsafe_breathing_count") || "0", 10) + 1;
+        localStorage.setItem("feelsafe_breathing_count", String(count));
+        window.dispatchEvent(new Event("feelsafe_goals_updated"));
+      } catch {}
+    }
+  }, [counter, phase, isActive, cycle, selectedTech, totalCycles]);
 
   const getPhaseInstruction = () => {
     switch (phase) {

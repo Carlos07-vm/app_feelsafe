@@ -71,25 +71,29 @@ function MeditationModal({ close }) {
     playCalmTone();
 
     const timer = setInterval(() => {
-      setSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setRunning(false);
-          return 0;
-        }
-
-        // Change guide every 12-15 seconds
-        if (prev % 15 === 0) {
-          setGuideIndex((g) => (g + 1) % MEDITATION_GUIDES.length);
-          playCalmTone();
-        }
-
-        return prev - 1;
-      });
+      setSeconds((prev) => (prev > 1 ? prev - 1 : 0));
     }, 1000);
 
     return () => clearInterval(timer);
   }, [running, audioEnabled]);
+
+  // Handle meditation end and guide changes: side effects when seconds updates
+  useEffect(() => {
+    if (!running) return;
+
+    if (seconds <= 1) {
+      setRunning(false);
+      try {
+        const count = parseInt(localStorage.getItem("feelsafe_meditation_count") || "0", 10) + 1;
+        localStorage.setItem("feelsafe_meditation_count", String(count));
+        window.dispatchEvent(new Event("feelsafe_goals_updated"));
+      } catch {}
+    } else if (seconds % 15 === 0) {
+      // Change guide every 12-15 seconds
+      setGuideIndex((g) => (g + 1) % MEDITATION_GUIDES.length);
+      playCalmTone();
+    }
+  }, [seconds, running, audioEnabled]);
 
   const handleDurationChange = (val) => {
     setSelectedDuration(val);

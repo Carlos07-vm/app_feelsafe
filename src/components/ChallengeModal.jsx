@@ -59,6 +59,10 @@ function ChallengeModal({ close, onComplete }) {
       };
       stored.unshift(newEntry);
       localStorage.setItem("feelsafe_challenges", JSON.stringify(stored.slice(0, 30)));
+
+      const challengeCount = parseInt(localStorage.getItem("feelsafe_challenge_count") || "0", 10) + 1;
+      localStorage.setItem("feelsafe_challenge_count", String(challengeCount));
+      window.dispatchEvent(new Event("feelsafe_goals_updated"));
     } catch {
       // LocalStorage fallback
     }
