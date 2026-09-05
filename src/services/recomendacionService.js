@@ -63,25 +63,30 @@ export const obtenerRecomendaciones = async (
       consulta = query(
         collection(db, COLECCION),
         where("emocion", "==", emocion),
-        where("estado", "==", "Activo"),
-        orderBy("fechaCreacion", "desc")
+        where("estado", "==", "Activo")
       );
     } else {
       consulta = query(
         collection(db, COLECCION),
-        where("estado", "==", "Activo"),
-        orderBy("fechaCreacion", "desc")
+        where("estado", "==", "Activo")
       );
     }
 
     const resultado = await getDocs(consulta);
 
-    const recomendaciones = resultado.docs.map(
+    let recomendaciones = resultado.docs.map(
       (documento) => ({
         id: documento.id,
         ...documento.data(),
       })
     );
+
+    // Ordenar en el cliente por fechaCreacion descendente
+    recomendaciones.sort((a, b) => {
+      const dateA = new Date(b.fechaCreacion || 0).getTime();
+      const dateB = new Date(a.fechaCreacion || 0).getTime();
+      return dateA - dateB;
+    });
 
     return {
       success: true,
