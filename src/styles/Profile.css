@@ -694,3 +694,79 @@
     margin-top: 6px;
   }
 }
+
+.modal-actions-split {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.modal-test-btn {
+  flex: 1;
+  background: var(--surface-soft, #F3EEFC);
+  color: var(--primary, #6D4C8F);
+  border: 1px solid var(--primary-light, #D9C3F2);
+  padding: 12px 18px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-test-btn:hover {
+  background: var(--primary-light, #D9C3F2);
+  color: var(--primary-dark, #4B2F77);
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   MODO OSCURO UNIVERSAL
+   ========================================================= */
+body.dark-mode .profile-name,
+body.dark-mode .settings-card h3,
+body.dark-mode .setting-text strong,
+body.dark-mode .modal-card h3,
+body.dark-mode .stat-value {
+  color: var(--text, #FFFFFF);
+}
+
+body.dark-mode .profile-bio,
+body.dark-mode .setting-text span,
+body.dark-mode .stat-label {
+  color: var(--text-light, #A09BBA);
+}
+
+body.dark-mode .profile-header-card,
+body.dark-mode .profile-card,
+body.dark-mode .settings-card,
+body.dark-mode .modal-card {
+  background: var(--surface, #1E1A29);
+  border-color: var(--border, #3A324C);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .stat-box {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+body.dark-mode .toggle-setting-row,
+body.dark-mode .action-setting-row {
+  border-color: var(--border, #3A324C);
+}
+
+body.dark-mode .modal-input,
+body.dark-mode .modal-textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border, #3A324C);
+  color: var(--text, #FFFFFF);
+}
+
+body.dark-mode .modal-cancel-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text, #FFFFFF);
+}

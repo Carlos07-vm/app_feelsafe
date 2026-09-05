@@ -397,6 +397,64 @@
 }
 
 /* =========================================================
+   MODO OSCURO UNIVERSAL
+   ========================================================= */
+body.dark-mode .resources-main-title,
+body.dark-mode .res-card h3,
+body.dark-mode .res-info-head h3,
+body.dark-mode .res-challenge-card h3,
+body.dark-mode .active-guide-head h4,
+body.dark-mode .guide-step-item {
+  color: var(--text, #FFFFFF);
+}
+
+body.dark-mode .resources-subtitle,
+body.dark-mode .res-card p,
+body.dark-mode .res-info-head p,
+body.dark-mode .res-challenge-card p,
+body.dark-mode .active-guide-head p {
+  color: var(--text-light, #A09BBA);
+}
+
+body.dark-mode .res-card,
+body.dark-mode .res-info-card,
+body.dark-mode .res-challenge-card {
+  background: var(--surface, #1E1A29);
+  border-color: var(--border, #3A324C);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .active-guide-content {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .guide-step-item,
+body.dark-mode .active-guide-badge-icon {
+  background: var(--surface, #1E1A29);
+  border-color: var(--border, #3A324C);
+}
+
+body.dark-mode .challenge-completed-badge {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+body.dark-mode .challenge-completed-badge strong {
+  color: #34D399;
+}
+
+body.dark-mode .challenge-completed-badge span {
+  color: #A7F3D0;
+}
+
+body.dark-mode .challenge-pending-hint {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #FCD34D;
+}
+
+/* =========================================================
    RESPONSIVE
    ========================================================= */
 @media (max-width: 1024px) {

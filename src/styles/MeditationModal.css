@@ -258,3 +258,31 @@
   align-items: center;
   gap: 6px;
 }
+
+/* =========================================================
+   MODO OSCURO UNIVERSAL
+   ========================================================= */
+body.dark-mode .meditation-modal-box {
+  background: var(--surface, #1E1A29);
+  border-color: var(--border, #3A324C);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .meditation-header h2,
+body.dark-mode .med-timer-display {
+  color: var(--text, #FFFFFF);
+}
+
+body.dark-mode .meditation-header p,
+body.dark-mode .med-quote-box p {
+  color: var(--text-light, #A09BBA);
+}
+
+body.dark-mode .med-duration-btn,
+body.dark-mode .meditation-close-btn,
+body.dark-mode .med-reset-btn,
+body.dark-mode .med-quote-box {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text, #FFFFFF);
+}

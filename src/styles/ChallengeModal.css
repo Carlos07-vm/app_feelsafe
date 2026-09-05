@@ -262,3 +262,38 @@
   gap: 6px;
 }
 
+/* =========================================================
+   MODO OSCURO UNIVERSAL
+   ========================================================= */
+body.dark-mode .challenge-modal-box {
+  background: var(--surface, #1E1A29);
+  border-color: var(--border, #3A324C);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .challenge-modal-header h2,
+body.dark-mode .challenge-success-view h2,
+body.dark-mode .challenge-prompt-text {
+  color: var(--text, #FFFFFF);
+}
+
+body.dark-mode .challenge-modal-header p,
+body.dark-mode .challenge-success-view p,
+body.dark-mode .challenge-reflection-area label {
+  color: var(--text-light, #A09BBA);
+}
+
+body.dark-mode .challenge-prompt-box,
+body.dark-mode .challenge-close-btn,
+body.dark-mode .summary-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text, #FFFFFF);
+}
+
+body.dark-mode .challenge-reflection-area textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border, #3A324C);
+  color: var(--text, #FFFFFF);
+}
+
