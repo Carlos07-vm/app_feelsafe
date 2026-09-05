@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">feel-Safe</string>
+    <string name="title_activity_main">feel-Safe</string>
+    <string name="package_name">com.feelsafe.app</string>
+    <string name="custom_url_scheme">com.feelsafe.app</string>
+    <string name="facebook_app_id">4309748789239053</string>
+    <string name="facebook_client_token">7e622b55e51322859fdd3ca4897111eb</string>
+</resources>

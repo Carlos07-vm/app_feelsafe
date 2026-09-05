@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "142737832795",
+    "project_id": "feelsafe-ba317",
+    "storage_bucket": "feelsafe-ba317.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:142737832795:android:b886f9db151cec20eeb87e",
+        "android_client_info": {
+          "package_name": "com.feelsafe.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "142737832795-vfai4r1n6cqbe5fovqp082b2o3sq82fs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3NW1LUEI4eLlLF8WseT2CmsTzGtleC0I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "142737832795-vfai4r1n6cqbe5fovqp082b2o3sq82fs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
