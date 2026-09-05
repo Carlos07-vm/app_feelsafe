@@ -265,3 +265,31 @@
   gap: 6px;
 }
 
+/* =========================================================
+   MODO OSCURO UNIVERSAL
+   ========================================================= */
+body.dark-mode .breathing-modal-box {
+  background: var(--surface, #1E1A29);
+  border-color: var(--border, #3A324C);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .breathing-modal-header h2,
+body.dark-mode .breathing-circle-phase {
+  color: var(--text, #FFFFFF);
+}
+
+body.dark-mode .breathing-modal-header p,
+body.dark-mode .tech-pill-btn {
+  color: var(--text-light, #A09BBA);
+}
+
+body.dark-mode .tech-pill-btn,
+body.dark-mode .breathing-close-btn,
+body.dark-mode .breathing-cycles-tag,
+body.dark-mode .breathing-reset-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text, #FFFFFF);
+}
+

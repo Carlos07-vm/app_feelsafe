@@ -184,33 +184,38 @@
 }
 
 /* =========================================================
-   MODO OSCURO (.theme-dark)
+   MODO OSCURO (DARK MODE UNIVERSAL)
    ========================================================= */
+body.dark-mode .alerts-header h1,
 .theme-dark .alerts-header h1 {
-  color: #FFFFFF;
+  color: var(--text, #FFFFFF);
 }
 
+body.dark-mode .alerts-header p,
 .theme-dark .alerts-header p {
-  color: #A09BBA;
+  color: var(--text-light, #A09BBA);
 }
 
+body.dark-mode .alert-card,
 .theme-dark .alert-card {
-  background: #252542;
-  border-color: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  background: var(--surface, #1E1A29);
+  border-color: var(--border, #3A324C);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
+body.dark-mode .alert-content h4,
+body.dark-mode .alert-content p,
 .theme-dark .alert-content h4,
 .theme-dark .alert-content p {
-  color: #A09BBA;
+  color: var(--text-muted, #D1CDE0);
 }
 
 /* Oscurecemos ligeramente el fondo de los iconos para que no deslumbren en modo oscuro */
-.theme-dark .icon-green { background: rgba(16, 185, 129, 0.18); }
-.theme-dark .icon-orange { background: rgba(245, 158, 11, 0.18); }
-.theme-dark .icon-red { background: rgba(239, 68, 68, 0.18); }
-.theme-dark .icon-purple { background: rgba(122, 59, 186, 0.18); }
-.theme-dark .icon-blue { background: rgba(59, 130, 246, 0.18); }
+body.dark-mode .icon-green, .theme-dark .icon-green { background: rgba(16, 185, 129, 0.18); }
+body.dark-mode .icon-orange, .theme-dark .icon-orange { background: rgba(245, 158, 11, 0.18); }
+body.dark-mode .icon-red, .theme-dark .icon-red { background: rgba(239, 68, 68, 0.18); }
+body.dark-mode .icon-purple, .theme-dark .icon-purple { background: rgba(122, 59, 186, 0.18); }
+body.dark-mode .icon-blue, .theme-dark .icon-blue { background: rgba(59, 130, 246, 0.18); }
 
 /* =========================================================
    RESPONSIVE (TABLETS Y MÓVILES)

@@ -1,0 +1,103 @@
+﻿/* =========================================================
+   FEELSAFE - BOTTOM NAVIGATION BAR (MÓVILES)
+   ========================================================= */
+
+.bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border, #E7E2F0);
+    box-shadow: 0 -4px 20px rgba(45, 27, 70, 0.08);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 950;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  body.dark-mode .bottom-nav {
+    background: rgba(30, 26, 41, 0.95);
+    border-top-color: var(--border, #3A324C);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 100%;
+    color: var(--text-muted, #7A6A91);
+    text-decoration: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: color 0.2s ease, transform 0.15s ease;
+    position: relative;
+  }
+
+  .bottom-nav-item:active {
+    transform: scale(0.92);
+  }
+
+  .bottom-nav-icon {
+    font-size: 1.25rem;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+  }
+
+  .bottom-nav-item.active {
+    color: var(--primary, #6D4C8F);
+  }
+
+  body.dark-mode .bottom-nav-item.active {
+    color: #D9C3F2;
+  }
+
+  .bottom-nav-item.active .bottom-nav-icon {
+    transform: translateY(-2px) scale(1.12);
+  }
+
+  .bottom-nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+    width: 16px;
+    height: 3px;
+    border-radius: 4px;
+    background: var(--primary, #6D4C8F);
+    box-shadow: 0 0 8px rgba(109, 76, 143, 0.4);
+  }
+
+  body.dark-mode .bottom-nav-item.active::after {
+    background: #D9C3F2;
+    box-shadow: 0 0 8px rgba(217, 195, 242, 0.4);
+  }
+
+  .bottom-nav-item.item-sos {
+    color: #E11D48;
+  }
+
+  .bottom-nav-item.item-sos .bottom-nav-icon {
+    color: #E11D48;
+  }
+
+  .bottom-nav-item.item-sos.active {
+    color: #BE123C;
+  }
+
+  .bottom-nav-item.item-sos.active::after {
+    background: #E11D48;
+  }
+}

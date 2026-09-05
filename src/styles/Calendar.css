@@ -395,6 +395,64 @@
 }
 
 /* =========================================================
+   MODO OSCURO UNIVERSAL
+   ========================================================= */
+body.dark-mode .calendar-header h1,
+body.dark-mode .cal-month-title h2,
+body.dark-mode .cal-card-title h3,
+body.dark-mode .note-box h4,
+body.dark-mode .mood-badge-large strong,
+body.dark-mode .cal-day-number {
+  color: var(--text, #FFFFFF);
+}
+
+body.dark-mode .calendar-header p,
+body.dark-mode .cal-weekday,
+body.dark-mode .cal-date-indicator,
+body.dark-mode .mood-badge-large span {
+  color: var(--text-light, #A09BBA);
+}
+
+body.dark-mode .calendar-wrapper,
+body.dark-mode .calendar-details-card {
+  background: var(--surface, #1E1A29);
+  border-color: var(--border, #3A324C);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .calendar-cell {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--border, #3A324C);
+}
+
+body.dark-mode .calendar-cell:hover:not(.empty) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .calendar-cell.selected {
+  background: rgba(109, 76, 143, 0.3);
+  border-color: var(--primary, #A855F7);
+}
+
+body.dark-mode .note-box {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--border, #3A324C);
+}
+
+body.dark-mode .note-textarea {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border, #3A324C);
+  color: var(--text, #FFFFFF);
+}
+
+body.dark-mode .cal-today-pill,
+body.dark-mode .cal-nav-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text, #FFFFFF);
+}
+
+/* =========================================================
    RESPONSIVE (TABLETS Y MÓVILES)
    ========================================================= */
 @media (max-width: 900px) {
