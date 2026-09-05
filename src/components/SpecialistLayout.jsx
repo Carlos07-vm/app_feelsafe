@@ -48,7 +48,13 @@ function SpecialistLayout({ children }) {
         const specialistRef = doc(db, "specialists", user.uid);
         const specialistSnap = await getDoc(specialistRef);
         if (specialistSnap.exists()) {
-          setSpecialist({ uid: user.uid, email: user.email, ...specialistSnap.data() });
+          const specData = specialistSnap.data();
+          setSpecialist({
+            uid: user.uid,
+            email: user.email,
+            ...specData,
+            fotoPerfil: specData.fotoPerfil || specData.foto || specData.photoURL || user.photoURL || "",
+          });
         } else {
           setSpecialist({
             uid: user.uid,
