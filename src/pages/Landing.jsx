@@ -1,5 +1,6 @@
 import "../styles/Landing.css";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useApp } from "../context/AppContext";
 import logo from "../assets/logo.jpeg";
 
 import {
@@ -12,6 +13,56 @@ import {
 } from "react-icons/fa";
 
 function Landing() {
+  const { user, loading } = useApp();
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          background: "linear-gradient(135deg, #2D1B46 0%, #1A0F2B 100%)",
+          color: "#ffffff",
+          gap: "16px",
+          fontFamily: "Poppins, sans-serif",
+        }}
+      >
+        <img
+          src={logo}
+          alt="FeelSafe"
+          style={{
+            width: "80px",
+            height: "80px",
+            borderRadius: "50%",
+            boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+          }}
+        />
+        <span style={{ fontSize: "1.2rem", fontWeight: "700" }}>FeelSafe</span>
+        <div
+          style={{
+            width: "30px",
+            height: "30px",
+            border: "3px solid rgba(255,255,255,0.2)",
+            borderTopColor: "#D9C3F2",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
+
+  if (user) {
+    if (user.tipoCuenta === "especialista" || user.rol === "especialista") {
+      return <Navigate to="/specialist/dashboard" replace />;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return (
     <main className="landing">
 

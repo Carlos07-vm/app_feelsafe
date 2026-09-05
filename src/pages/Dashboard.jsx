@@ -7,7 +7,7 @@ import { useState, useEffect } from "react"; // <-- IMPORTAMOS HOOKS
 
 // --- FIREBASE (TIEMPO REAL) ---
 import { db } from "../services/firebase";
-import { doc, onSnapshot, collection, query, where, orderBy, limit } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where } from "firebase/firestore";
 
 import {
   FaSmile, FaHeartbeat, FaBrain, FaChartLine, FaArrowRight,
@@ -47,17 +47,23 @@ function Dashboard() {
     });
 
     // 2. ESCUCHADOR DEL ÚLTIMO REGISTRO EMOCIONAL
-    // Trae únicamente el documento más reciente basado en la fecha
+    // Obtener registros sin orderBy para evitar requerir índices
+    // Luego ordenamos en el cliente
     const recordsQuery = query(
       collection(db, "registros_emocionales"),
-      where("uidUsuario", "==", user.uid),
-      orderBy("fecha", "desc"),
-      limit(1)
+      where("uidUsuario", "==", user.uid)
     );
 
     const unsubRecords = onSnapshot(recordsQuery, (snapshot) => {
       if (!snapshot.empty) {
-        setLastRecord(snapshot.docs[0].data());
+        // Ordenar en el cliente por fecha descendente (más reciente primero)
+        const records = snapshot.docs.map(doc => doc.data());
+        records.sort((a, b) => {
+          const timeA = a.fecha?.toDate ? a.fecha.toDate().getTime() : new Date(a.fecha || 0).getTime();
+          const timeB = b.fecha?.toDate ? b.fecha.toDate().getTime() : new Date(b.fecha || 0).getTime();
+          return timeB - timeA;
+        });
+        setLastRecord(records[0]);
       } else {
         setLastRecord(null);
       }

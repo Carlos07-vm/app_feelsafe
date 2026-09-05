@@ -114,8 +114,15 @@ const DAILY_REFLECTIONS = [
 ];
 
 function Profile() {
-  const { user, updateUserProfile, theme, toggleTheme, language, toggleLanguage } =
-    useApp();
+  const {
+    user,
+    updateUserProfile,
+    theme,
+    toggleTheme,
+    language,
+    toggleLanguage,
+    testNotificationSystem,
+  } = useApp();
   const navigate = useNavigate();
   const t = translations[language] || translations.es;
 
@@ -309,19 +316,35 @@ function Profile() {
   /**
    * Guarda preferencias de notificaciones
    */
-  const handleToggleNotif = (type) => {
+  const handleToggleNotif = async (type) => {
+    let nextEmotions = notifEmotions;
+    let nextMessages = notifMessages;
+    let nextQuotes = notifDailyQuotes;
+
     if (type === "emotions") {
-      const next = !notifEmotions;
-      setNotifEmotions(next);
-      localStorage.setItem("notif_emotions", String(next));
+      nextEmotions = !notifEmotions;
+      setNotifEmotions(nextEmotions);
+      localStorage.setItem("notif_emotions", String(nextEmotions));
     } else if (type === "messages") {
-      const next = !notifMessages;
-      setNotifMessages(next);
-      localStorage.setItem("notif_messages", String(next));
+      nextMessages = !notifMessages;
+      setNotifMessages(nextMessages);
+      localStorage.setItem("notif_messages", String(nextMessages));
     } else if (type === "quotes") {
-      const next = !notifDailyQuotes;
-      setNotifDailyQuotes(next);
-      localStorage.setItem("notif_daily_quotes", String(next));
+      nextQuotes = !notifDailyQuotes;
+      setNotifDailyQuotes(nextQuotes);
+      localStorage.setItem("notif_daily_quotes", String(nextQuotes));
+    }
+
+    try {
+      await updateUserProfile({
+        notificacionesConfig: {
+          registroEmocional: nextEmotions,
+          mensajesEspecialista: nextMessages,
+          fraseDiaria: nextQuotes,
+        },
+      });
+    } catch (e) {
+      console.warn("No se pudo sincronizar en Firestore:", e);
     }
 
     setStatusMessage(
@@ -330,6 +353,18 @@ function Profile() {
         : "Notification preferences saved."
     );
     setTimeout(() => setStatusMessage(""), 2500);
+  };
+
+  const handleTestNotification = async () => {
+    if (testNotificationSystem) {
+      await testNotificationSystem();
+      setStatusMessage(
+        language === "es"
+          ? "¡Notificación de prueba enviada con éxito!"
+          : "Test notification sent successfully!"
+      );
+      setTimeout(() => setStatusMessage(""), 3500);
+    }
   };
 
   /**
@@ -985,7 +1020,15 @@ function Profile() {
                 </div>
               </div>
 
-              <div className="modal-actions">
+              <div className="modal-actions modal-actions-split">
+                <button
+                  type="button"
+                  className="modal-test-btn"
+                  onClick={handleTestNotification}
+                >
+                  <FaBell style={{ marginRight: "6px" }} />
+                  {language === "es" ? "Probar Notificación" : "Test Notification"}
+                </button>
                 <button
                   type="button"
                   className="modal-save-btn"

@@ -1,4 +1,4 @@
-﻿import "../styles/Emotions.css";
+import "../styles/Emotions.css";
 import MainLayout from "../layouts/MainLayout";
 import { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
@@ -7,7 +7,7 @@ import { crearRegistroEmocional } from "../services/registroEmocionalService";
 import { translations } from "../constants/translations"; 
 
 function Emotions() {
-  const { user, updateUserProfile, language, darkMode } = useApp();
+  const { user, updateUserProfile, language, darkMode, triggerNotification } = useApp();
   const t = translations[language] || translations.es;
 
   const [selectedMood, setSelectedMood] = useState(user?.currentMood || "");
@@ -115,6 +115,19 @@ function Emotions() {
         notes: nextNotes,
         emotions: nextEmotions,
       });
+
+      localStorage.setItem("last_notif_checkin", fecha);
+
+      if (triggerNotification) {
+        triggerNotification({
+          type: "wellness",
+          title: language === "es" ? "✨ ¡Registro Emocional Guardado!" : "✨ Emotional Log Saved!",
+          body: language === "es"
+            ? `Registraste ${selectedMood}. Racha actual: ${nextStreak} día${nextStreak === 1 ? '' : 's'}.`
+            : `Logged ${selectedMood}. Current streak: ${nextStreak} day${nextStreak === 1 ? '' : 's'}.`,
+          duration: 4500,
+        });
+      }
 
       setStatus(t.recordSaved || "¡Registro guardado correctamente!");
       setNote("");

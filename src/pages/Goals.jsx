@@ -1,119 +1,240 @@
 import "../styles/Goals.css";
 import MainLayout from "../layouts/MainLayout";
 import { useApp } from "../context/AppContext";
-import { FaTrophy, FaFire, FaStar, FaCheckCircle, FaLock } from "react-icons/fa";
-import { useState, useEffect } from "react";
-
-const DEFAULT_GOALS = [
-  {
-    id: "g1",
-    title: "Registrar emociones diarias",
-    progress: 0,
-    total: 7,
-    color: "linear-gradient(135deg, #A855F7, #7B61FF)",
-  },
-  {
-    id: "g2",
-    title: "Completar pausas de respiración",
-    progress: 0,
-    total: 5,
-    color: "linear-gradient(135deg, #3B82F6, #2563EB)",
-  },
-  {
-    id: "g3",
-    title: "Diario de gratitud y notas",
-    progress: 0,
-    total: 3,
-    color: "linear-gradient(135deg, #10B981, #059669)",
-  },
-];
+import { FaTrophy, FaFire, FaStar, FaCheckCircle, FaLock, FaBolt } from "react-icons/fa";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Goals() {
-  const { user, updateUserProfile, language } = useApp();
+  const { user, updateUserProfile, language, triggerNotification } = useApp();
+  const navigate = useNavigate();
 
-  const [goals, setGoals] = useState(() => {
+  // Contadores reales desde perfil y localStorage
+  const streak = user?.streak || 0;
+  const emotionsCount = Array.isArray(user?.emotions) ? user.emotions.length : 0;
+  const notesCount = Array.isArray(user?.notes) ? user.notes.length : 0;
+  const wellbeing = user?.wellbeing ?? 72;
+
+  const [breathingCount, setBreathingCount] = useState(() => {
+    return parseInt(localStorage.getItem("feelsafe_breathing_count") || "0", 10);
+  });
+  const [meditationCount, setMeditationCount] = useState(() => {
+    return parseInt(localStorage.getItem("feelsafe_meditation_count") || "0", 10);
+  });
+  const [challengesCount, setChallengesCount] = useState(() => {
     try {
-      const stored = localStorage.getItem("user_goals_progress");
-      return stored ? JSON.parse(stored) : DEFAULT_GOALS;
+      const stored = JSON.parse(localStorage.getItem("feelsafe_challenges") || "[]");
+      const directCount = parseInt(localStorage.getItem("feelsafe_challenge_count") || "0", 10);
+      return Math.max(stored.length, directCount);
     } catch {
-      return DEFAULT_GOALS;
+      return 0;
     }
   });
 
-  const streak = user?.streak || 0;
-  const emotionsCount = user?.emotions?.length || 0;
-  const notesCount = user?.notes?.length || 0;
-  const wellbeing = user?.wellbeing || 72;
-
-  // Actualizar automáticamente progreso con base en datos reales
+  // Escuchar eventos de actualización de metas (disparados por modales)
   useEffect(() => {
-    setGoals((current) =>
-      current.map((g) => {
-        if (g.id === "g1") {
-          return { ...g, progress: Math.min(g.total, Math.max(g.progress, streak)) };
-        }
-        if (g.id === "g3") {
-          return { ...g, progress: Math.min(g.total, Math.max(g.progress, notesCount)) };
-        }
-        return g;
-      })
-    );
-  }, [streak, notesCount]);
+    const handleSync = () => {
+      setBreathingCount(parseInt(localStorage.getItem("feelsafe_breathing_count") || "0", 10));
+      setMeditationCount(parseInt(localStorage.getItem("feelsafe_meditation_count") || "0", 10));
+      try {
+        const stored = JSON.parse(localStorage.getItem("feelsafe_challenges") || "[]");
+        const directCount = parseInt(localStorage.getItem("feelsafe_challenge_count") || "0", 10);
+        setChallengesCount(Math.max(stored.length, directCount));
+      } catch {}
+    };
 
-  // Nivel de usuario dinámico
+    window.addEventListener("feelsafe_goals_updated", handleSync);
+    window.addEventListener("storage", handleSync);
+    return () => {
+      window.removeEventListener("feelsafe_goals_updated", handleSync);
+      window.removeEventListener("storage", handleSync);
+    };
+  }, []);
+
+  // Objetivos calculados automáticamente según actividad real
+  const goals = useMemo(() => [
+    {
+      id: "g1",
+      title: language === "es" ? "Registrar emociones diarias" : "Log daily emotions",
+      desc: language === "es" ? "Meta semanal: 7 días de racha activa" : "Weekly goal: 7 active days streak",
+      progress: Math.min(7, streak),
+      total: 7,
+      color: "linear-gradient(135deg, #A855F7, #7B61FF)",
+      actionRoute: "/mood",
+      actionLabel: language === "es" ? "Ir al Check-in" : "Go to Check-in",
+      isAuto: true,
+    },
+    {
+      id: "g2",
+      title: language === "es" ? "Completar pausas de respiración" : "Complete breathing breaks",
+      desc: language === "es" ? "Realiza ejercicios de respiración consciente" : "Do mindful breathing exercises",
+      progress: Math.min(5, breathingCount),
+      total: 5,
+      color: "linear-gradient(135deg, #3B82F6, #2563EB)",
+      actionRoute: "/resources",
+      actionLabel: language === "es" ? "Practicar" : "Practice",
+      isAuto: true,
+    },
+    {
+      id: "g3",
+      title: language === "es" ? "Cumplir retos diarios de bienestar" : "Complete daily wellness challenges",
+      desc: language === "es" ? "Escribe tus reflexiones en el reto del día" : "Complete today's challenge reflection",
+      progress: Math.min(3, challengesCount),
+      total: 3,
+      color: "linear-gradient(135deg, #EC4899, #BE185D)",
+      actionRoute: "/resources",
+      actionLabel: language === "es" ? "Hacer Reto" : "Take Challenge",
+      isAuto: true,
+    },
+    {
+      id: "g4",
+      title: language === "es" ? "Diario de reflexiones y notas" : "Mindful journal & notes",
+      desc: language === "es" ? "Registra notas personales junto a tus emociones" : "Save notes along with your mood check-ins",
+      progress: Math.min(3, notesCount),
+      total: 3,
+      color: "linear-gradient(135deg, #10B981, #059669)",
+      actionRoute: "/mood",
+      actionLabel: language === "es" ? "Escribir Nota" : "Write Note",
+      isAuto: true,
+    },
+    {
+      id: "g5",
+      title: language === "es" ? "Sesiones de meditación guiada" : "Guided meditation sessions",
+      desc: language === "es" ? "Dedica minutos a meditar con calma" : "Take mindful meditation minutes",
+      progress: Math.min(3, meditationCount),
+      total: 3,
+      color: "linear-gradient(135deg, #F59E0B, #D97706)",
+      actionRoute: "/resources",
+      actionLabel: language === "es" ? "Meditar" : "Meditate",
+      isAuto: true,
+    },
+  ], [language, streak, breathingCount, challengesCount, notesCount, meditationCount]);
+
+  // Nivel dinámico del usuario
   const getUserLevel = () => {
-    if (streak >= 14 || emotionsCount >= 20) return "Maestro del Bienestar 👑";
-    if (streak >= 7 || emotionsCount >= 10) return "Guardián de la Calma 🛡️";
-    if (streak >= 3 || emotionsCount >= 3) return "Explorador Emocional 🧭";
-    return "Iniciador del Autocuidado 🌱";
+    if (streak >= 14 || emotionsCount >= 20 || challengesCount >= 10) {
+      return language === "es" ? "Maestro del Bienestar 👑" : "Wellness Master 👑";
+    }
+    if (streak >= 7 || emotionsCount >= 10 || challengesCount >= 5) {
+      return language === "es" ? "Guardián de la Calma 🛡️" : "Guardian of Calm 🛡️";
+    }
+    if (streak >= 3 || emotionsCount >= 3 || challengesCount >= 1) {
+      return language === "es" ? "Explorador Emocional 🧭" : "Emotional Explorer 🧭";
+    }
+    return language === "es" ? "Iniciador del Autocuidado 🌱" : "Self-Care Beginner 🌱";
   };
 
-  // Insignias dinámicas
-  const badges = [
+  // Catálogo completo de Insignias y Logros dinámicos
+  const badges = useMemo(() => [
     {
+      id: "first_emotion",
       icon: "🌟",
       text: language === "es" ? "Primera Emoción" : "First Emotion",
       unlocked: emotionsCount >= 1,
-      hint: "Registra tu primer estado de ánimo",
+      hint: language === "es" ? "Registra tu primer estado de ánimo" : "Log your first emotion",
     },
     {
+      id: "streak_3",
       icon: "🔥",
       text: language === "es" ? "3 Días Seguidos" : "3-Day Streak",
       unlocked: streak >= 3,
-      hint: "Mantén una racha de 3 días",
+      hint: language === "es" ? "Mantén una racha activa de 3 días" : "Keep a 3-day active streak",
     },
     {
+      id: "streak_7",
+      icon: "💪",
+      text: language === "es" ? "Semana Imparable" : "Unstoppable Week",
+      unlocked: streak >= 7,
+      hint: language === "es" ? "Alcanza una racha de 7 días" : "Reach a 7-day streak",
+    },
+    {
+      id: "wellbeing_70",
       icon: "💜",
       text: language === "es" ? "Semana Saludable" : "Healthy Week",
       unlocked: wellbeing >= 70,
-      hint: "Alcanza más del 70% de bienestar",
+      hint: language === "es" ? "Alcanza más del 70% de bienestar" : "Reach over 70% wellbeing",
     },
     {
+      id: "challenge_1",
+      icon: "🎯",
+      text: language === "es" ? "Primer Reto" : "First Challenge",
+      unlocked: challengesCount >= 1,
+      hint: language === "es" ? "Completa tu primer reto de bienestar" : "Complete your first challenge",
+    },
+    {
+      id: "challenge_3",
+      icon: "🏆",
+      text: language === "es" ? "Mente Positiva" : "Positive Mindset",
+      unlocked: challengesCount >= 3,
+      hint: language === "es" ? "Supera 3 retos diarios" : "Complete 3 daily challenges",
+    },
+    {
+      id: "breathing_1",
+      icon: "🧘",
+      text: language === "es" ? "Pausa Consciente" : "Mindful Pause",
+      unlocked: breathingCount >= 1,
+      hint: language === "es" ? "Realiza 1 sesión de respiración" : "Complete 1 breathing session",
+    },
+    {
+      id: "breathing_3",
+      icon: "🌊",
+      text: language === "es" ? "Respiración Zen" : "Zen Breathing",
+      unlocked: breathingCount >= 3,
+      hint: language === "es" ? "Completa 3 ejercicios de respiración" : "Complete 3 breathing exercises",
+    },
+    {
+      id: "meditation_1",
+      icon: "🧠",
+      text: language === "es" ? "Momento de Paz" : "Moment of Peace",
+      unlocked: meditationCount >= 1,
+      hint: language === "es" ? "Completa tu primera meditación" : "Complete your first meditation",
+    },
+    {
+      id: "notes_2",
       icon: "📝",
       text: language === "es" ? "Mente Consciente" : "Mindful Notes",
       unlocked: notesCount >= 2,
-      hint: "Registra 2 o más reflexiones personales",
+      hint: language === "es" ? "Registra 2 o más reflexiones personales" : "Log 2 or more notes",
     },
-  ];
+  ], [language, emotionsCount, streak, wellbeing, challengesCount, breathingCount, meditationCount, notesCount]);
 
-  const handleAdvance = (index) => {
-    const updated = goals.map((goal, idx) => {
-      if (idx !== index) return goal;
-      const progress = Math.min(goal.total, goal.progress + 1);
-      return { ...goal, progress };
-    });
+  // Notificar al desbloquear una insignia nueva
+  const prevUnlockedIdsRef = useRef(new Set());
+  useEffect(() => {
+    const currentlyUnlocked = badges.filter((b) => b.unlocked).map((b) => b.id);
+    const newUnlocked = currentlyUnlocked.filter((id) => !prevUnlockedIdsRef.current.has(id));
 
-    setGoals(updated);
+    // Si hubo alguna desbloqueada nueva durante la sesión
+    if (prevUnlockedIdsRef.current.size > 0 && newUnlocked.length > 0 && triggerNotification) {
+      newUnlocked.forEach((id) => {
+        const badgeObj = badges.find((b) => b.id === id);
+        if (badgeObj) {
+          triggerNotification({
+            type: "wellness",
+            title: language === "es" ? `🎉 ¡Nueva Insignia Desbloqueada!` : `🎉 New Badge Unlocked!`,
+            body: `${badgeObj.icon} ${badgeObj.text}: ${badgeObj.hint}`,
+            duration: 6000,
+          });
+        }
+      });
+    }
+
+    prevUnlockedIdsRef.current = new Set(currentlyUnlocked);
+  }, [badges, triggerNotification, language]);
+
+  // Persistir en perfil si hay cambios
+  useEffect(() => {
+    if (!updateUserProfile) return;
     try {
-      localStorage.setItem("user_goals_progress", JSON.stringify(updated));
-    } catch {
-      // Ignore
-    }
+      localStorage.setItem("user_goals_progress", JSON.stringify(goals));
+      const unlockedIds = badges.filter((b) => b.unlocked).map((b) => b.id);
+      localStorage.setItem("feelsafe_unlocked_badges", JSON.stringify(unlockedIds));
+    } catch {}
+  }, [goals, badges, updateUserProfile]);
 
-    if (updateUserProfile) {
-      updateUserProfile({ goals: updated });
-    }
-  };
+  const totalGoals = goals.length;
+  const completedGoalsCount = goals.filter((g) => g.progress >= g.total).length;
+  const unlockedBadgesCount = badges.filter((b) => b.unlocked).length;
 
   return (
     <MainLayout>
@@ -121,12 +242,12 @@ function Goals() {
         {/* ENCABEZADO */}
         <div className="goals-header">
           <h1 className="page-title">
-            🎯 {language === "es" ? "Objetivos y Logros en Tiempo Real" : "Real-Time Goals & Achievements"}
+            🎯 {language === "es" ? "Objetivos y Logros Automáticos" : "Automatic Goals & Achievements"}
           </h1>
           <p>
             {language === "es"
-              ? "Tus avances se actualizan automáticamente conforme registras emociones, notas y hábitos."
-              : "Your progress updates automatically as you log emotions, notes, and habits."}
+              ? "Tus objetivos e insignias se completan automáticamente cuando realizas retos, respiraciones, notas y emociones en FeelSafe."
+              : "Your goals and badges update automatically as you complete challenges, breathing, notes, and mood check-ins."}
           </p>
         </div>
 
@@ -138,11 +259,13 @@ function Goals() {
             </div>
             <div className="goal-top-content">
               <h2>{language === "es" ? "Racha Actual" : "Current Streak"}</h2>
-              <h3>{streak} {language === "es" ? (streak === 1 ? "día" : "días") : (streak === 1 ? "day" : "days")}</h3>
+              <h3>
+                {streak} {language === "es" ? (streak === 1 ? "día" : "días") : (streak === 1 ? "day" : "days")}
+              </h3>
               <p>
                 {streak > 0
                   ? language === "es"
-                    ? "¡Excelente consistencia! Sigue registrando diariamente."
+                    ? "¡Excelente consistencia! Sigue registrando a diario."
                     : "Great consistency! Keep logging every day."
                   : language === "es"
                   ? "Registra tu emoción de hoy para iniciar tu racha."
@@ -156,36 +279,46 @@ function Goals() {
               <FaTrophy className="goal-top-icon" />
             </div>
             <div className="goal-top-content">
-              <h2>{language === "es" ? "Nivel de Bienestar" : "Wellbeing Level"}</h2>
+              <h2>{language === "es" ? "Nivel de Progreso" : "Progress Level"}</h2>
               <h3>{getUserLevel()}</h3>
               <p>
                 {language === "es"
-                  ? "Desbloquea insignias cumpliendo tus metas semanales."
-                  : "Unlock badges by completing your weekly goals."}
+                  ? `${unlockedBadgesCount} de ${badges.length} insignias desbloqueadas.`
+                  : `${unlockedBadgesCount} of ${badges.length} badges unlocked.`}
               </p>
             </div>
           </div>
         </div>
 
-        {/* OBJETIVOS SEMANALES */}
+        {/* OBJETIVOS ACTIVOS AUTOMÁTICOS */}
         <div className="progress-section">
-          <h2 className="section-title">
-            {language === "es" ? "Objetivos Semanales Activos" : "Active Weekly Goals"}
-          </h2>
+          <div className="progress-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <h2 className="section-title" style={{ margin: 0 }}>
+              {language === "es" ? "Objetivos Dinámicos del Usuario" : "Active Dynamic Goals"}
+            </h2>
+            <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-light, #7A6A91)" }}>
+              {completedGoalsCount} / {totalGoals} {language === "es" ? "cumplidos" : "completed"}
+            </span>
+          </div>
 
           <div className="progress-list">
-            {goals.map((goal, index) => {
+            {goals.map((goal) => {
               const percent = Math.min(100, Math.round((goal.progress / goal.total) * 100));
               const isCompleted = goal.progress >= goal.total;
 
               return (
                 <div
                   className={`progress-card ${isCompleted ? "completed" : ""}`}
-                  key={goal.id || index}
+                  key={goal.id}
                 >
                   <div className="progress-info">
                     <div className="progress-title">
-                      <strong>{goal.title}</strong>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <strong>{goal.title}</strong>
+                        <span className="goal-auto-badge">
+                          <FaBolt /> Auto
+                        </span>
+                      </div>
                       <span>
                         {goal.progress} / {goal.total} ({percent}%)
                       </span>
@@ -202,37 +335,36 @@ function Goals() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    className="goal-action-btn"
-                    onClick={() => handleAdvance(index)}
-                    disabled={isCompleted}
-                  >
-                    {isCompleted ? (
-                      <>
-                        <FaCheckCircle /> {language === "es" ? "¡Completado!" : "Completed!"}
-                      </>
-                    ) : (
-                      language === "es" ? "Registrar avance" : "Log progress"
-                    )}
-                  </button>
+                  {isCompleted ? (
+                    <span className="goal-completed-badge">
+                      <FaCheckCircle /> {language === "es" ? "¡Cumplido!" : "Completed!"}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="goal-action-btn"
+                      onClick={() => navigate(goal.actionRoute)}
+                    >
+                      {goal.actionLabel}
+                    </button>
+                  )}
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* INSIGNIAS (LOGROS) */}
+        {/* INSIGNIAS Y LOGROS DESBLOQUEABLES */}
         <div className="badges-section">
           <h2 className="section-title">
             <FaStar className="star-icon" /> {language === "es" ? "Mis Insignias y Logros" : "My Badges & Achievements"}
           </h2>
 
           <div className="badges-grid">
-            {badges.map((badge, index) => (
+            {badges.map((badge) => (
               <div
                 className={`badge-card ${badge.unlocked ? "unlocked" : "locked"}`}
-                key={index}
+                key={badge.id}
                 title={badge.hint}
               >
                 <div className="badge-icon-bg">
@@ -240,6 +372,7 @@ function Goals() {
                   {!badge.unlocked && <FaLock className="badge-lock-overlay" />}
                 </div>
                 <span className="badge-text">{badge.text}</span>
+                <span className="badge-hint">{badge.hint}</span>
                 <span className="badge-status-tag">
                   {badge.unlocked
                     ? language === "es"
@@ -259,3 +392,4 @@ function Goals() {
 }
 
 export default Goals;
+

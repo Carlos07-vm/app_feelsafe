@@ -122,7 +122,11 @@ function SOS() {
   const handleWhatsAppCall = (phone) => {
     // Expresión regular: Elimina espacios, guiones o símbolos para evitar errores en la URL de WhatsApp
     const cleanPhone = phone.replace(/[^0-9]/g, "");
-    window.open(`https://wa.me/${cleanPhone}`, "_blank"); 
+    if (!cleanPhone) {
+      setStatus("Número de teléfono inválido.");
+      return;
+    }
+    window.open(`https://wa.me/${cleanPhone}`, "_blank", "noopener,noreferrer"); 
     setStatus(`Abriendo WhatsApp...`);
   };
 

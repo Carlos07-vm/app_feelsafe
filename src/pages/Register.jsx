@@ -14,8 +14,11 @@ import {
 } from "firebase/firestore";
 
 import logo from "../assets/logo.jpeg";
+import { useApp } from "../context/AppContext";
+import { useEffect } from "react";
 
 function Register() {
+  const { user: currentUser, loading: authLoading } = useApp();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,6 +28,16 @@ function Register() {
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && currentUser) {
+      if (currentUser.tipoCuenta === "especialista" || currentUser.rol === "especialista") {
+        navigate("/specialist/dashboard", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
+    }
+  }, [currentUser, authLoading, navigate]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();

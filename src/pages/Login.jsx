@@ -10,6 +10,8 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import { useApp } from "../context/AppContext";
+
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
@@ -31,21 +33,17 @@ import {
 
 import logo from "../assets/logo.jpeg";
 
-
 // =====================================================
 // PROVIDERS
 // =====================================================
 
-const googleProvider =
-  new GoogleAuthProvider();
+const googleProvider = new GoogleAuthProvider();
 
 googleProvider.setCustomParameters({
   prompt: "select_account",
 });
 
-const facebookProvider =
-  new FacebookAuthProvider();
-
+const facebookProvider = new FacebookAuthProvider();
 
 // =====================================================
 // REDIRECCIÓN SEGÚN ROL
@@ -56,29 +54,39 @@ const redirectByRole = async (
   navigate,
   setError
 ) => {
-
   try {
+    if (!user || !user.uid) {
+      console.error("❌ Usuario Firebase inválido:", user);
+
+      setError(
+        "No se pudo obtener la información de la cuenta."
+      );
+
+      return false;
+    }
+
+    console.log("=================================");
+    console.log("👤 USUARIO AUTENTICADO");
+    console.log("UID:", user.uid);
+    console.log("EMAIL:", user.email);
+    console.log("=================================");
 
     // =================================================
     // 1. BUSCAR ESPECIALISTA
     // =================================================
 
-    const specialistRef =
-      doc(
-        db,
-        "specialists",
-        user.uid
-      );
+    const specialistRef = doc(
+      db,
+      "specialists",
+      user.uid
+    );
 
-    const specialistSnap =
-      await getDoc(
-        specialistRef
-      );
+    const specialistSnap = await getDoc(
+      specialistRef
+    );
 
-
-    if (
-      specialistSnap.exists()
-    ) {
+    if (specialistSnap.exists()) {
+      console.log("✅ Cuenta especialista");
 
       navigate(
         "/specialist/dashboard",
@@ -90,27 +98,22 @@ const redirectByRole = async (
       return true;
     }
 
-
     // =================================================
     // 2. BUSCAR USUARIO
     // =================================================
 
-    const usuarioRef =
-      doc(
-        db,
-        "usuarios",
-        user.uid
-      );
+    const usuarioRef = doc(
+      db,
+      "usuarios",
+      user.uid
+    );
 
-    const usuarioSnap =
-      await getDoc(
-        usuarioRef
-      );
+    const usuarioSnap = await getDoc(
+      usuarioRef
+    );
 
-
-    if (
-      usuarioSnap.exists()
-    ) {
+    if (usuarioSnap.exists()) {
+      console.log("✅ Cuenta usuario");
 
       navigate(
         "/dashboard",
@@ -122,28 +125,21 @@ const redirectByRole = async (
       return true;
     }
 
-
     // =================================================
     // 3. COMPATIBILIDAD CON users
     // =================================================
 
-    const usersRef =
-      doc(
-        db,
-        "users",
-        user.uid
-      );
+    const usersRef = doc(
+      db,
+      "users",
+      user.uid
+    );
 
-    const usersSnap =
-      await getDoc(
-        usersRef
-      );
+    const usersSnap = await getDoc(
+      usersRef
+    );
 
-
-    if (
-      usersSnap.exists()
-    ) {
-
+    if (usersSnap.exists()) {
       console.log(
         "✅ Usuario encontrado en users"
       );
@@ -158,9 +154,8 @@ const redirectByRole = async (
       return true;
     }
 
-
     // =================================================
-    // NO EXISTE PERFIL
+    // 4. NO EXISTE PERFIL
     // =================================================
 
     console.error(
@@ -177,7 +172,7 @@ const redirectByRole = async (
   } catch (error) {
 
     console.error(
-      "Error detectando rol:",
+      "❌ Error detectando rol:",
       error
     );
 
@@ -189,9 +184,8 @@ const redirectByRole = async (
   }
 };
 
-
 // =====================================================
-// COMPONENTE
+// COMPONENTE LOGIN
 // =====================================================
 
 function Login() {
@@ -217,448 +211,373 @@ function Login() {
   const navigate =
     useNavigate();
 
-  // Contador regresivo para bloqueo tras 5 intentos fallidos
+  const {
+    user: currentUser,
+    loading: authLoading,
+  } = useApp();
+
+  // =====================================================
+  // SESIÓN YA EXISTENTE
+  // =====================================================
+
   useEffect(() => {
-    if (lockoutSeconds <= 0) return;
 
-    const timer = setInterval(() => {
-      setLockoutSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setError("");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    if (
+      !authLoading &&
+      currentUser
+    ) {
 
-    return () => clearInterval(timer);
+      console.log(
+        "✅ Sesión existente detectada"
+      );
+
+      if (
+        currentUser.tipoCuenta === "especialista" ||
+        currentUser.rol === "especialista"
+      ) {
+
+        navigate(
+          "/specialist/dashboard",
+          {
+            replace: true,
+          }
+        );
+
+      } else {
+
+        navigate(
+          "/dashboard",
+          {
+            replace: true,
+          }
+        );
+      }
+    }
+
+  }, [
+    currentUser,
+    authLoading,
+    navigate,
+  ]);
+
+  // =====================================================
+  // CONTADOR DE BLOQUEO
+  // =====================================================
+
+  useEffect(() => {
+
+    if (
+      lockoutSeconds <= 0
+    ) {
+      return;
+    }
+
+    const timer =
+      setInterval(() => {
+
+        setLockoutSeconds(
+          (prev) =>
+            prev > 1
+              ? prev - 1
+              : 0
+        );
+
+      }, 1000);
+
+    return () =>
+      clearInterval(timer);
+
   }, [lockoutSeconds]);
 
+  // =====================================================
+  // LIMPIAR ERROR
+  // =====================================================
 
-  // ===================================================
+  useEffect(() => {
+
+    if (
+      lockoutSeconds === 0
+    ) {
+
+      setError("");
+    }
+
+  }, [lockoutSeconds]);
+
+  // =====================================================
   // GOOGLE
-  // ===================================================
+  // =====================================================
 
-  const loginGoogle =
-    async () => {
-
-      setError("");
-      setLoading(true);
-
-      try {
-
-        const result =
-          await signInWithPopup(
-            auth,
-            googleProvider
-          );
-
-        const user =
-          result.user;
-
-
-        // =============================================
-        // BUSCAR SI YA EXISTE ESPECIALISTA
-        // =============================================
-
-        const specialistRef =
-          doc(
-            db,
-            "specialists",
-            user.uid
-          );
-
-        const specialistSnap =
-          await getDoc(
-            specialistRef
-          );
-
-
-        // =============================================
-        // SI ES ESPECIALISTA
-        // =============================================
-
-        if (
-          specialistSnap.exists()
-        ) {
-
-          console.log(
-            "Google → Especialista"
-          );
-
-          await setDoc(
-            specialistRef,
-            {
-              ultimoAcceso:
-                serverTimestamp(),
-            },
-            {
-              merge: true,
-            }
-          );
-         
-      
-          navigate(
-            "/specialist/dashboard",
-
-            {
-              replace: true,
-            }
-          );
-
+  const loginGoogle = async () => {
+    if (loading) return;
+    setError("");
+    setLoading(true);
+    try {
+      console.log("🔵 Iniciando Google...");
+      // Detect native platform (Capacitor)
+      const { Capacitor } = await import('@capacitor/core');
+      if (Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
+        // Use native Capacitor Firebase Authentication plugin
+        const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
+        const result = await FirebaseAuthentication.signIn({ provider: 'google.com' });
+        if (!result || !result.user) throw new Error('Firebase native sign‑in did not return a user');
+        const user = result.user;
+        console.log('✅ Google nativo autenticado:', user.uid, user.email);
+        // Continue with same Firestore profile logic using the native user object
+        const specialistRef = doc(db, "specialists", user.uid);
+        const specialistSnap = await getDoc(specialistRef);
+        if (specialistSnap.exists()) {
+          await setDoc(specialistRef, { ultimoAcceso: serverTimestamp() }, { merge: true });
+          navigate("/specialist/dashboard", { replace: true });
           return;
         }
-
-
-        // =============================================
-        // SI NO ES ESPECIALISTA → USUARIO
-        // =============================================
-
-        const userRef =
-          doc(
-            db,
-            "usuarios",
-            user.uid
-          );
-
-        const userSnap =
-          await getDoc(
-            userRef
-          );
-
-
-        if (
-          !userSnap.exists()
-        ) {
-
-          await setDoc(
-            userRef,
-            {
-
-              uid:
-                user.uid,
-
-              nombre:
-                user.displayName ||
-                "",
-
-              correo:
-                user.email ||
-                "",
-
-              foto:
-                user.photoURL ||
-                "",
-
-              proveedor:
-                "Google",
-
-              rol:
-                "usuario",
-
-              fechaRegistro:
-                serverTimestamp(),
-
-              ultimoAcceso:
-                serverTimestamp(),
-
-              estado:
-                "Activo",
-            }
-          );
-
+        const userRef = doc(db, "usuarios", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            uid: user.uid,
+            nombre: user.displayName || "",
+            correo: user.email || "",
+            foto: user.photoURL || "",
+            proveedor: "Google",
+            rol: "usuario",
+            fechaRegistro: serverTimestamp(),
+            ultimoAcceso: serverTimestamp(),
+            estado: "Activo",
+          });
         } else {
-
-          await setDoc(
-            userRef,
-            {
-              ultimoAcceso:
-                serverTimestamp(),
-            },
-            {
-              merge: true,
-            }
-          );
+          await setDoc(userRef, {
+            ultimoAcceso: serverTimestamp(),
+            nombre: user.displayName || userSnap.data()?.nombre || "",
+            correo: user.email || userSnap.data()?.correo || "",
+            foto: user.photoURL || userSnap.data()?.foto || "",
+          }, { merge: true });
         }
-
-
-        console.log(
-          "Google → Usuario"
-        );
-
-
-        navigate(
-          "/dashboard",
-          {
-            replace: true,
-          }
-        );
-
-      } catch (error) {
-
-        console.error(
-          "Error Google:",
-          error
-        );
-
-        switch (
-          error.code
-        ) {
-
-          case "auth/popup-closed-by-user":
-
-            setError(
-              "Se canceló el inicio de sesión."
-            );
-
-            break;
-
-
-          case "auth/popup-blocked":
-
-            setError(
-              "El navegador bloqueó la ventana emergente."
-            );
-
-            break;
-
-
-          default:
-
-            setError(
-              "No se pudo iniciar sesión con Google."
-            );
-        }
-
-      } finally {
-
-        setLoading(false);
-
+        navigate("/dashboard", { replace: true });
+        return;
       }
-    };
+      // Fallback to web sign‑in
+      const result = await signInWithPopup(auth, googleProvider);
+      if (!result || !result.user) throw new Error('Firebase no devolvió un usuario.');
+      const user = result.user;
+      console.log('✅ Google autenticado:', user.uid, user.email);
+      // Existing Firestore handling (same as original)
+      const specialistRef = doc(db, "specialists", user.uid);
+      const specialistSnap = await getDoc(specialistRef);
+      if (specialistSnap.exists()) {
+        await setDoc(specialistRef, { ultimoAcceso: serverTimestamp() }, { merge: true });
+        navigate("/specialist/dashboard", { replace: true });
+        return;
+      }
+      const userRef = doc(db, "usuarios", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          nombre: user.displayName || "",
+          correo: user.email || "",
+          foto: user.photoURL || "",
+          proveedor: "Google",
+          rol: "usuario",
+          fechaRegistro: serverTimestamp(),
+          ultimoAcceso: serverTimestamp(),
+          estado: "Activo",
+        });
+        console.log('✅ Perfil Google creado');
+      } else {
+        await setDoc(userRef, {
+          ultimoAcceso: serverTimestamp(),
+          nombre: user.displayName || userSnap.data()?.nombre || "",
+          correo: user.email || userSnap.data()?.correo || "",
+          foto: user.photoURL || userSnap.data()?.foto || "",
+        }, { merge: true });
+        console.log('✅ Perfil Google actualizado');
+      }
+      navigate("/dashboard", { replace: true });
+    } catch (error) {
+      console.error('❌ Error Google:', error);
+      console.error('Código:', error?.code);
+      console.error('Mensaje:', error?.message);
+      switch (error?.code) {
+        case 'auth/popup-blocked':
+          setError('El navegador bloqueó la ventana de Google. Permite las ventanas emergentes e inténtalo nuevamente.');
+          break;
+        case 'auth/popup-closed-by-user':
+          setError('Se canceló el inicio de sesión con Google.');
+          break;
+        case 'auth/cancelled-popup-request':
+          setError('Ya existe una ventana de inicio de sesión abierta.');
+          break;
+        case 'auth/unauthorized-domain':
+          setError('Este dominio no está autorizado en Firebase Authentication.');
+          break;
+        case 'auth/operation-not-supported-in-this-environment':
+          setError('Google no está disponible en este entorno. Prueba desde el navegador.');
+          break;
+        case 'auth/network-request-failed':
+          setError('No hay conexión con Firebase. Verifica tu conexión a Internet.');
+          break;
+        default:
+          setError(`No se pudo iniciar sesión con Google. ${error?.code || ''}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
-
-  // ===================================================
+  // =====================================================
   // FACEBOOK
-  // ===================================================
+  // =====================================================
 
-  const loginFacebook =
-    async () => {
-
-      setError("");
-      setLoading(true);
-
-      try {
-
-        const result =
-          await signInWithPopup(
-            auth,
-            facebookProvider
-          );
-
-        const user =
-          result.user;
-
-
-        // =============================================
-        // BUSCAR ESPECIALISTA
-        // =============================================
-
-        const specialistRef =
-          doc(
-            db,
-            "specialists",
-            user.uid
-          );
-
-        const specialistSnap =
-          await getDoc(
-            specialistRef
-          );
-
-
-        if (
-          specialistSnap.exists()
-        ) {
-
-          await setDoc(
-            specialistRef,
-            {
-              ultimoAcceso:
-                serverTimestamp(),
-            },
-            {
-              merge: true,
-            }
-          );
-
-          console.log(
-            "Facebook → Especialista"
-          );
-
-          navigate(
-            "/specialist/dashboard",
-            {
-              replace: true,
-            }
-          );
-
+  const loginFacebook = async () => {
+    if (loading) return;
+    setError("");
+    setLoading(true);
+    try {
+      console.log("🔵 Iniciando Facebook...");
+      // Detect native platform (Capacitor)
+      const { Capacitor } = await import("@capacitor/core");
+      if (Capacitor.isNativePlatform && Capacitor.isNativePlatform()) {
+        // Use native Capacitor Firebase Authentication plugin
+        const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
+        const result = await FirebaseAuthentication.signIn({ provider: "facebook.com" });
+        if (!result || !result.user) throw new Error("Firebase native sign‑in no devolvió un usuario");
+        const user = result.user;
+        console.log("✅ Facebook nativo autenticado:", user.uid, user.email);
+        // Same Firestore profile handling as Google
+        const specialistRef = doc(db, "specialists", user.uid);
+        const specialistSnap = await getDoc(specialistRef);
+        if (specialistSnap.exists()) {
+          await setDoc(specialistRef, { ultimoAcceso: serverTimestamp() }, { merge: true });
+          navigate("/specialist/dashboard", { replace: true });
           return;
         }
-
-
-        // =============================================
-        // USUARIO
-        // =============================================
-
-        const userRef =
-          doc(
-            db,
-            "usuarios",
-            user.uid
-          );
-
-        const userSnap =
-          await getDoc(
-            userRef
-          );
-
-
-        if (
-          !userSnap.exists()
-        ) {
-
-          await setDoc(
-            userRef,
-            {
-
-              uid:
-                user.uid,
-
-              nombre:
-                user.displayName ||
-                "",
-
-              correo:
-                user.email ||
-                "",
-
-              foto:
-                user.photoURL ||
-                "",
-
-              proveedor:
-                "Facebook",
-
-              rol:
-                "usuario",
-
-              telefono:
-                "",
-
-              fechaNacimiento:
-                "",
-
-              fechaRegistro:
-                serverTimestamp(),
-
-              ultimoAcceso:
-                serverTimestamp(),
-
-              estado:
-                "Activo",
-            }
-          );
-
+        const userRef = doc(db, "usuarios", user.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            uid: user.uid,
+            nombre: user.displayName || "",
+            correo: user.email || "",
+            foto: user.photoURL || "",
+            proveedor: "Facebook",
+            rol: "usuario",
+            fechaRegistro: serverTimestamp(),
+            ultimoAcceso: serverTimestamp(),
+            estado: "Activo",
+          });
         } else {
-
           await setDoc(
             userRef,
             {
-              ultimoAcceso:
-                serverTimestamp(),
+              ultimoAcceso: serverTimestamp(),
+              nombre: user.displayName || userSnap.data()?.nombre || "",
+              correo: user.email || userSnap.data()?.correo || "",
+              foto: user.photoURL || userSnap.data()?.foto || "",
             },
-            {
-              merge: true,
-            }
+            { merge: true }
           );
         }
-
-
-        console.log(
-          "Facebook → Usuario"
-        );
-
-
-        navigate(
-          "/dashboard",
-          {
-            replace: true,
-          }
-        );
-
-      } catch (error) {
-
-        console.error(
-          "Error Facebook:",
-          error
-        );
-
-        switch (
-          error.code
-        ) {
-
-          case "auth/popup-closed-by-user":
-
-            setError(
-              "Se canceló el inicio de sesión."
-            );
-
-            break;
-
-
-          case "auth/popup-blocked":
-
-            setError(
-              "El navegador bloqueó la ventana emergente."
-            );
-
-            break;
-
-
-          default:
-
-            setError(
-              "No se pudo iniciar sesión con Facebook."
-            );
-        }
-
-      } finally {
-
-        setLoading(false);
-
+        navigate("/dashboard", { replace: true });
+        return;
       }
-    };
+      // Fallback to web sign‑in
+      const result = await signInWithPopup(auth, facebookProvider);
+      if (!result || !result.user) throw new Error("Firebase no devolvió un usuario");
+      const user = result.user;
+      console.log("✅ Facebook autenticado:", user.uid, user.email);
+      // Same Firestore handling as above
+      const specialistRef = doc(db, "specialists", user.uid);
+      const specialistSnap = await getDoc(specialistRef);
+      if (specialistSnap.exists()) {
+        await setDoc(specialistRef, { ultimoAcceso: serverTimestamp() }, { merge: true });
+        navigate("/specialist/dashboard", { replace: true });
+        return;
+      }
+      const userRef = doc(db, "usuarios", user.uid);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          nombre: user.displayName || "",
+          correo: user.email || "",
+          foto: user.photoURL || "",
+          proveedor: "Facebook",
+          rol: "usuario",
+          fechaRegistro: serverTimestamp(),
+          ultimoAcceso: serverTimestamp(),
+          estado: "Activo",
+        });
+      } else {
+        await setDoc(
+          userRef,
+          {
+            ultimoAcceso: serverTimestamp(),
+            nombre: user.displayName || userSnap.data()?.nombre || "",
+            correo: user.email || userSnap.data()?.correo || "",
+            foto: user.photoURL || userSnap.data()?.foto || "",
+          },
+          { merge: true }
+        );
+      }
+      navigate("/dashboard", { replace: true });
+    } catch (error) {
+      console.error("❌ Error Facebook:", error);
+      console.error("Código:", error?.code);
+      console.error("Mensaje:", error?.message);
+      switch (error?.code) {
+        case "auth/popup-blocked":
+          setError("El navegador bloqueó la ventana de Facebook. Permite pop‑ups e inténtalo nuevamente.");
+          break;
+        case "auth/popup-closed-by-user":
+          setError("Se canceló el inicio de sesión con Facebook.");
+          break;
+        case "auth/cancelled-popup-request":
+          setError("Ya existe una ventana de inicio de sesión abierta.");
+          break;
+        case "auth/unauthorized-domain":
+          setError("Este dominio no está autorizado en Firebase Authentication.");
+          break;
+        case "auth/operation-not-supported-in-this-environment":
+          setError("Facebook no está disponible en este entorno. Prueba desde el navegador.");
+          break;
+        case "auth/network-request-failed":
+          setError("No hay conexión con Firebase. Verifica tu conexión a Internet.");
+          break;
+        default:
+          setError(`No se pudo iniciar sesión con Facebook. ${error?.code || ""}`);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
-
-  // ===================================================
+  // =====================================================
   // CORREO + CONTRASEÑA
-  // ===================================================
+  // =====================================================
 
   const handleSubmit =
     async (event) => {
 
       event.preventDefault();
 
-      if (lockoutSeconds > 0) {
-        setError(`Demasiados intentos fallidos. Espera ${lockoutSeconds} segundos.`);
+      if (
+        lockoutSeconds > 0
+      ) {
+
+        setError(
+          `Demasiados intentos fallidos. Espera ${lockoutSeconds} segundos.`
+        );
+
+        return;
+      }
+
+      if (loading) {
         return;
       }
 
       setLoading(true);
       setError("");
-
 
       try {
 
@@ -672,12 +591,13 @@ function Login() {
         const user =
           result.user;
 
-        // Reiniciar contador de intentos en caso de éxito
-        setFailedAttempts(0);
+        console.log(
+          "✅ Login con correo:",
+          user.uid,
+          user.email
+        );
 
-        // =============================================
-        // DETECTAR ROL
-        // =============================================
+        setFailedAttempts(0);
 
         await redirectByRole(
           user,
@@ -685,27 +605,41 @@ function Login() {
           setError
         );
 
-
       } catch (error) {
 
         console.error(
-          "Error login:",
-          error.code
+          "❌ Error login:",
+          error
         );
 
-        // Contabilizar intento fallido
-        const nuevosIntentos = failedAttempts + 1;
-        setFailedAttempts(nuevosIntentos);
+        console.error(
+          "Código:",
+          error?.code
+        );
 
-        if (nuevosIntentos >= 5) {
+        const nuevosIntentos =
+          failedAttempts + 1;
+
+        setFailedAttempts(
+          nuevosIntentos
+        );
+
+        if (
+          nuevosIntentos >= 5
+        ) {
+
           setFailedAttempts(0);
           setLockoutSeconds(30);
-          setError("Has superado el límite de 5 intentos. Formulario bloqueado por 30 segundos por seguridad.");
+
+          setError(
+            "Has superado el límite de 5 intentos. Formulario bloqueado por 30 segundos por seguridad."
+          );
+
           return;
         }
 
         switch (
-          error.code
+          error?.code
         ) {
 
           case "auth/user-not-found":
@@ -716,7 +650,6 @@ function Login() {
 
             break;
 
-
           case "auth/wrong-password":
 
             setError(
@@ -724,7 +657,6 @@ function Login() {
             );
 
             break;
-
 
           case "auth/invalid-email":
 
@@ -734,7 +666,6 @@ function Login() {
 
             break;
 
-
           case "auth/invalid-credential":
 
             setError(
@@ -743,35 +674,48 @@ function Login() {
 
             break;
 
-
           case "auth/too-many-requests":
 
             setLockoutSeconds(60);
+
             setError(
               "Demasiados intentos detectados por el servidor. Espera 60 segundos."
             );
 
             break;
 
+          case "auth/user-disabled":
+
+            setError(
+              "Esta cuenta ha sido deshabilitada."
+            );
+
+            break;
+
+          case "auth/network-request-failed":
+
+            setError(
+              "No hay conexión con Firebase."
+            );
+
+            break;
 
           default:
 
             setError(
-              "No se pudo iniciar sesión. Verifica tus datos."
+              `No se pudo iniciar sesión. ${error?.code || ""}`
             );
         }
 
       } finally {
 
         setLoading(false);
-
       }
     };
 
-
-  // ===================================================
+  // =====================================================
   // INTERFAZ
-  // ===================================================
+  // =====================================================
 
   return (
 
@@ -786,7 +730,6 @@ function Login() {
           ← Volver al inicio
         </Link>
 
-
         <div className="auth-logo">
 
           <img
@@ -797,23 +740,18 @@ function Login() {
 
         </div>
 
-
         <h1>
           Bienvenido de nuevo
         </h1>
-
 
         <p>
           Inicia sesión para continuar
           cuidando tu bienestar emocional.
         </p>
 
-
         <form
           className="auth-form"
-          onSubmit={
-            handleSubmit
-          }
+          onSubmit={handleSubmit}
         >
 
           <input
@@ -825,10 +763,12 @@ function Login() {
                 e.target.value
               )
             }
-            disabled={loading || lockoutSeconds > 0}
+            disabled={
+              loading ||
+              lockoutSeconds > 0
+            }
             required
           />
-
 
           <input
             type="password"
@@ -839,14 +779,19 @@ function Login() {
                 e.target.value
               )
             }
-            disabled={loading || lockoutSeconds > 0}
+            disabled={
+              loading ||
+              lockoutSeconds > 0
+            }
             required
           />
 
-
           <button
             type="submit"
-            disabled={loading || lockoutSeconds > 0}
+            disabled={
+              loading ||
+              lockoutSeconds > 0
+            }
           >
 
             {lockoutSeconds > 0
@@ -857,7 +802,6 @@ function Login() {
 
           </button>
 
-
           <div className="divider">
 
             <span>
@@ -866,12 +810,9 @@ function Login() {
 
           </div>
 
-
           <button
             type="button"
-            onClick={
-              loginGoogle
-            }
+            onClick={loginGoogle}
             className="google-btn"
             disabled={loading}
           >
@@ -886,12 +827,9 @@ function Login() {
 
           </button>
 
-
           <button
             type="button"
-            onClick={
-              loginFacebook
-            }
+            onClick={loginFacebook}
             className="facebook-btn"
             disabled={loading}
           >
@@ -909,7 +847,6 @@ function Login() {
 
         </form>
 
-
         {error && (
 
           <p className="auth-error">
@@ -917,7 +854,6 @@ function Login() {
           </p>
 
         )}
-
 
         <p className="auth-link">
 

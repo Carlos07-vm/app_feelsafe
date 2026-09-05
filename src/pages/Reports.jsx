@@ -4,7 +4,7 @@ import { useApp } from "../context/AppContext";
 import { translations } from "../constants/translations";
 import { useState, useEffect } from "react";
 import { db } from "../services/firebase";
-import { collection, query, where, onSnapshot, orderBy } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import {
   LineChart,
   Line,
@@ -107,20 +107,27 @@ function Reports() {
     if (!user?.uid) return;
 
     const recordsRef = collection(db, "registros_emocionales");
+    // Query sin orderBy para evitar requerir índices compuestos
+    // Ordenaremos en el cliente
     const recordsQuery = query(
       recordsRef,
-      where("uidUsuario", "==", user.uid),
-      orderBy("fecha", "asc")
+      where("uidUsuario", "==", user.uid)
     );
 
     const unsubscribe = onSnapshot(
       recordsQuery,
       (snapshot) => {
         const list = snapshot.docs.map((docSnap) => docSnap.data());
+        // Ordenar en el cliente
+        list.sort((a, b) => {
+          const dateA = new Date(a.fecha || 0).getTime();
+          const dateB = new Date(b.fecha || 0).getTime();
+          return dateA - dateB;
+        });
         setFirestoreRecords(list);
       },
       (err) => {
-        console.error("Error escuchando registros emocionales en Reports:", err);
+        // Error manejado silenciosamente - Firestore puede necesitar índices
       }
     );
 

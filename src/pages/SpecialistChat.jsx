@@ -265,6 +265,7 @@ function SpecialistChat() {
 
       await updateDoc(convRef, {
         ultimoMensaje: text,
+        ultimoEmisorId: currentUser.uid,
         fechaUltimoMensaje: serverTimestamp(),
         mensajesNoLeidos: 0,
         mensajesNoLeidosUsuario: (conversation.mensajesNoLeidosUsuario || 0) + 1,
