@@ -196,6 +196,7 @@ export const logout = async () => {
 
   try {
 
+    localStorage.removeItem("feelsafe_cached_user");
     await signOut(auth);
 
     return {

@@ -25,3 +25,4 @@ export const sendVerificationCodeEmail = async (email, code) => {
     publicKey
   );
 };
+

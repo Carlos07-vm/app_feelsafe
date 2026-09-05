@@ -116,10 +116,24 @@ function VerifyEmail() {
     }
   };
 
-  /**
-   * Reenvía el correo de verificación e inicia un temporizador de 60s.
-   */
+  // Temporizador con limpieza automática
+  useEffect(() => {
+    if (countdown <= 0) return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  // =========================================================
+  // FUNCIÓN 2: REENVIAR CORREO DE VERIFICACIÓN
+  // =========================================================
+
   const handleResendEmail = async () => {
+    if (countdown > 0 || resending) return;
+
     const user = auth.currentUser;
 
     if (!user) {
@@ -137,18 +151,6 @@ function VerifyEmail() {
       setMessageType("success");
       setMessage(t.msgResendSuccess);
       setCountdown(60); // Inicia el bloqueo de 60 segundos
-
-      // Temporizador
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
     } catch (error) {
       setMessageType("error");
       setMessage(t.errResendFailed);

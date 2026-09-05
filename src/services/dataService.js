@@ -8,3 +8,4 @@ export const updateUserProfile = async (profile) => {
     data: profile,
   };
 };
+

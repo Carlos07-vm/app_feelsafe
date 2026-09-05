@@ -66,16 +66,13 @@ export const obtenerConversaciones = async (
   uidUsuario
 ) => {
   try {
+    // Query sin orderBy para evitar requerir índices compuestos
     const consulta = query(
       collection(db, COLECCION),
       where(
         "uidUsuario",
         "==",
         uidUsuario
-      ),
-      orderBy(
-        "fechaUltimoMensaje",
-        "desc"
       )
     );
 
@@ -83,13 +80,20 @@ export const obtenerConversaciones = async (
       consulta
     );
 
-    const conversaciones =
+    let conversaciones =
       resultado.docs.map(
         (documento) => ({
           id: documento.id,
           ...documento.data(),
         })
       );
+
+    // Ordenar en el cliente por fechaUltimoMensaje descendente
+    conversaciones.sort((a, b) => {
+      const dateA = new Date(b.fechaUltimoMensaje || 0).getTime();
+      const dateB = new Date(a.fechaUltimoMensaje || 0).getTime();
+      return dateA - dateB;
+    });
 
     return {
       success: true,
