@@ -151,9 +151,25 @@ function SpecialistProfile() {
       const base64 = await compressImage(file);
 
       const specialistRef = doc(db, "specialists", user.uid);
-      await updateDoc(specialistRef, { fotoPerfil: base64 });
+      await updateDoc(specialistRef, {
+        fotoPerfil: base64,
+        foto: base64,
+        photoURL: base64,
+      });
 
-      setProfile((prev) => ({ ...prev, fotoPerfil: base64 }));
+      if (auth.currentUser) {
+        try {
+          const { updateProfile: updateAuthProfile } = await import("firebase/auth");
+          await updateAuthProfile(auth.currentUser, { photoURL: base64 });
+        } catch {}
+      }
+
+      setProfile((prev) => ({
+        ...prev,
+        fotoPerfil: base64,
+        foto: base64,
+        photoURL: base64,
+      }));
       setMessage("Foto de perfil actualizada correctamente.");
     } catch (err) {
       console.error("Error subiendo foto:", err);

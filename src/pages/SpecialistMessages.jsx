@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import {
   collection,
+  doc,
+  getDoc,
   onSnapshot,
   query,
   where,
@@ -63,7 +65,7 @@ function SpecialistMessages() {
 
     const unsubscribe = onSnapshot(
       conversationsQuery,
-       (snapshot) => {
+      async (snapshot) => {
         const loadedConversations = snapshot.docs.map((conversationDoc) => ({
           id: conversationDoc.id,
           ...conversationDoc.data(),
@@ -73,12 +75,38 @@ function SpecialistMessages() {
         // 1. ELIMINAR EL CHAT DEL PROPIO ESPECIALISTA
         // ===================================================
 
-        const patientConversations = loadedConversations.filter((conversation) => {
-          return (
-            conversation.usuarioId &&
-            conversation.usuarioId !== currentUser.uid
-          );
-        });
+        const patientConversations = await Promise.all(
+          loadedConversations
+            .filter((conversation) => {
+              return (
+                conversation.usuarioId &&
+                conversation.usuarioId !== currentUser.uid
+              );
+            })
+            .map(async (conversation) => {
+              let usuarioFoto = conversation.usuarioFoto || "";
+              let usuarioNombre = conversation.usuarioNombre || "Usuario FeelSafe";
+
+              if (!usuarioFoto && conversation.usuarioId) {
+                try {
+                  const uSnap = await getDoc(doc(db, "usuarios", conversation.usuarioId));
+                  if (uSnap.exists()) {
+                    const uData = uSnap.data();
+                    usuarioFoto = uData.photoURL || uData.foto || uData.fotoPerfil || "";
+                    if (uData.displayName || uData.nombre) {
+                      usuarioNombre = uData.displayName || uData.nombre;
+                    }
+                  }
+                } catch {}
+              }
+
+              return {
+                ...conversation,
+                usuarioFoto,
+                usuarioNombre,
+              };
+            })
+        );
 
         // ===================================================
         // 2. ORDENAR POR ÚLTIMO MENSAJE
@@ -119,9 +147,9 @@ function SpecialistMessages() {
           }
         });
 
-        console.log("📨 Conversaciones encontradas:", loadedConversations.length);
-        console.log("👤 Conversaciones de pacientes:", patientConversations.length);
-        console.log("✅ Conversaciones únicas:", uniqueConversations.length);
+
+
+
 
         setConversations(uniqueConversations);
         setLoading(false);

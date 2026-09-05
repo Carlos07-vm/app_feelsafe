@@ -118,7 +118,7 @@ function SpecialistRegister() {
       } else if (err.code === "auth/invalid-email") {
         setError("El correo electrónico ingresado no es válido.");
       } else if (err.code === "auth/weak-password") {
-        setError("La contraseña es muy débil. Usa al menos 6 caracteres.");
+        setError("La contraseña es muy débil. Usa al menos 8 caracteres.");
       } else {
         setError("Ocurrió un error al registrar tu cuenta. Intenta de nuevo.");
       }

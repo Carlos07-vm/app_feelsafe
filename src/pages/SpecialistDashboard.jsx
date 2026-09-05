@@ -54,10 +54,12 @@ function SpecialistDashboard() {
         const specialistSnap = await getDoc(specialistRef);
 
         if (specialistSnap.exists()) {
+          const specData = specialistSnap.data();
           setSpecialist({
             uid: user.uid,
             email: user.email,
-            ...specialistSnap.data(),
+            ...specData,
+            fotoPerfil: specData.fotoPerfil || specData.foto || specData.photoURL || user.photoURL || "",
           });
         } else {
           setSpecialist({
@@ -65,6 +67,7 @@ function SpecialistDashboard() {
             email: user.email,
             nombre: user.displayName || "Especialista",
             especialidad: "Profesional FeelSafe",
+            fotoPerfil: user.photoURL || "",
             disponible: true,
           });
         }
@@ -102,38 +105,55 @@ useEffect(() => {
 
   const unsubscribe = onSnapshot(
     conversationsQuery,
-    (snapshot) => {
+    async (snapshot) => {
       try {
         // ===================================================
         // 1. OBTENER CONVERSACIONES
         // ===================================================
 
-        const loadedConversations = snapshot.docs
-          .map((conversationDoc) => ({
-            id: conversationDoc.id,
-            ...conversationDoc.data(),
-          }))
-          .filter((conversation) => {
-            const usuarioId = conversation.usuarioId;
+        const loadedConversations = await Promise.all(
+          snapshot.docs.map(async (conversationDoc) => {
+            const data = conversationDoc.data();
+            const usuarioId = data.usuarioId;
 
-            // No mostrar conversaciones sin usuario
-            if (!usuarioId) {
-              return false;
+            // No mostrar conversaciones sin usuario ni al propio especialista
+            if (!usuarioId || usuarioId === specialist.uid) {
+              return null;
             }
 
-            // No mostrar al propio especialista
-            if (usuarioId === specialist.uid) {
-              return false;
+            let usuarioFoto = data.usuarioFoto || "";
+            let usuarioNombre = data.usuarioNombre || "Usuario FeelSafe";
+
+            // Si no tiene foto guardada en la conversación, intentar obtenerla de la colección usuarios
+            if (!usuarioFoto && usuarioId) {
+              try {
+                const uSnap = await getDoc(doc(db, "usuarios", usuarioId));
+                if (uSnap.exists()) {
+                  const uData = uSnap.data();
+                  usuarioFoto = uData.photoURL || uData.foto || uData.fotoPerfil || "";
+                  if (uData.displayName || uData.nombre) {
+                    usuarioNombre = uData.displayName || uData.nombre;
+                  }
+                }
+              } catch {}
             }
 
-            return true;
-          });
+            return {
+              id: conversationDoc.id,
+              ...data,
+              usuarioFoto,
+              usuarioNombre,
+            };
+          })
+        );
+
+        const validConversations = loadedConversations.filter(Boolean);
 
         // ===================================================
         // 2. ORDENAR POR ÚLTIMO MENSAJE
         // ===================================================
 
-        loadedConversations.sort((a, b) => {
+        validConversations.sort((a, b) => {
           const timeA =
             a.fechaUltimoMensaje?.toMillis
               ? a.fechaUltimoMensaje.toMillis()
@@ -157,7 +177,7 @@ useEffect(() => {
 
         const usersSeen = new Set();
 
-        const uniqueConversations = loadedConversations.filter(
+        const uniqueConversations = validConversations.filter(
           (conversation) => {
             const usuarioId = conversation.usuarioId;
 

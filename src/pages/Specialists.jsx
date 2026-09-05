@@ -37,19 +37,6 @@ function Specialists() {
 
   useEffect(() => {
 
-    console.log(
-      "=========================================="
-    );
-
-    console.log(
-      "CARGANDO ESPECIALISTAS"
-    );
-
-    console.log(
-      "=========================================="
-    );
-
-
     const specialistsRef =
       collection(
         db,
@@ -81,12 +68,6 @@ function Specialists() {
         specialistsQuery,
 
         (snapshot) => {
-
-          console.log(
-            "Especialistas encontrados:",
-            snapshot.size
-          );
-
 
           const specialistsData =
             snapshot.docs.map(
@@ -201,25 +182,6 @@ function Specialists() {
                     "",
 
                 };
-
-
-                console.log(
-                  "Especialista procesado:",
-                  {
-                    uid:
-                      specialist.uid,
-
-                    nombre:
-                      specialist.name,
-
-                    especialidad:
-                      specialist.specialty,
-
-                    especialistaId:
-                      specialist.especialistaId,
-                  }
-                );
-
 
                 return specialist;
 
