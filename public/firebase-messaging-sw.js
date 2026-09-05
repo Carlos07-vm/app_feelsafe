@@ -1,45 +1,66 @@
 importScripts(
-  "https://www.gstatic.com/firebasejs/12.18.0/firebase-app-compat.js"
+  "https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"
 );
 
 importScripts(
-  "https://www.gstatic.com/firebasejs/12.18.0/firebase-messaging-compat.js"
+  "https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js"
 );
 
-firebase.initializeApp({
+let messaging = null;
 
+// Recibir configuración de Firebase desde la ventana principal
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "INIT_FIREBASE_MESSAGING") {
+    const firebaseConfig = event.data.config;
     
-  apiKey: "AIzaSyBdyaDgbKwMlQEE9-pL8quejQjbWP9xkcQ",
-  authDomain: "feelsafe-ba317.firebaseapp.com",
-  projectId: "feelsafe-ba317",
-  storageBucket: "feelsafe-ba317.firebasestorage.app",
-  messagingSenderId: "142737832795",
-  appId: "1:142737832795:web:762463fde5170d2deeb87e",
+    if (!firebaseConfig || !firebaseConfig.apiKey) {
+      console.error("[SW] Invalid Firebase configuration received");
+      return;
+    }
+
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      messaging = firebase.messaging();
+      console.log("[SW] Firebase Messaging initialized successfully");
+    } catch (error) {
+      console.error("[SW] Error initializing Firebase:", error);
+    }
+  }
 });
 
-const messaging = firebase.messaging();
+// Manejar mensajes en segundo plano
+if (messaging === null) {
+  // Firebase no ha sido inicializado aún, esperar a que se inicialice
+  self.addEventListener("install", () => {
+    self.skipWaiting();
+  });
+} else {
+  messaging.onBackgroundMessage((payload) => {
+    handleBackgroundMessage(payload);
+  });
+}
 
-messaging.onBackgroundMessage((payload) => {
-  console.log(
-    "[firebase-messaging-sw.js] Mensaje recibido:",
-    payload
-  );
-
+function handleBackgroundMessage(payload) {
   const title =
-    payload.notification?.title || "FeelSafe";
+    payload.notification?.title || payload.data?.title || "FeelSafe";
 
   const options = {
     body:
       payload.notification?.body ||
-      "Tienes una nueva notificación.",
+      payload.data?.body ||
+      "Tienes una nueva notificación en FeelSafe.",
     icon: "/favicon.ico",
     badge: "/favicon.ico",
+    tag: payload.data?.tag || "feelsafe-notification",
     data: payload.data || {},
   };
 
   self.registration.showNotification(title, options);
-});
+}
 
+// Manejar clicks en notificaciones
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
@@ -53,6 +74,9 @@ self.addEventListener("notificationclick", (event) => {
     }).then((clientList) => {
       for (const client of clientList) {
         if ("focus" in client) {
+          if (url && url !== "/" && "navigate" in client) {
+            client.navigate(url);
+          }
           return client.focus();
         }
       }

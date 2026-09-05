@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AppProvider } from "./context/AppContext";
 
 // ================= Páginas públicas =================
 import Landing from "./pages/Landing";
@@ -42,78 +43,82 @@ import SpecialistAgenda from "./pages/SpecialistAgenda";
 // ================= Componentes =================
 import ProtectedRoute from "./components/ProtectedRoute";
 import SpecialistProtectedRoute from "./components/SpecialistProtectedRoute";
+import NativeBackButtonHandler from "./components/NativeBackButtonHandler";
 
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
+      <NativeBackButtonHandler />
+      <AppProvider>
+        <Routes>
 
-        {/* =================================================
-            RUTAS PÚBLICAS
-        ================================================= */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
+          {/* =================================================
+              RUTAS PÚBLICAS
+          ================================================= */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
 
-        {/* =================================================
-            RUTAS DEL ESPECIALISTA — Registro es público
-        ================================================= */}
-        <Route path="/specialist/register" element={<SpecialistRegister />} />
+          {/* =================================================
+              RUTAS DEL ESPECIALISTA — Registro es público
+          ================================================= */}
+          <Route path="/specialist/register" element={<SpecialistRegister />} />
 
-        {/* =================================================
-            RUTAS DEL ESPECIALISTA — Requieren autenticación
-            como especialista (SpecialistProtectedRoute)
-        ================================================= */}
-        <Route element={<SpecialistProtectedRoute />}>
-          <Route path="/specialist/dashboard" element={<SpecialistDashboard />} />
-          <Route path="/specialist/messages" element={<SpecialistMessages />} />
-          <Route path="/specialist/profile" element={<SpecialistProfile />} />
-          <Route path="/specialist/users" element={<SpecialistUsers />} />
-          <Route path="/specialist-conversations" element={<SpecialistConversations />} />
-          <Route path="/specialist/agenda" element={<SpecialistAgenda />} />
-          <Route path="/specialist/settings" element={<SpecialistSettings />} />
-          <Route path="/specialist-chat/:conversationId" element={<SpecialistChat />} />
-        </Route>
+          {/* =================================================
+              RUTAS DEL ESPECIALISTA — Requieren autenticación
+              como especialista (SpecialistProtectedRoute)
+          ================================================= */}
+          <Route element={<SpecialistProtectedRoute />}>
+            <Route path="/specialist/dashboard" element={<SpecialistDashboard />} />
+            <Route path="/specialist/messages" element={<SpecialistMessages />} />
+            <Route path="/specialist/profile" element={<SpecialistProfile />} />
+            <Route path="/specialist/users" element={<SpecialistUsers />} />
+            <Route path="/specialist-conversations" element={<SpecialistConversations />} />
+            <Route path="/specialist/agenda" element={<SpecialistAgenda />} />
+            <Route path="/specialist/settings" element={<SpecialistSettings />} />
+            <Route path="/specialist-chat/:conversationId" element={<SpecialistChat />} />
+          </Route>
 
-        {/* =================================================
-            RUTAS PROTEGIDAS DEL USUARIO
-        ================================================= */}
-        <Route element={<ProtectedRoute />}>
+          {/* =================================================
+              RUTAS PROTEGIDAS DEL USUARIO
+          ================================================= */}
+          <Route element={<ProtectedRoute />}>
 
-          {/* ================= Dashboard ================= */}
-          <Route path="/dashboard" element={<Dashboard />} />
+            {/* ================= Dashboard ================= */}
+            <Route path="/dashboard" element={<Dashboard />} />
 
-          {/* ================= Bienestar ================= */}
-          {/* CORRECCIÓN 2: Mantenemos el path "/mood" para no romper los botones del Dashboard */}
-          <Route path="/mood" element={<Emotions />} />
-          <Route path="/analysis" element={<Analysis />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/goals" element={<Goals />} />
+            {/* ================= Bienestar ================= */}
+            {/* CORRECCIÓN 2: Mantenemos el path "/mood" para no romper los botones del Dashboard */}
+            <Route path="/mood" element={<Emotions />} />
+            <Route path="/analysis" element={<Analysis />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/goals" element={<Goals />} />
 
-          {/* ================= Chat ================= */}
-          <Route path="/chat" element={<Chatbot />} />
-          <Route path="/specialists" element={<Specialists />} />
-          <Route path="/chat-room" element={<ChatRoom />} />
+            {/* ================= Chat ================= */}
+            <Route path="/chat" element={<Chatbot />} />
+            <Route path="/specialists" element={<Specialists />} />
+            <Route path="/chat-room" element={<ChatRoom />} />
 
-          {/* ================= Recursos ================= */}
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/alerts" element={<Alerts />} />
-          <Route path="/sos" element={<SOS />} />
+            {/* ================= Recursos ================= */}
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/alerts" element={<Alerts />} />
+            <Route path="/sos" element={<SOS />} />
 
-          {/* ================= Perfil ================= */}
-          <Route path="/profile" element={<Profile />} />
+            {/* ================= Perfil ================= */}
+            <Route path="/profile" element={<Profile />} />
 
-        </Route>
+          </Route>
 
-        {/* =================================================
-            RUTA NO ENCONTRADA
-        ================================================= */}
-        <Route path="*" element={<Landing />} />
+          {/* =================================================
+              RUTA NO ENCONTRADA
+          ================================================= */}
+          <Route path="*" element={<Landing />} />
 
-      </Routes>
+        </Routes>
+      </AppProvider>
     </BrowserRouter>
   );
 }
