@@ -2,6 +2,7 @@ import "../styles/Chatbot.css";
 import MainLayout from "../layouts/MainLayout";
 import { FaPaperPlane, FaTrash } from "react-icons/fa";
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { auth } from "../services/firebase";
 import { queryGemini } from "../services/geminiService";
@@ -22,6 +23,7 @@ const MENSAJE_BIENVENIDA =
   "Hola 👋 Soy FeelSafe AI. Estoy aquí para escucharte y apoyarte con empatía.";
 
 function Chatbot() {
+  const navigate = useNavigate();
   const { user } = useApp();
 
   const [conversationId, setConversationId] =
@@ -68,6 +70,8 @@ function Chatbot() {
   // ============================================================
 
   useEffect(() => {
+    let isMounted = true;
+
     const iniciarConversacion = async () => {
       if (conversacionIniciadaRef.current)
         return;
@@ -78,18 +82,20 @@ function Chatbot() {
         auth.currentUser;
 
       if (!usuarioActual) {
-        setError(
-          "Debes iniciar sesión para usar el chatbot."
-        );
-
-        setLoadingChat(false);
-
+        if (isMounted) {
+          setError(
+            "Debes iniciar sesión para usar el chatbot."
+          );
+          setLoadingChat(false);
+        }
         return;
       }
 
       try {
-        setLoadingChat(true);
-        setError(null);
+        if (isMounted) {
+          setLoadingChat(true);
+          setError(null);
+        }
 
         // ======================================================
         // 1. BUSCAR CONVERSACIONES EXISTENTES
@@ -106,17 +112,8 @@ function Chatbot() {
           resultadoConversaciones.success &&
           resultadoConversaciones.data.length > 0
         ) {
-          // ====================================================
-          // USAR LA CONVERSACIÓN MÁS RECIENTE
-          // ====================================================
-
           idConversacion =
             resultadoConversaciones.data[0].id;
-
-          console.log(
-            "Conversación existente encontrada:",
-            idConversacion
-          );
         } else {
           // ====================================================
           // 2. SI NO EXISTE, CREAR UNA NUEVA
@@ -126,7 +123,6 @@ function Chatbot() {
             await crearConversacion({
               uidUsuario:
                 usuarioActual.uid,
-
               titulo:
                 "Conversación con FeelSafe AI",
             });
@@ -139,12 +135,9 @@ function Chatbot() {
 
           idConversacion =
             nuevaConversacion.id;
-
-          console.log(
-            "Nueva conversación creada:",
-            idConversacion
-          );
         }
+
+        if (!isMounted) return;
 
         setConversationId(
           idConversacion
@@ -159,25 +152,21 @@ function Chatbot() {
             idConversacion
           );
 
+        if (!isMounted) return;
+
         if (
           resultadoMensajes.success &&
           resultadoMensajes.data.length > 0
         ) {
-          // ====================================================
-          // CONVERTIR FIRESTORE → FORMATO DEL CHAT
-          // ====================================================
-
           const mensajesFormateados =
             resultadoMensajes.data.map(
               (msg) => ({
-                id: msg.id,
-
+                id: msg.id || `${msg.remitente}-${Date.now()}-${Math.random()}`,
                 sender:
                   msg.remitente ===
                   "Usuario"
                     ? "user"
                     : "bot",
-
                 text: msg.mensaje,
               })
             );
@@ -185,18 +174,9 @@ function Chatbot() {
           setMessages(
             mensajesFormateados
           );
-
-          console.log(
-            "Historial cargado:",
-            mensajesFormateados.length,
-            "mensajes"
-          );
         } else {
-          // ====================================================
-          // 4. PRIMERA CONVERSACIÓN
-          // ====================================================
-
           const mensajeInicial = {
+            id: `welcome-${Date.now()}`,
             sender: "bot",
             text: MENSAJE_BIENVENIDA,
           };
@@ -205,7 +185,6 @@ function Chatbot() {
             mensajeInicial,
           ]);
 
-          // Guardar bienvenida
           await crearMensajeChat({
             idConversacion,
             uidUsuario:
@@ -214,10 +193,6 @@ function Chatbot() {
             mensaje:
               MENSAJE_BIENVENIDA,
           });
-
-          console.log(
-            "Mensaje de bienvenida creado."
-          );
         }
       } catch (err) {
         console.error(
@@ -225,26 +200,30 @@ function Chatbot() {
           err
         );
 
-        // ======================================================
-        // FALLBACK VISUAL
-        // ======================================================
-
-        setMessages([
-          {
-            sender: "bot",
-            text: MENSAJE_BIENVENIDA,
-          },
-        ]);
+        if (isMounted) {
+          setMessages([
+            {
+              id: `fallback-${Date.now()}`,
+              sender: "bot",
+              text: MENSAJE_BIENVENIDA,
+            },
+          ]);
+        }
       } finally {
-        setLoadingChat(false);
-
-        setTimeout(() => {
-          inputRef.current?.focus();
-        }, 100);
+        if (isMounted) {
+          setLoadingChat(false);
+          setTimeout(() => {
+            inputRef.current?.focus();
+          }, 100);
+        }
       }
     };
 
     iniciarConversacion();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // ============================================================
@@ -630,10 +609,7 @@ function Chatbot() {
 
                 <button
                   type="button"
-                  onClick={() =>
-                    (window.location.href =
-                      "/sos")
-                  }
+                  onClick={() => navigate("/sos")}
                 >
                   Ver opciones de apoyo
                 </button>
@@ -665,10 +641,7 @@ function Chatbot() {
 
                 <button
                   type="button"
-                  onClick={() =>
-                    (window.location.href =
-                      "/sos")
-                  }
+                  onClick={() => navigate("/sos")}
                 >
                   Ir al Centro SOS
                 </button>

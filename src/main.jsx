@@ -6,12 +6,8 @@ import "./App.css";
 import "./styles/global.css";
 import "./styles/theme.css";
 
-import { AppProvider } from "./context/AppContext";
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AppProvider>
-      <App />
-    </AppProvider>
+    <App />
   </React.StrictMode>
 );

@@ -48,16 +48,7 @@ function ChatRoom() {
   // =====================================================
 
   useEffect(() => {
-    console.log("======================================");
-    console.log("💬 CHAT DEL USUARIO");
-    console.log("======================================");
-
-    console.log("Usuario autenticado:", user?.uid);
-    console.log("Especialista:", specialist);
-    console.log("Especialista UID:", specialist?.uid);
-    console.log("Conversation ID:", conversationId);
-
-    console.log("======================================");
+    // Component initialized with user, specialist and conversation context
   }, [user?.uid, specialist, conversationId]);
 
   // =====================================================
@@ -117,12 +108,6 @@ function ChatRoom() {
       }
 
       try {
-        console.log("======================================");
-        console.log("🔎 BUSCANDO CONVERSACIÓN");
-        console.log("Usuario:", user.uid);
-        console.log("Especialista:", specialist.uid);
-        console.log("======================================");
-
         const conversationsRef = collection(
           db,
           "conversaciones_especialistas"
@@ -138,22 +123,26 @@ function ChatRoom() {
 
         if (!snapshot.empty) {
           const existingDoc = snapshot.docs[0];
-
-          console.log(
-            "✅ CONVERSACIÓN EXISTENTE:",
-            existingDoc.id
-          );
-
           const data = existingDoc.data();
+
+          // Asegurar que la foto del usuario esté sincronizada en la conversación
+          const currentPhoto = user.photoURL || user.foto || user.fotoPerfil || "";
+          const currentName = user.displayName || user.nombre || user.email || "Usuario";
+          if (currentPhoto && data.usuarioFoto !== currentPhoto) {
+            updateDoc(doc(db, "conversaciones_especialistas", existingDoc.id), {
+              usuarioFoto: currentPhoto,
+              usuarioNombre: currentName,
+            }).catch(() => {});
+          }
 
           setConversationId(existingDoc.id);
           setConversationData({
             id: existingDoc.id,
             ...data,
+            usuarioFoto: currentPhoto || data.usuarioFoto || "",
           });
 
           setLoading(false);
-
           return;
         }
 
@@ -173,11 +162,12 @@ function ChatRoom() {
 
           usuarioNombre:
             user.displayName ||
+            user.nombre ||
             user.email ||
             "Usuario",
 
           usuarioFoto:
-            user.photoURL || "",
+            user.photoURL || user.foto || user.fotoPerfil || "",
 
           especialistaId: specialist.uid,
 
@@ -515,7 +505,7 @@ function ChatRoom() {
         conversationRef,
         {
           ultimoMensaje: text,
-
+          ultimoEmisorId: user.uid,
           fechaUltimoMensaje:
             serverTimestamp(),
 

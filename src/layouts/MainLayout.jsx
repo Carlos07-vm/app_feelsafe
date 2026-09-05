@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import Sidebar from "../components/Sidebar";
+import BottomNav from "../components/BottomNav";
 
 function MainLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -30,6 +31,8 @@ function MainLayout({ children }) {
         </header>
         {children}
       </main>
+
+      <BottomNav />
     </div>
   );
 }

@@ -3,6 +3,8 @@ import {
   useContext,
   useState,
   useEffect,
+  useCallback,
+  useMemo,
 } from "react";
 
 import {
@@ -15,6 +17,9 @@ import {
   onSnapshot,
   setDoc,
   arrayUnion,
+  collection,
+  query,
+  where,
 } from "firebase/firestore";
 
 import {
@@ -25,7 +30,13 @@ import {
 import {
   obtenerTokenFCM,
   escucharMensajesFCM,
+  reproducirSonidoNotificacion,
+  mostrarNotificacionNativa,
+  solicitarPermisoNotificaciones,
 } from "../services/messaging";
+
+import NotificationToast from "../components/NotificationToast";
+
 const AppContext = createContext();
 
 const defaultUserData = {
@@ -158,16 +169,9 @@ const buildUser = (
   };
 };
 
-export function AppProvider({ children }) {
-
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-
-  // =========================================
-// REGISTRAR DISPOSITIVO PARA NOTIFICACIONES
 // =========================================
-
+// REGISTRAR DISPOSITIVO PARA NOTIFICACIONES (ÁMBITO DE MÓDULO)
+// =========================================
 const registrarNotificaciones = async (
   firebaseUser,
   tipoCuenta
@@ -177,14 +181,9 @@ const registrarNotificaciones = async (
       return;
     }
 
-    // Obtener token FCM
     const token = await obtenerTokenFCM();
-
     if (!token) {
-      console.warn(
-        "⚠️ No se pudo obtener token FCM."
-      );
-
+      console.warn("⚠️ No se pudo obtener token FCM.");
       return;
     }
 
@@ -199,7 +198,6 @@ const registrarNotificaciones = async (
       firebaseUser.uid
     );
 
-    // Guardamos el token sin eliminar tokens anteriores
     await setDoc(
       userRef,
       {
@@ -210,23 +208,45 @@ const registrarNotificaciones = async (
         merge: true,
       }
     );
-
-    console.log(
-      "✅ Token FCM guardado correctamente."
-    );
-
   } catch (error) {
-    console.error(
-      "❌ Error registrando notificaciones:",
-      error
-    );
+    // Token FCM no pudo registrarse
   }
 };
+
+export function AppProvider({ children }) {
+  const [user, setUserState] = useState(() => {
+    try {
+      const cached = localStorage.getItem("feelsafe_cached_user");
+      return cached ? JSON.parse(cached) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const setUser = useCallback((newUser) => {
+    setUserState(newUser);
+    try {
+      if (newUser) {
+        localStorage.setItem("feelsafe_cached_user", JSON.stringify(newUser));
+      } else {
+        localStorage.removeItem("feelsafe_cached_user");
+      }
+    } catch (e) {}
+  }, []);
+
+  const [loading, setLoading] = useState(() => {
+    return !localStorage.getItem("feelsafe_cached_user");
+  });
+
   // =========================================
-  // NUEVO: ESTADOS DE TEMA E IDIOMA
+  // ESTADOS DE TEMA E IDIOMA (INICIALIZACIÓN PEREZOSA)
   // =========================================
-  const [theme, setTheme] = useState(localStorage.getItem('feelsafe_theme') || 'light');
-  const [language, setLanguage] = useState(localStorage.getItem('feelsafe_language') || 'es');
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("feelsafe_theme") || "light"
+  );
+  const [language, setLanguage] = useState(
+    () => localStorage.getItem("feelsafe_language") || "es"
+  );
 
   // Efecto para aplicar el tema al HTML automáticamente
   useEffect(() => {
@@ -567,39 +587,120 @@ const registrarNotificaciones = async (
 
   }, []);
 
-    // =========================================
-  // ESCUCHAR NOTIFICACIONES FCM
   // =========================================
+  // GESTIÓN DE NOTIFICACIONES Y RECORDATORIOS (IN-APP Y PUSH)
+  // =========================================
+  const [toasts, setToasts] = useState([]);
 
+  const dismissToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  const triggerNotification = useCallback(
+    ({
+      type = "info", // "message", "reminder", "quote", "wellness", "alert", "info"
+      title = "FeelSafe",
+      body = "",
+      url = null,
+      actionLabel = null,
+      duration = 6000,
+      sound = true,
+      force = false,
+      onClick = null,
+    }) => {
+      // 1. Validar preferencias de usuario
+      if (!force) {
+        if (type === "message" && localStorage.getItem("notif_messages") === "false") {
+          return;
+        }
+        if (type === "reminder" && localStorage.getItem("notif_emotions") === "false") {
+          return;
+        }
+        if (type === "quote" && localStorage.getItem("notif_daily_quotes") === "false") {
+          return;
+        }
+      }
+
+      // 2. Reproducir sonido agradable si está activo
+      if (sound) {
+        reproducirSonidoNotificacion(type);
+      }
+
+      // 3. Notificación nativa del sistema/navegador
+      mostrarNotificacionNativa({
+        title,
+        body,
+        onClick: onClick || (url ? () => (window.location.href = url) : null),
+      });
+
+      // 4. Agregar Toast interactivo en pantalla
+      const newToast = {
+        id: Date.now() + Math.random().toString(36).substr(2, 4),
+        type,
+        title,
+        body,
+        url,
+        actionLabel,
+        duration,
+        onClick,
+      };
+
+      setToasts((prev) => [newToast, ...prev.slice(0, 3)]); // Máximo 4 en pantalla
+    },
+    []
+  );
+
+  // Probar sistema de notificaciones
+  const testNotificationSystem = async () => {
+    const perm = await solicitarPermisoNotificaciones();
+    triggerNotification({
+      type: "reminder",
+      title: language === "es" ? "🔔 ¡Sistema de Notificaciones Activo!" : "🔔 Notification System Active!",
+      body: language === "es"
+        ? "Las notificaciones, sonidos y recordatorios de FeelSafe están funcionando correctamente."
+        : "FeelSafe notifications, audio and reminders are working properly.",
+      url: "/dashboard",
+      actionLabel: language === "es" ? "Excelente" : "Great",
+      duration: 7000,
+      force: true,
+    });
+    return perm;
+  };
+
+  // =========================================
+  // ESCUCHAR NOTIFICACIONES FCM EN PRIMER PLANO
+  // =========================================
   useEffect(() => {
     let unsubscribe = null;
 
     const iniciarEscucha = async () => {
       try {
-        unsubscribe = await escucharMensajesFCM(
-          (payload) => {
-            console.log(
-              "🔔 NOTIFICACIÓN RECIBIDA EN FEELSAFE:",
-              payload
-            );
+        unsubscribe = await escucharMensajesFCM((payload) => {
 
-            const titulo =
-              payload.notification?.title ||
-              "FeelSafe";
 
-            const mensaje =
-              payload.notification?.body ||
-              "Tienes una nueva notificación.";
+          const titulo =
+            payload.notification?.title ||
+            payload.data?.title ||
+            "FeelSafe";
 
-            console.log("Título:", titulo);
-            console.log("Mensaje:", mensaje);
-          }
-        );
+          const mensaje =
+            payload.notification?.body ||
+            payload.data?.body ||
+            "Tienes una nueva notificación.";
+
+          const url = payload.data?.url || null;
+          const type = payload.data?.type || "message";
+
+          triggerNotification({
+            type,
+            title: titulo,
+            body: mensaje,
+            url,
+            actionLabel: language === "es" ? "Ver" : "View",
+          });
+        });
       } catch (error) {
-        console.error(
-          "❌ Error iniciando escucha FCM:",
-          error
-        );
+        console.error("❌ Error iniciando escucha FCM:", error);
       }
     };
 
@@ -610,73 +711,276 @@ const registrarNotificaciones = async (
         unsubscribe();
       }
     };
-  }, []);
+  }, [triggerNotification, language]);
 
   // =========================================
-  // ACTUALIZAR PERFIL
+  // ESCUCHA DE MENSAJES DE CHAT EN TIEMPO REAL (NOTIFICAR NUEVOS MENSAJES)
   // =========================================
+  useEffect(() => {
+    if (!user?.uid) return;
 
-  const updateUserProfile =
-    async (updates) => {
+    const isSpecialist =
+      user.tipoCuenta === "especialista" || user.rol === "especialista";
+    const fieldToQuery = isSpecialist ? "especialistaId" : "usuarioId";
 
-      if (!user?.uid) {
+    const q = query(
+      collection(db, "conversaciones_especialistas"),
+      where(fieldToQuery, "==", user.uid)
+    );
+
+    let isInitialMount = true;
+    const lastKnownMessages = new Map();
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        if (isInitialMount) {
+          snapshot.docs.forEach((docSnap) => {
+            const data = docSnap.data();
+            lastKnownMessages.set(docSnap.id, data.ultimoMensaje || "");
+          });
+          isInitialMount = false;
+          return;
+        }
+
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "modified" || change.type === "added") {
+            const data = change.doc.data();
+            const prevMsg = lastKnownMessages.get(change.doc.id);
+            const currentMsg = data.ultimoMensaje;
+
+            // Notificar solo si el mensaje es nuevo y fue enviado por la otra persona
+            if (
+              currentMsg &&
+              currentMsg !== prevMsg &&
+              data.ultimoEmisorId &&
+              data.ultimoEmisorId !== user.uid
+            ) {
+              lastKnownMessages.set(change.doc.id, currentMsg);
+
+              const senderName = isSpecialist
+                ? data.usuarioNombre || "Paciente"
+                : data.especialistaNombre || "Especialista";
+
+              const chatUrl = isSpecialist
+                ? `/specialist-chat/${change.doc.id}`
+                : `/chat-room`;
+
+              triggerNotification({
+                type: "message",
+                title: `💬 ${senderName}`,
+                body: currentMsg,
+                url: chatUrl,
+                actionLabel: isSpecialist
+                  ? language === "es" ? "Responder" : "Reply"
+                  : language === "es" ? "Ver Chat" : "View Chat",
+              });
+            } else if (currentMsg) {
+              lastKnownMessages.set(change.doc.id, currentMsg);
+            }
+          }
+        });
+      },
+      (err) => {
+        console.warn("Listener de mensajes para notificaciones:", err);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [user?.uid, user?.tipoCuenta, triggerNotification, language]);
+
+  // =========================================
+  // MOTOR DE RECORDATORIOS AUTOMÁTICOS BASADOS EN FUNCIONES
+  // =========================================
+  useEffect(() => {
+    if (!user?.uid || user.tipoCuenta === "especialista") return;
+
+    // Timeout inicial suave después de que la app cargue (3.5 segundos)
+    const initialTimer = setTimeout(() => {
+      ejecutarRecordatorios();
+    }, 3500);
+
+    // Chequeo periódico cada hora
+    const intervalTimer = setInterval(() => {
+      ejecutarRecordatorios();
+    }, 60 * 60 * 1000);
+
+    function ejecutarRecordatorios() {
+      const todayStr = new Date().toISOString().split("T")[0];
+      const nowHour = new Date().getHours();
+
+      // 1. Recordatorio de Registro Diario de Emociones
+      const notifEmotions = localStorage.getItem("notif_emotions") !== "false";
+      const lastCheckinReminder = localStorage.getItem("last_notif_checkin");
+
+      if (notifEmotions && lastCheckinReminder !== todayStr) {
+        // Verificar si el usuario ya registró alguna emoción hoy
+        const hasLoggedToday =
+          Array.isArray(user.emotions) &&
+          user.emotions.some(
+            (em) =>
+              em.fecha === todayStr ||
+              (typeof em.date === "string" && em.date.startsWith(todayStr))
+          );
+
+        if (!hasLoggedToday) {
+          localStorage.setItem("last_notif_checkin", todayStr);
+          triggerNotification({
+            type: "reminder",
+            title:
+              language === "es"
+                ? "⏰ ¿Cómo te sientes hoy?"
+                : "⏰ How are you feeling today?",
+            body:
+              language === "es"
+                ? "Tómate 1 minuto para registrar tu emoción del día y fortalecer tu racha de bienestar."
+                : "Take 1 minute to log your daily emotion and strengthen your streak.",
+            url: "/mood",
+            actionLabel: language === "es" ? "Registrar ahora" : "Log now",
+          });
+          return;
+        }
+      }
+
+      // 2. Frase y Reto Matutino
+      const notifQuotes =
+        localStorage.getItem("notif_daily_quotes") !== "false";
+      const lastQuoteReminder = localStorage.getItem("last_notif_quote");
+
+      if (notifQuotes && lastQuoteReminder !== todayStr && nowHour >= 6) {
+        localStorage.setItem("last_notif_quote", todayStr);
+        triggerNotification({
+          type: "quote",
+          title:
+            language === "es"
+              ? "🌟 Inspiración del Día"
+              : "🌟 Daily Inspiration",
+          body:
+            language === "es"
+              ? "«Cada nuevo día es una oportunidad para empezar de nuevo con calma.» Descubre tu reto de hoy."
+              : "«Every new day is a chance to start fresh with calm.» Check today's challenge.",
+          url: "/resources",
+          actionLabel: language === "es" ? "Ver Reto" : "View Challenge",
+        });
         return;
       }
 
-      const collectionName =
-        user.tipoCuenta === "especialista"
-          ? "specialists"
-          : "usuarios";
-
-      const userRef =
-        doc(
-          db,
-          collectionName,
-          user.uid
-        );
-
-      const nextUser = {
-        ...user,
-        ...updates,
-      };
-
-      setUser(nextUser);
-
-      try {
-
-        await setDoc(
-          userRef,
-          updates,
-          {
-            merge: true,
-          }
-        );
-
-      } catch (error) {
-
-        console.error(
-          "Error actualizando perfil:",
-          error
-        );
-
+      // 3. Pausa de respiración / autocuidado si el bienestar es bajo
+      const wellbeing = user.wellbeing ?? 72;
+      const lastWellnessReminder = localStorage.getItem("last_notif_wellness");
+      if (wellbeing < 50 && lastWellnessReminder !== todayStr) {
+        localStorage.setItem("last_notif_wellness", todayStr);
+        triggerNotification({
+          type: "wellness",
+          title:
+            language === "es"
+              ? "🧘 Pausa de Calma"
+              : "🧘 Calm Break",
+          body:
+            language === "es"
+              ? "Detectamos días de alta intensidad. Te invitamos a una pausa de respiración guiada de 2 minutos."
+              : "We noticed high intensity days. Take a 2-minute guided breathing session.",
+          url: "/resources",
+          actionLabel: language === "es" ? "Respirar" : "Breathe",
+        });
       }
-      
+    }
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(intervalTimer);
+    };
+  }, [user?.uid, user?.wellbeing, user?.emotions, language, triggerNotification]);
+
+  // =========================================
+  // ACTUALIZAR PERFIL (SANITIZADO Y PROTEGIDO)
+  // =========================================
+
+  const updateUserProfile = async (updates) => {
+    if (!user?.uid) {
+      return;
+    }
+
+    // Filtrar estrictamente campos inmutables por seguridad
+    const {
+      uid: _uid,
+      tipoCuenta: _tipoCuenta,
+      accountType: _accountType,
+      rol: _rol,
+      email: _email,
+      correo: _correo,
+      createdAt: _createdAt,
+      fechaRegistro: _fechaRegistro,
+      ...safeUpdates
+    } = updates || {};
+
+    const collectionName =
+      user.tipoCuenta === "especialista"
+        ? "specialists"
+        : "usuarios";
+
+    const userRef = doc(
+      db,
+      collectionName,
+      user.uid
+    );
+
+    const nextUser = {
+      ...user,
+      ...safeUpdates,
+      // Garantizar inmutabilidad
+      uid: user.uid,
+      tipoCuenta: user.tipoCuenta,
+      rol: user.rol || user.tipoCuenta,
     };
 
+    setUser(nextUser);
+
+    try {
+      await setDoc(
+        userRef,
+        safeUpdates,
+        {
+          merge: true,
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Error actualizando perfil:",
+        error
+      );
+    }
+  };
+
+  const contextValue = useMemo(
+    () => ({
+      user,
+      setUser,
+      loading,
+      updateUserProfile,
+      theme,
+      toggleTheme,
+      language,
+      toggleLanguage,
+      toasts,
+      triggerNotification,
+      dismissToast,
+      testNotificationSystem,
+    }),
+    [
+      user,
+      loading,
+      theme,
+      language,
+      toasts,
+      triggerNotification,
+      dismissToast,
+    ]
+  );
+
   return (
-    <AppContext.Provider
-      value={{
-        user,
-        setUser,
-        loading,
-        updateUserProfile,
-        // Exponemos el tema y el idioma a toda la app
-        theme,
-        toggleTheme,
-        language,
-        toggleLanguage
-      }}
-    >
+    <AppContext.Provider value={contextValue}>
+      <NotificationToast toasts={toasts} onDismiss={dismissToast} />
       {children}
     </AppContext.Provider>
   );

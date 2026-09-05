@@ -3,7 +3,7 @@ import MainLayout from "../layouts/MainLayout";
 import { useEffect, useState } from "react";
 import { useApp } from "../context/AppContext";
 import { db } from "../services/firebase";
-import { collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore";
+import { collection, query, where, limit, onSnapshot } from "firebase/firestore";
 import {
   FaBrain,
   FaCheckCircle,
@@ -89,21 +89,27 @@ function Analysis() {
     if (!user?.uid) return;
 
     const recordsRef = collection(db, "registros_emocionales");
+    // Query sin orderBy/limit para evitar requerir índices compuestos
+    // Filtraremos y ordenaremos en el cliente
     const recordsQuery = query(
       recordsRef,
-      where("uidUsuario", "==", user.uid),
-      orderBy("fecha", "desc"),
-      limit(7)
+      where("uidUsuario", "==", user.uid)
     );
 
     const unsubscribe = onSnapshot(
       recordsQuery,
       (snapshot) => {
         const list = snapshot.docs.map((docSnap) => docSnap.data());
-        setRecentRecords(list);
+        list.sort((a, b) => {
+          const timeA = a.fecha?.toDate ? a.fecha.toDate().getTime() : new Date(a.fecha || 0).getTime();
+          const timeB = b.fecha?.toDate ? b.fecha.toDate().getTime() : new Date(b.fecha || 0).getTime();
+          return timeB - timeA;
+        });
+        // Limitar a 7 en el cliente
+        setRecentRecords(list.slice(0, 7));
       },
       (err) => {
-        console.error("Error escuchando registros emocionales en Analysis:", err);
+        // Error manejado silenciosamente - Firestore puede necesitar índices
       }
     );
 
