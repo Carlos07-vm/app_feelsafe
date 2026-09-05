@@ -1,0 +1,117 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================
+    // FUNCIONES AUXILIARES DE SEGURIDAD
+    // =========================================================
+
+    // Verifica que el usuario esté autenticado en Firebase
+    function isAuthenticated() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    // Verifica que el usuario sea el dueño del documento por UID
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // =========================================================
+    // COLECCIÓN: USUARIOS
+    // =========================================================
+    match /usuarios/{userId} {
+      // El usuario puede leer y escribir únicamente su propio perfil
+      allow read, write: if isOwner(userId);
+
+      // Subcolección: Contactos de Emergencia
+      match /contactos_emergencia/{contactId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Compatibilidad con colección 'users' si existiera
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // =========================================================
+    // COLECCIÓN: ESPECIALISTAS
+    // =========================================================
+    match /specialists/{specialistId} {
+      // Lectura permitida para usuarios autenticados (para buscar especialistas en el directorio)
+      // Escritura permitida únicamente por el propio especialista
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isOwner(specialistId);
+    }
+
+    // =========================================================
+    // COLECCIÓN: REGISTROS EMOCIONALES
+    // =========================================================
+    match /registros_emocionales/{docId} {
+      allow read, update, delete: if isAuthenticated() && (
+        resource.data.uidUsuario == request.auth.uid
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.uidUsuario == request.auth.uid
+      );
+    }
+
+    // =========================================================
+    // COLECCIÓN: CONVERSACIONES DE ESPECIALISTAS
+    // =========================================================
+    match /conversaciones_especialistas/{convId} {
+      // Solo el usuario (paciente) o el especialista asignado pueden leer/actualizar
+      allow read, update: if isAuthenticated() && (
+        resource.data.usuarioId == request.auth.uid ||
+        resource.data.especialistaId == request.auth.uid
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.usuarioId == request.auth.uid ||
+        request.resource.data.especialistaId == request.auth.uid
+      );
+      allow delete: if isAuthenticated() && (
+        resource.data.usuarioId == request.auth.uid ||
+        resource.data.especialistaId == request.auth.uid
+      );
+
+      // Subcolección: Mensajes de la conversación
+      match /mensajes/{msgId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() && (
+          request.resource.data.remitenteId == request.auth.uid
+        );
+        allow update, delete: if isAuthenticated() && (
+          resource.data.remitenteId == request.auth.uid
+        );
+      }
+    }
+
+    // =========================================================
+    // COLECCIÓN: MENSAJES DE CHATBOT (HISTORIAL PERSONAL)
+    // =========================================================
+    match /mensajes_chat/{msgId} {
+      allow read, update, delete: if isAuthenticated() && (
+        resource.data.uidUsuario == request.auth.uid
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.uidUsuario == request.auth.uid
+      );
+    }
+
+    // =========================================================
+    // COLECCIÓN: RECURSOS Y GUÍAS (LECTURA PÚBLICA / AUTENTICADA)
+    // =========================================================
+    match /recursos/{recursoId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Solo administradores desde consola
+    }
+
+    // =========================================================
+    // REGLA POR DEFECTO: DENEGAR TODO LO NO ESPECIFICADO
+    // =========================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
