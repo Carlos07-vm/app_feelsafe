@@ -145,6 +145,33 @@ Analiza el contexto completo y responde con el JSON solicitado.
 
 
 // =====================================================
+// RATE LIMITER & SEGURIDAD DE PETICIONES
+// =====================================================
+const MAX_REQUESTS_PER_MINUTE = 15;
+const requestTimestamps = [];
+
+const checkRateLimit = () => {
+  const now = Date.now();
+  while (requestTimestamps.length > 0 && requestTimestamps[0] <= now - 60000) {
+    requestTimestamps.shift();
+  }
+
+  if (requestTimestamps.length >= MAX_REQUESTS_PER_MINUTE) {
+    const waitSeconds = Math.ceil((requestTimestamps[0] + 60000 - now) / 1000);
+    throw new Error(
+      `Has enviado muchos mensajes seguidos. Por favor espera ${waitSeconds} segundos.`
+    );
+  }
+
+  requestTimestamps.push(now);
+};
+
+const sanitizeInput = (text) => {
+  if (typeof text !== "string") return "";
+  return text.trim().slice(0, 2000);
+};
+
+// =====================================================
 // CONSULTAR GEMINI
 // =====================================================
 
@@ -161,6 +188,15 @@ export const queryGemini = async (
     );
   }
 
+  // 1. Control de Tasa (Rate Limiting)
+  checkRateLimit();
+
+  // 2. Sanitización de Entrada
+  const sanitizedMessage = sanitizeInput(userMessage);
+  if (!sanitizedMessage) {
+    throw new Error("El mensaje no puede estar vacío.");
+  }
+
   // ===================================================
   // SEGURIDAD LOCAL
   // ===================================================
@@ -170,7 +206,7 @@ export const queryGemini = async (
     .join(" ");
 
   const textoCompleto =
-    `${historialTexto} ${userMessage}`;
+    `${historialTexto} ${sanitizedMessage}`;
 
   const riesgoCritico =
     detectarRiesgoCritico(textoCompleto);
@@ -181,7 +217,7 @@ export const queryGemini = async (
 
   const prompt = buildPrompt(
     history,
-    userMessage
+    sanitizedMessage
   );
 
   const response = await fetch(

@@ -59,18 +59,24 @@ export const obtenerNotificaciones = async (
   try {
     const consulta = query(
       collection(db, COLECCION),
-      where("uidUsuario", "==", uidUsuario),
-      orderBy("fecha", "desc")
+      where("uidUsuario", "==", uidUsuario)
     );
 
     const resultado = await getDocs(consulta);
 
-    const notificaciones = resultado.docs.map(
+    let notificaciones = resultado.docs.map(
       (documento) => ({
         id: documento.id,
         ...documento.data(),
       })
     );
+
+    // Ordenar en el cliente por fecha descendente
+    notificaciones.sort((a, b) => {
+      const dateA = new Date(b.fecha || 0).getTime();
+      const dateB = new Date(a.fecha || 0).getTime();
+      return dateA - dateB;
+    });
 
     return {
       success: true,

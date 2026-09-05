@@ -8,3 +8,4 @@ export const saveMoodEntry = async (entry) => {
 export const getMoodEntries = async () => {
   return [];
 };
+
