@@ -47,6 +47,22 @@ button {
   -webkit-user-select: none;
 }
 
+:focus-visible {
+  outline: 3px solid var(--secondary, #8A92FF);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 a {
   text-decoration: none;
   color: inherit;

@@ -21,6 +21,8 @@ import MeditationModal from "../components/MeditationModal";
 import BreathingModal from "../components/BreathingModal";
 import SoundRelaxModal from "../components/SoundRelaxModal";
 import ChallengeModal from "../components/ChallengeModal";
+import { readUserJson, userStorageKey } from "../utils/storage";
+import { localDateKey } from "../utils/date";
 
 const WELLNESS_GUIDES = [
   {
@@ -74,7 +76,7 @@ const WELLNESS_GUIDES = [
 ];
 
 function Resources() {
-  const { language } = useApp();
+  const { user, language } = useApp();
   const t = translations[language] || translations.es;
 
   // Modals state
@@ -114,14 +116,15 @@ function Resources() {
 
   useEffect(() => {
     try {
-      const today = new Date().toISOString().split("T")[0];
-      const stored = JSON.parse(localStorage.getItem("feelsafe_challenges") || "[]");
+       const today = localDateKey();
+       const storedValue = readUserJson(user?.uid, "feelsafe_challenges", []);
+       const stored = Array.isArray(storedValue) ? storedValue : [];
       const hasToday = stored.some((item) => item.date === today);
       setChallengeCompletedToday(hasToday);
     } catch {
       // Ignore
     }
-  }, []);
+  }, [user?.uid]);
 
   const handleQuote = () => {
     setQuoteIndex((prev) => (prev + 1) % motivationalQuotes.length);
@@ -321,11 +324,11 @@ function Resources() {
             MODALES INTERACTIVOS
             =================================================== */}
         {showMeditation && (
-          <MeditationModal close={() => setShowMeditation(false)} />
+          <MeditationModal uid={user?.uid} close={() => setShowMeditation(false)} />
         )}
 
         {showBreathing && (
-          <BreathingModal close={() => setShowBreathing(false)} />
+          <BreathingModal uid={user?.uid} close={() => setShowBreathing(false)} />
         )}
 
         {showSounds && (
@@ -334,6 +337,7 @@ function Resources() {
 
         {showChallenge && (
           <ChallengeModal
+            uid={user?.uid}
             close={() => setShowChallenge(false)}
             onComplete={() => setChallengeCompletedToday(true)}
           />

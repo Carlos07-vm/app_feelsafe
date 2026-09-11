@@ -2,11 +2,14 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
   updateProfile,
+  sendEmailVerification,
 } from "firebase/auth";
 import {
   doc,
-  setDoc,
+  deleteDoc,
+  writeBatch,
   serverTimestamp,
 } from "firebase/firestore";
 import {
@@ -22,6 +25,7 @@ import {
 } from "react-icons/fa";
 
 import { auth, db } from "../services/firebase";
+import { publicSpecialistData } from "../utils/specialist";
 import logo from "../assets/logo.jpeg";
 import "../styles/SpecialistRegister.css";
 
@@ -41,7 +45,6 @@ function SpecialistRegister() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -51,7 +54,6 @@ function SpecialistRegister() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
 
     if (
       !formData.nombre.trim() ||
@@ -74,45 +76,75 @@ function SpecialistRegister() {
       return;
     }
 
+    const experience = Number(formData.experiencia || 0);
+    if (!Number.isInteger(experience) || experience < 0 || experience > 60) {
+      setError("Los años de experiencia deben estar entre 0 y 60.");
+      return;
+    }
+
+    let createdUser = null;
+    let specialistRef = null;
+    let publicRef = null;
+
     try {
       setLoading(true);
 
+      const cleanEmail = formData.correo.trim().toLowerCase();
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        formData.correo.trim(),
+        cleanEmail,
         formData.password
       );
 
-      const user = userCredential.user;
+       const user = userCredential.user;
+       createdUser = user;
 
       await updateProfile(user, {
         displayName: formData.nombre.trim(),
       });
 
-      const specialistRef = doc(db, "specialists", user.uid);
-      await setDoc(specialistRef, {
-        uid: user.uid,
-        nombre: formData.nombre.trim(),
-        correo: formData.correo.trim(),
-        especialidad: formData.especialidad,
-        experiencia: Number(formData.experiencia) || 0,
-        telefono: formData.telefono.trim(),
-        descripcion: formData.descripcion.trim(),
-        fotoPerfil: "",
-        tipoCuenta: "especialista",
-        estado: "Pendiente", // Requiere aprobación antes de operar
-        disponible: false,
-        correoVerificado: false,
-        fechaRegistro: serverTimestamp(),
-        ultimoAcceso: serverTimestamp(),
-      });
+       specialistRef = doc(db, "specialists", user.uid);
+       publicRef = doc(db, "specialists_public", user.uid);
+       const specialistData = {
+         uid: user.uid,
+         nombre: formData.nombre.trim(),
+         correo: cleanEmail,
+         especialidad: formData.especialidad,
+         experiencia: experience,
+         telefono: formData.telefono.trim(),
+         descripcion: formData.descripcion.trim(),
+         fotoPerfil: "",
+         tipoCuenta: "especialista",
+         rol: "especialista",
+         estado: "Pendiente", // Requiere aprobación antes de operar
+         disponible: false,
+         correoVerificado: false,
+         fechaRegistro: serverTimestamp(),
+         ultimoAcceso: serverTimestamp(),
+       };
 
-      setSuccess("¡Cuenta profesional creada exitosamente! Redirigiendo...");
-      setTimeout(() => {
-        navigate("/specialist/dashboard");
-      }, 1500);
+       const batch = writeBatch(db);
+       batch.set(specialistRef, specialistData);
+       batch.set(
+         publicRef,
+         publicSpecialistData(user.uid, specialistData)
+       );
+       await batch.commit();
+
+       await sendEmailVerification(user);
+       navigate("/verify-email", {
+         replace: true,
+         state: { email: cleanEmail, accountType: "especialista" },
+       });
     } catch (err) {
       console.error("Error en registro:", err);
+      if (createdUser) {
+        await Promise.allSettled([
+          specialistRef ? deleteDoc(specialistRef) : Promise.resolve(),
+          publicRef ? deleteDoc(publicRef) : Promise.resolve(),
+          deleteUser(createdUser),
+        ]);
+      }
       if (err.code === "auth/email-already-in-use") {
         setError("Este correo electrónico ya está registrado. Por favor inicia sesión.");
       } else if (err.code === "auth/invalid-email") {
@@ -177,7 +209,6 @@ function SpecialistRegister() {
           </div>
 
           {error && <div className="auth-alert error">⚠️ {error}</div>}
-          {success && <div className="auth-alert success">✓ {success}</div>}
 
           <form onSubmit={handleSubmit} className="auth-register-form">
             <div className="auth-fields-grid">
@@ -191,6 +222,7 @@ function SpecialistRegister() {
                     value={formData.nombre}
                     onChange={handleChange}
                     placeholder="Ej. Dra. Carmen Morales"
+                    maxLength={100}
                     required
                   />
                 </div>
@@ -206,6 +238,7 @@ function SpecialistRegister() {
                     value={formData.correo}
                     onChange={handleChange}
                     placeholder="correo@ejemplo.com"
+                    maxLength={254}
                     required
                   />
                 </div>
@@ -215,12 +248,13 @@ function SpecialistRegister() {
                 <label>Contraseña *</label>
                 <div className="auth-input-wrap">
                   <FaLock className="input-icon" />
-                  <input
-                    type="password"
-                    name="password"
+                    <input
+                      type="password"
+                      name="password"
+                      autoComplete="new-password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Mínimo 6 caracteres"
+                     placeholder="Mínimo 8 caracteres"
                     required
                   />
                 </div>
@@ -230,9 +264,10 @@ function SpecialistRegister() {
                 <label>Confirmar Contraseña *</label>
                 <div className="auth-input-wrap">
                   <FaLock className="input-icon" />
-                  <input
-                    type="password"
-                    name="confirmarPassword"
+                    <input
+                      type="password"
+                      name="confirmarPassword"
+                      autoComplete="new-password"
                     value={formData.confirmarPassword}
                     onChange={handleChange}
                     placeholder="Repite tu contraseña"
@@ -264,13 +299,14 @@ function SpecialistRegister() {
                 <label>Años de Experiencia</label>
                 <div className="auth-input-wrap">
                   <FaBriefcase className="input-icon" />
-                  <input
-                    type="number"
-                    name="experiencia"
-                    value={formData.experiencia}
-                    onChange={handleChange}
-                    placeholder="Ej. 4"
-                    min={0}
+                    <input
+                      type="number"
+                      name="experiencia"
+                      value={formData.experiencia}
+                      onChange={handleChange}
+                      placeholder="Ej. 4"
+                      min={0}
+                      max={60}
                   />
                 </div>
               </div>
@@ -284,7 +320,8 @@ function SpecialistRegister() {
                     name="telefono"
                     value={formData.telefono}
                     onChange={handleChange}
-                    placeholder="Ej. +505 8888 8888"
+                      placeholder="Ej. +505 8888 8888"
+                      maxLength={40}
                   />
                 </div>
               </div>
@@ -297,6 +334,7 @@ function SpecialistRegister() {
                   onChange={handleChange}
                   rows={3}
                   placeholder="Describe brevemente tu enfoque, trayectoria o mensaje para tus pacientes..."
+                  maxLength={2000}
                 />
               </div>
             </div>

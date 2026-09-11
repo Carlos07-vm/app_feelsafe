@@ -380,7 +380,9 @@ Interfaz de Chat
    ↓
 geminiService.js
    ↓
-Gemini API
+POST /api/gemini
+   ↓
+Gemini API (servidor)
    ↓
 Procesamiento de solicitud
    ↓
@@ -389,7 +391,7 @@ Respuesta
 Interfaz de FeelSafe
 ```
 
-La integración se encuentra encapsulada dentro de la capa `services`, evitando mezclar directamente la lógica de API con los componentes visuales.
+La integración se encuentra encapsulada dentro de la capa `services`. La clave Gemini vive únicamente en el servidor y no debe utilizarse con el prefijo `VITE_`.
 
 > La IA debe considerarse un mecanismo de orientación y acompañamiento general, no un sustituto de atención profesional.
 
@@ -409,7 +411,7 @@ Las reglas de Firestore restringen el acceso dependiendo del usuario y sus permi
 
 ### Rutas protegidas
 
-Las rutas privadas requieren autenticación antes de permitir el acceso.
+Las rutas privadas requieren autenticación y correo verificado. Las rutas profesionales requieren además aprobación administrativa.
 
 ### Variables de entorno
 
@@ -418,6 +420,8 @@ Las credenciales y configuraciones sensibles no deben almacenarse directamente d
 ### Principio de mínimo privilegio
 
 Cada rol debe disponer únicamente de los permisos necesarios para realizar sus funciones.
+
+Consulta `SECURITY.md` para conocer la rotación de claves, el despliegue de reglas e índices y los pasos de aprobación de especialistas.
 
 
 # 💻 Requisitos

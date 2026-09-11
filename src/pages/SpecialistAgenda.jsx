@@ -25,6 +25,7 @@ import {
 
 import { auth, db } from "../services/firebase";
 import SpecialistLayout from "../components/SpecialistLayout";
+import { localDateKey } from "../utils/date";
 import "../styles/SpecialistAgenda.css";
 
 function SpecialistAgenda() {
@@ -138,6 +139,11 @@ function SpecialistAgenda() {
       return;
     }
 
+    if (form.fecha < todayStr) {
+      setError("La fecha de la cita no puede estar en el pasado.");
+      return;
+    }
+
     try {
       setSaving(true);
 
@@ -164,29 +170,10 @@ function SpecialistAgenda() {
         notas: "",
       });
       setShowForm(false);
-   } catch (err) {
-      console.error("❌ ERROR COMPLETO AL CREAR CITA:", err);
-      console.error("Código:", err?.code);
-      console.error("Mensaje:", err?.message);
-      console.error("Usuario actual:", currentUser);
-      console.error("UID especialista:", currentUser?.uid);
-      console.error("Datos de la cita:", {
-        especialistaId: currentUser?.uid,
-        usuarioNombre: form.usuarioNombre.trim(),
-        usuarioId: form.usuarioId.trim() || null,
-        fecha: form.fecha,
-        hora: form.hora,
-        motivo: form.motivo.trim() || "Consulta de bienestar",
-        notas: form.notas.trim() || "",
-      });
-
-      setError(
-        err?.code
-          ? `No se pudo programar la cita: ${err.code}`
-          : "No se pudo programar la cita."
-      );
-}
-     finally {
+    } catch (err) {
+      console.error("Error creando cita:", err?.code || "unknown");
+      setError("No se pudo programar la cita. Verifica los datos e inténtalo de nuevo.");
+    } finally {
       setSaving(false);
     }
   };
@@ -216,7 +203,7 @@ function SpecialistAgenda() {
     });
   }, [appointments, filterTab]);
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = localDateKey();
   const todayAppointments = useMemo(() => {
     return appointments.filter((apt) => apt.fecha === todayStr);
   }, [appointments, todayStr]);
@@ -291,6 +278,7 @@ function SpecialistAgenda() {
                     value={form.usuarioNombre}
                     onChange={handleChange}
                     placeholder="Ej. Carlos Martínez"
+                    maxLength={100}
                     required
                   />
                 </div>
@@ -303,6 +291,7 @@ function SpecialistAgenda() {
                     value={form.usuarioId}
                     onChange={handleChange}
                     placeholder="ID del usuario en FeelSafe"
+                    maxLength={128}
                   />
                 </div>
 
@@ -337,6 +326,7 @@ function SpecialistAgenda() {
                     value={form.motivo}
                     onChange={handleChange}
                     placeholder="Ej. Sesión de manejo de ansiedad, seguimiento mensual..."
+                    maxLength={200}
                   />
                 </div>
 
@@ -348,6 +338,7 @@ function SpecialistAgenda() {
                     onChange={handleChange}
                     placeholder="Detalles clínicos o preparativos de la sesión..."
                     rows={3}
+                    maxLength={2000}
                   />
                 </div>
               </div>

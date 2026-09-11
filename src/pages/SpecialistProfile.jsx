@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
+import { doc, writeBatch, onSnapshot } from "firebase/firestore";
 import {
   FaUserMd,
   FaCamera,
@@ -16,6 +16,7 @@ import {
 } from "react-icons/fa";
 
 import { auth, db } from "../services/firebase";
+import { publicSpecialistData } from "../utils/specialist";
 import SpecialistLayout from "../components/SpecialistLayout";
 import "../styles/SpecialistProfile.css";
 
@@ -150,12 +151,21 @@ function SpecialistProfile() {
 
       const base64 = await compressImage(file);
 
-      const specialistRef = doc(db, "specialists", user.uid);
-      await updateDoc(specialistRef, {
-        fotoPerfil: base64,
-        foto: base64,
-        photoURL: base64,
-      });
+       const specialistRef = doc(db, "specialists", user.uid);
+       const publicRef = doc(db, "specialists_public", user.uid);
+       const photoData = {
+         fotoPerfil: base64,
+         foto: base64,
+         photoURL: base64,
+       };
+       const batch = writeBatch(db);
+       batch.update(specialistRef, photoData);
+       batch.set(
+         publicRef,
+         publicSpecialistData(user.uid, { ...profile, ...photoData }, user),
+         { merge: true }
+       );
+       await batch.commit();
 
       if (auth.currentUser) {
         try {
@@ -201,15 +211,24 @@ function SpecialistProfile() {
     try {
       setSaving(true);
 
-      const specialistRef = doc(db, "specialists", user.uid);
-      await updateDoc(specialistRef, {
-        nombre: form.nombre.trim(),
-        especialidad: form.especialidad.trim(),
-        experiencia: Number(form.experiencia) || 0,
-        telefono: form.telefono.trim(),
-        ciudad: form.ciudad.trim(),
-        descripcion: form.descripcion.trim(),
-      });
+       const specialistRef = doc(db, "specialists", user.uid);
+       const publicRef = doc(db, "specialists_public", user.uid);
+       const profileData = {
+         nombre: form.nombre.trim(),
+         especialidad: form.especialidad.trim(),
+         experiencia: Number(form.experiencia) || 0,
+         telefono: form.telefono.trim(),
+         ciudad: form.ciudad.trim(),
+         descripcion: form.descripcion.trim(),
+       };
+       const batch = writeBatch(db);
+       batch.update(specialistRef, profileData);
+       batch.set(
+         publicRef,
+         publicSpecialistData(user.uid, { ...profile, ...profileData }, user),
+         { merge: true }
+       );
+       await batch.commit();
 
       setProfile((prev) => ({
         ...prev,
@@ -363,8 +382,9 @@ function SpecialistProfile() {
                     name="nombre"
                     value={form.nombre}
                     onChange={handleChange}
-                    placeholder="Ej. Dra. Sofía Ramírez"
-                    required
+                     placeholder="Ej. Dra. Sofía Ramírez"
+                     maxLength={100}
+                     required
                   />
                 </div>
 
@@ -375,7 +395,8 @@ function SpecialistProfile() {
                     name="especialidad"
                     value={form.especialidad}
                     onChange={handleChange}
-                    placeholder="Ej. Psicología Clínica, Manejo del Estrés..."
+                     placeholder="Ej. Psicología Clínica, Manejo del Estrés..."
+                     maxLength={120}
                   />
                 </div>
 
@@ -398,7 +419,8 @@ function SpecialistProfile() {
                     name="telefono"
                     value={form.telefono}
                     onChange={handleChange}
-                    placeholder="Ej. +505 8888 8888"
+                     placeholder="Ej. +505 8888 8888"
+                     maxLength={40}
                   />
                 </div>
 
@@ -409,7 +431,8 @@ function SpecialistProfile() {
                     name="ciudad"
                     value={form.ciudad}
                     onChange={handleChange}
-                    placeholder="Ej. Managua, Nicaragua"
+                     placeholder="Ej. Managua, Nicaragua"
+                     maxLength={100}
                   />
                 </div>
 
@@ -419,8 +442,9 @@ function SpecialistProfile() {
                     name="descripcion"
                     value={form.descripcion}
                     onChange={handleChange}
-                    rows={4}
-                    placeholder="Cuéntale a las personas sobre tu formación, tu enfoque terapéutico y cómo puedes acompañarlas en FeelSafe..."
+                     rows={4}
+                     placeholder="Cuéntale a las personas sobre tu formación, tu enfoque terapéutico y cómo puedes acompañarlas en FeelSafe..."
+                     maxLength={2000}
                   />
                 </div>
               </div>

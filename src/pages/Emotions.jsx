@@ -5,6 +5,8 @@ import { useApp } from "../context/AppContext";
 import emotions from "../constants/emotions";
 import { crearRegistroEmocional } from "../services/registroEmocionalService";
 import { translations } from "../constants/translations"; 
+import { userStorageKey } from "../utils/storage";
+import { localDateFromKey, localDateKey } from "../utils/date";
 
 function Emotions() {
   const { user, updateUserProfile, language, darkMode, triggerNotification } = useApp();
@@ -47,7 +49,7 @@ function Emotions() {
 
     try {
       const ahora = new Date();
-      const fecha = ahora.toISOString().split("T")[0];
+       const fecha = localDateKey(ahora);
       const hora = ahora.toLocaleTimeString("es-NI", {
         hour: "2-digit",
         minute: "2-digit",
@@ -76,8 +78,8 @@ function Emotions() {
 
       if (lastDate !== fecha) {
         if (lastDate) {
-          const dateUltimo = new Date(lastDate);
-          const dateHoy = new Date(fecha);
+           const dateUltimo = localDateFromKey(lastDate);
+           const dateHoy = localDateFromKey(fecha);
           const diffTime = dateHoy.getTime() - dateUltimo.getTime();
           const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
 
@@ -116,7 +118,7 @@ function Emotions() {
         emotions: nextEmotions,
       });
 
-      localStorage.setItem("last_notif_checkin", fecha);
+       localStorage.setItem(userStorageKey(user.uid, "last_notif_checkin"), fecha);
 
       if (triggerNotification) {
         triggerNotification({

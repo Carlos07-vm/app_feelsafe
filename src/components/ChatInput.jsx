@@ -2,6 +2,7 @@ function ChatInput({
   message,
   setMessage,
   onSend,
+  disabled = false,
 }) {
 
   const handleKeyDown = (event) => {
@@ -39,12 +40,14 @@ function ChatInput({
         }
         onKeyDown={handleKeyDown}
         aria-label="Escribir mensaje"
+        maxLength={2000}
+        disabled={disabled}
       />
 
       <button
         type="button"
         onClick={onSend}
-        disabled={!hasMessage}
+        disabled={!hasMessage || disabled}
         aria-label="Enviar mensaje"
       >
         Enviar

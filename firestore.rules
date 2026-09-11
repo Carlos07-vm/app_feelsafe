@@ -2,114 +2,331 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // =========================================================
-    // FUNCIONES AUXILIARES DE SEGURIDAD
-    // =========================================================
-
-    // Verifica que el usuario esté autenticado en Firebase
-    function isAuthenticated() {
-      return request.auth != null && request.auth.uid != null;
+    function signedIn() {
+      return request.auth != null;
     }
 
-    // Verifica que el usuario sea el dueño del documento por UID
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+    function owner(uid) {
+      return signedIn() && request.auth.uid == uid;
     }
 
-    // =========================================================
-    // COLECCIÓN: USUARIOS
-    // =========================================================
+    function admin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    function specialistPath(uid) {
+      return /databases/$(database)/documents/specialists/$(uid);
+    }
+
+    function activeSpecialist(uid) {
+      return exists(specialistPath(uid))
+        && get(specialistPath(uid)).data.rol == 'especialista'
+        && get(specialistPath(uid)).data.tipoCuenta == 'especialista'
+        && get(specialistPath(uid)).data.estado == 'Activo';
+    }
+
+    function availableSpecialist(uid) {
+      return activeSpecialist(uid)
+        && get(specialistPath(uid)).data.disponible == true;
+    }
+
+    function conversationPath(conversationId) {
+      return /databases/$(database)/documents/conversaciones_especialistas/$(conversationId);
+    }
+
+    function canAccessConversation(conversationId) {
+      return signedIn()
+        && exists(conversationPath(conversationId))
+        && (
+          get(conversationPath(conversationId)).data.usuarioId == request.auth.uid
+          || (
+            get(conversationPath(conversationId)).data.especialistaId == request.auth.uid
+            && activeSpecialist(request.auth.uid)
+          )
+        );
+    }
+
+    function isVerifiedEmail() {
+      return signedIn() && request.auth.token.email_verified == true;
+    }
+
     match /usuarios/{userId} {
-      // El usuario puede leer y escribir únicamente su propio perfil
-      allow read, write: if isOwner(userId);
+      allow read: if owner(userId);
+      allow create: if owner(userId)
+        && request.resource.data.uid == userId
+        && request.resource.data.rol == 'usuario'
+        && request.resource.data.tipoCuenta == 'usuario'
+        && (
+          request.resource.data.estado == 'Pendiente'
+          || isVerifiedEmail()
+        );
+      allow update: if owner(userId)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.rol == resource.data.rol
+        && request.resource.data.tipoCuenta == resource.data.tipoCuenta
+        && request.resource.data.correo == resource.data.correo
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+           'nombre', 'displayName', 'description', 'descripcion', 'foto',
+           'fotoPerfil', 'photoURL', 'telefono', 'fechaNacimiento', 'edad',
+           'genero', 'pais', 'ciudad', 'biografia', 'wellbeing', 'streak',
+           'lastRecordDate', 'currentMood', 'notes', 'emotions',
+           'notificacionesConfig', 'correoVerificado', 'emailVerificado',
+           'estado', 'ultimoAcceso', 'privacidad', 'fcmTokens',
+           'notificacionesPush'
+        ])
+        && (
+           !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+             'correoVerificado', 'emailVerificado'
+           ])
+           || isVerifiedEmail()
+         )
+         && (
+           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['estado'])
+           || (isVerifiedEmail() && request.resource.data.estado == 'Activo')
+         );
+      allow delete: if owner(userId) || admin();
 
-      // Subcolección: Contactos de Emergencia
       match /contactos_emergencia/{contactId} {
-        allow read, write: if isOwner(userId);
+        allow read, delete: if owner(userId);
+        allow create, update: if owner(userId)
+          && request.resource.data.keys().hasOnly(['nombre', 'telefono', 'fechaCreacion'])
+          && request.resource.data.nombre is string
+          && request.resource.data.nombre.size() > 0
+          && request.resource.data.nombre.size() <= 100
+          && request.resource.data.telefono is string
+          && request.resource.data.telefono.size() <= 40;
       }
     }
 
-    // Compatibilidad con colección 'users' si existiera
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read: if owner(userId);
+      allow write: if false;
     }
 
-    // =========================================================
-    // COLECCIÓN: ESPECIALISTAS
-    // =========================================================
     match /specialists/{specialistId} {
-      // Lectura permitida para usuarios autenticados (para buscar especialistas en el directorio)
-      // Escritura permitida únicamente por el propio especialista
-      allow read: if isAuthenticated();
-      allow create, update, delete: if isOwner(specialistId);
+      allow read: if signedIn()
+        && owner(specialistId);
+      allow create: if owner(specialistId)
+        && request.resource.data.uid == specialistId
+        && request.resource.data.rol == 'especialista'
+        && request.resource.data.tipoCuenta == 'especialista'
+        && request.resource.data.estado == 'Pendiente'
+        && request.resource.data.disponible == false;
+      allow update: if admin()
+        || (
+          owner(specialistId)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.rol == resource.data.rol
+          && request.resource.data.tipoCuenta == resource.data.tipoCuenta
+          && request.resource.data.correo == resource.data.correo
+           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+             'nombre', 'displayName', 'especialidad', 'experiencia', 'telefono',
+             'ciudad', 'descripcion', 'description', 'fotoPerfil', 'foto',
+             'photoURL', 'disponible', 'notificaciones', 'fcmTokens',
+             'notificacionesPush', 'correoVerificado', 'emailVerificado',
+             'ultimoAcceso'
+           ])
+           && (
+             !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+               'correoVerificado', 'emailVerificado'
+             ])
+             || isVerifiedEmail()
+           )
+         );
+      allow delete: if admin();
     }
 
-    // =========================================================
-    // COLECCIÓN: REGISTROS EMOCIONALES
-    // =========================================================
-    match /registros_emocionales/{docId} {
-      allow read, update, delete: if isAuthenticated() && (
-        resource.data.uidUsuario == request.auth.uid
-      );
-      allow create: if isAuthenticated() && (
-        request.resource.data.uidUsuario == request.auth.uid
-      );
+    match /specialists_public/{specialistId} {
+      allow read: if signedIn()
+        && resource.data.uid == specialistId
+        && resource.data.estado == 'Activo';
+      allow create: if owner(specialistId)
+        && request.resource.data.uid == specialistId
+        && request.resource.data.rol == 'especialista'
+        && request.resource.data.tipoCuenta == 'especialista'
+        && (
+          (request.resource.data.estado == 'Pendiente'
+            && request.resource.data.disponible == false)
+          || (request.resource.data.estado == 'Activo'
+            && get(specialistPath(specialistId)).data.estado == 'Activo')
+        )
+        && request.resource.data.keys().hasOnly([
+          'uid', 'nombre', 'especialidad', 'experiencia', 'ciudad', 'descripcion',
+          'fotoPerfil', 'foto', 'photoURL', 'disponible', 'rating', 'estado',
+          'tipoCuenta', 'rol'
+        ]);
+      allow update: if admin()
+        || (owner(specialistId)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.rol == resource.data.rol
+          && request.resource.data.tipoCuenta == resource.data.tipoCuenta
+          && request.resource.data.estado == get(specialistPath(specialistId)).data.estado
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'nombre', 'especialidad', 'experiencia', 'ciudad', 'descripcion',
+            'fotoPerfil', 'foto', 'photoURL', 'disponible', 'rating', 'estado'
+          ]));
+      allow delete: if admin();
     }
 
-    // =========================================================
-    // COLECCIÓN: CONVERSACIONES DE ESPECIALISTAS
-    // =========================================================
-    match /conversaciones_especialistas/{convId} {
-      // Solo el usuario (paciente) o el especialista asignado pueden leer/actualizar
-      allow read, update: if isAuthenticated() && (
-        resource.data.usuarioId == request.auth.uid ||
-        resource.data.especialistaId == request.auth.uid
-      );
-      allow create: if isAuthenticated() && (
-        request.resource.data.usuarioId == request.auth.uid ||
-        request.resource.data.especialistaId == request.auth.uid
-      );
-      allow delete: if isAuthenticated() && (
-        resource.data.usuarioId == request.auth.uid ||
-        resource.data.especialistaId == request.auth.uid
-      );
+    match /registros_emocionales/{recordId} {
+      allow read, delete: if owner(resource.data.uidUsuario);
+      allow create: if owner(request.resource.data.uidUsuario)
+        && request.resource.data.intensidad >= 1
+        && request.resource.data.intensidad <= 10
+        && request.resource.data.nota is string
+        && request.resource.data.nota.size() <= 2000;
+      allow update: if owner(resource.data.uidUsuario)
+        && request.resource.data.uidUsuario == resource.data.uidUsuario
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'emocion', 'intensidad', 'nota', 'fecha', 'hora'
+        ])
+        && request.resource.data.intensidad >= 1
+        && request.resource.data.intensidad <= 10;
+    }
 
-      // Subcolección: Mensajes de la conversación
-      match /mensajes/{msgId} {
-        allow read: if isAuthenticated();
-        allow create: if isAuthenticated() && (
-          request.resource.data.remitenteId == request.auth.uid
+    match /conversaciones_especialistas/{conversationId} {
+      allow create: if signedIn()
+        && request.resource.data.usuarioId == request.auth.uid
+        && request.resource.data.especialistaId != request.auth.uid
+        && availableSpecialist(request.resource.data.especialistaId);
+      allow read: if signedIn()
+        && (
+          resource.data.usuarioId == request.auth.uid
+          || (
+            resource.data.especialistaId == request.auth.uid
+            && activeSpecialist(request.auth.uid)
+          )
         );
-        allow update, delete: if isAuthenticated() && (
-          resource.data.remitenteId == request.auth.uid
+      allow update: if signedIn()
+        && (
+          resource.data.usuarioId == request.auth.uid
+          || (
+            resource.data.especialistaId == request.auth.uid
+            && activeSpecialist(request.auth.uid)
+          )
+        )
+        && request.resource.data.usuarioId == resource.data.usuarioId
+        && request.resource.data.especialistaId == resource.data.especialistaId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'usuarioNombre', 'usuarioFoto', 'especialistaNombre', 'especialistaFoto',
+          'ultimoMensaje', 'ultimoEmisorId', 'fechaUltimoMensaje',
+          'mensajesNoLeidos', 'mensajesNoLeidosUsuario', 'estado'
+        ]);
+      allow delete: if signedIn()
+        && (
+          resource.data.usuarioId == request.auth.uid
+          || (
+            resource.data.especialistaId == request.auth.uid
+            && activeSpecialist(request.auth.uid)
+          )
         );
+
+      match /mensajes/{messageId} {
+        allow read: if canAccessConversation(conversationId);
+        allow create: if canAccessConversation(conversationId)
+          && request.resource.data.remitenteId == request.auth.uid
+          && request.resource.data.texto is string
+          && request.resource.data.texto.size() > 0
+          && request.resource.data.texto.size() <= 2000
+          && (
+            (
+              get(conversationPath(conversationId)).data.usuarioId == request.auth.uid
+              && request.resource.data.remitenteTipo == 'usuario'
+            )
+            || (
+              get(conversationPath(conversationId)).data.especialistaId == request.auth.uid
+              && activeSpecialist(request.auth.uid)
+              && request.resource.data.remitenteTipo == 'especialista'
+            )
+          );
+        allow update: if canAccessConversation(conversationId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leido'])
+          && request.resource.data.leido == true;
+        allow delete: if canAccessConversation(conversationId)
+          && resource.data.remitenteId == request.auth.uid;
       }
     }
 
-    // =========================================================
-    // COLECCIÓN: MENSAJES DE CHATBOT (HISTORIAL PERSONAL)
-    // =========================================================
-    match /mensajes_chat/{msgId} {
-      allow read, update, delete: if isAuthenticated() && (
-        resource.data.uidUsuario == request.auth.uid
-      );
-      allow create: if isAuthenticated() && (
-        request.resource.data.uidUsuario == request.auth.uid
-      );
+    match /conversaciones/{conversationId} {
+      allow read, delete: if owner(resource.data.uidUsuario);
+      allow create: if owner(request.resource.data.uidUsuario);
+      allow update: if owner(resource.data.uidUsuario)
+        && request.resource.data.uidUsuario == resource.data.uidUsuario;
     }
 
-    // =========================================================
-    // COLECCIÓN: RECURSOS Y GUÍAS (LECTURA PÚBLICA / AUTENTICADA)
-    // =========================================================
-    match /recursos/{recursoId} {
-      allow read: if isAuthenticated();
-      allow write: if false; // Solo administradores desde consola
+    match /mensajes_chat/{messageId} {
+      allow read, delete: if owner(resource.data.uidUsuario)
+        && exists(/databases/$(database)/documents/conversaciones/$(resource.data.idConversacion))
+        && get(/databases/$(database)/documents/conversaciones/$(resource.data.idConversacion)).data.uidUsuario == request.auth.uid;
+      allow create: if owner(request.resource.data.uidUsuario)
+        && exists(/databases/$(database)/documents/conversaciones/$(request.resource.data.idConversacion))
+        && get(/databases/$(database)/documents/conversaciones/$(request.resource.data.idConversacion)).data.uidUsuario == request.auth.uid
+        && request.resource.data.mensaje is string
+        && request.resource.data.mensaje.size() > 0
+        && request.resource.data.mensaje.size() <= 4000;
+      allow update: if owner(resource.data.uidUsuario)
+        && request.resource.data.uidUsuario == resource.data.uidUsuario
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mensaje']);
     }
 
-    // =========================================================
-    // REGLA POR DEFECTO: DENEGAR TODO LO NO ESPECIFICADO
-    // =========================================================
+    match /recursos/{resourceId} {
+      allow read: if signedIn() && resource.data.estado == 'Activo';
+      allow write: if admin();
+    }
+
+    match /recomendaciones/{recommendationId} {
+      allow read: if signedIn() && resource.data.estado == 'Activo';
+      allow write: if admin();
+    }
+
+    match /ejercicios_respiracion/{exerciseId} {
+      allow read: if signedIn() && resource.data.estado == 'Activo';
+      allow write: if admin();
+    }
+
+    match /sesiones_respiracion/{sessionId} {
+      allow read, delete: if owner(resource.data.uidUsuario);
+      allow create: if owner(request.resource.data.uidUsuario);
+      allow update: if owner(resource.data.uidUsuario)
+        && request.resource.data.uidUsuario == resource.data.uidUsuario;
+    }
+
+    match /favoritos/{favoriteId} {
+      allow read, delete: if owner(resource.data.uidUsuario);
+      allow create: if owner(request.resource.data.uidUsuario);
+    }
+
+    match /notificaciones/{notificationId} {
+      allow read, update, delete: if owner(resource.data.uidUsuario) || admin();
+      allow create: if admin() || owner(request.resource.data.uidUsuario);
+    }
+
+    match /configuraciones/{userId} {
+      allow read: if owner(userId);
+      allow create, update: if owner(userId)
+        && request.resource.data.uidUsuario == userId;
+      allow delete: if owner(userId);
+    }
+
+    match /citas_especialistas/{appointmentId} {
+      allow read: if signedIn()
+        && resource.data.especialistaId == request.auth.uid;
+      allow create: if activeSpecialist(request.resource.data.especialistaId)
+        && request.resource.data.especialistaId == request.auth.uid
+        && (
+          request.resource.data.usuarioId == null
+          || exists(/databases/$(database)/documents/usuarios/$(request.resource.data.usuarioId))
+        );
+      allow update: if activeSpecialist(resource.data.especialistaId)
+        && resource.data.especialistaId == request.auth.uid
+        && request.resource.data.especialistaId == resource.data.especialistaId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'fecha', 'hora', 'motivo', 'notas', 'estado'
+        ]);
+      allow delete: if activeSpecialist(resource.data.especialistaId)
+        && resource.data.especialistaId == request.auth.uid;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

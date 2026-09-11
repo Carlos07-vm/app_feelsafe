@@ -246,33 +246,6 @@ function ChatRoom() {
       return;
     }
 
-    console.log(
-      "======================================"
-    );
-
-    console.log(
-      "📡 ESCUCHANDO MENSAJES EN TIEMPO REAL"
-    );
-
-    console.log(
-      "Conversación:",
-      conversationId
-    );
-
-    console.log(
-      "Usuario:",
-      user.uid
-    );
-
-    console.log(
-      "Especialista:",
-      specialist?.uid
-    );
-
-    console.log(
-      "======================================"
-    );
-
     const messagesRef = collection(
       db,
       "conversaciones_especialistas",
@@ -283,11 +256,6 @@ function ChatRoom() {
     const unsubscribe = onSnapshot(
       messagesRef,
       (snapshot) => {
-        console.log(
-          "📨 MENSAJES ACTUALIZADOS EN TIEMPO REAL:",
-          snapshot.size
-        );
-
         const data = snapshot.docs.map(
           (messageDoc) => {
             const item = messageDoc.data();
@@ -400,13 +368,7 @@ function ChatRoom() {
       }
     );
 
-    return () => {
-      console.log(
-        "🔌 Desconectando listener usuario..."
-      );
-
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, [
     conversationId,
     user?.uid,
@@ -418,9 +380,9 @@ function ChatRoom() {
   // =====================================================
 
   const handleSendMessage = async () => {
-    const text = message.trim();
+    const text = message.trim().slice(0, 2000);
 
-    if (!text) {
+    if (!text || sending) {
       return;
     }
 
@@ -640,6 +602,7 @@ function ChatRoom() {
           message={message}
           setMessage={setMessage}
           onSend={handleSendMessage}
+          disabled={sending}
         />
 
       </div>

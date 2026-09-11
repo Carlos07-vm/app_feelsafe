@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { FaTimes, FaPlay, FaPause, FaRedo, FaLeaf, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
 import "../styles/MeditationModal.css";
+import { readUserNumber, userStorageKey } from "../utils/storage";
 
 const DURATIONS = [
   { label: "1 min", value: 60 },
@@ -20,7 +21,7 @@ const MEDITATION_GUIDES = [
   "Agradece a tu cuerpo y a tu mente por regalarte esta pausa de bienestar.",
 ];
 
-function MeditationModal({ close }) {
+function MeditationModal({ close, uid }) {
   const [selectedDuration, setSelectedDuration] = useState(60);
   const [seconds, setSeconds] = useState(60);
   const [running, setRunning] = useState(false);
@@ -84,8 +85,8 @@ function MeditationModal({ close }) {
     if (seconds <= 1) {
       setRunning(false);
       try {
-        const count = parseInt(localStorage.getItem("feelsafe_meditation_count") || "0", 10) + 1;
-        localStorage.setItem("feelsafe_meditation_count", String(count));
+        const count = readUserNumber(uid, "feelsafe_meditation_count") + 1;
+        localStorage.setItem(userStorageKey(uid, "feelsafe_meditation_count"), String(count));
         window.dispatchEvent(new Event("feelsafe_goals_updated"));
       } catch {}
     } else if (seconds % 15 === 0) {

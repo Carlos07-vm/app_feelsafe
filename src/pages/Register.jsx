@@ -4,14 +4,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { sendEmailVerification } from "firebase/auth";
 
-import { auth, db } from "../services/firebase";
+import { auth } from "../services/firebase";
 import { register } from "../services/authService";
-
-import {
-  doc,
-  setDoc,
-  serverTimestamp,
-} from "firebase/firestore";
 
 import logo from "../assets/logo.jpeg";
 import { useApp } from "../context/AppContext";
@@ -94,81 +88,6 @@ function Register() {
         setLoading(false);
         return;
       }
-
-      const firebaseUser = resultado.user;
-
-      // ==============================
-      // CREAR PERFIL DEL USUARIO
-      // ==============================
-
-      const userRef = doc(
-        db,
-        "usuarios",
-        firebaseUser.uid
-      );
-
-      await setDoc(
-        userRef,
-        {
-          uid: firebaseUser.uid,
-
-          nombre: cleanName,
-
-          correo: cleanEmail,
-
-          rol: "usuario",
-
-          tipoCuenta: "usuario",
-
-          estado: "Pendiente",
-
-          fechaRegistro: serverTimestamp(),
-
-          ultimoAcceso: serverTimestamp(),
-
-          foto: "",
-
-          fotoPerfil: "",
-
-          telefono: "",
-
-          fechaNacimiento: "",
-
-          edad: 0,
-
-          genero: "",
-
-          pais: "Nicaragua",
-
-          ciudad: "",
-
-          biografia: "",
-
-          wellbeing: 72,
-
-          streak: 0,
-
-          currentMood: "Neutral",
-
-          notes: [],
-
-          emotions: [],
-
-          nivel: 1,
-
-          puntos: 0,
-
-          esPremium: false,
-
-        },
-        {
-          merge: true,
-        }
-      );
-
-      console.log(
-        "Perfil de usuario creado correctamente"
-      );
 
       // ==============================
       // ENVIAR VERIFICACIÓN
@@ -266,9 +185,10 @@ function Register() {
               Nombre completo
             </label>
 
-            <input
-              id="name"
-              type="text"
+              <input
+                id="name"
+                type="text"
+                autoComplete="name"
               placeholder="Ej. Carlos Perez"
               value={name}
               onChange={(e) =>
@@ -287,9 +207,10 @@ function Register() {
               Correo electrónico
             </label>
 
-            <input
-              id="email"
-              type="email"
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
               placeholder="ejemplo@correo.com"
               value={email}
               onChange={(e) =>
@@ -308,9 +229,10 @@ function Register() {
               Contraseña
             </label>
 
-            <input
-              id="password"
-              type="password"
+              <input
+                id="password"
+                type="password"
+                autoComplete="new-password"
               placeholder="Mínimo 6 caracteres"
               value={password}
               onChange={(e) =>
@@ -329,9 +251,10 @@ function Register() {
               Confirmar contraseña
             </label>
 
-            <input
-              id="confirmPassword"
-              type="password"
+              <input
+                id="confirmPassword"
+                type="password"
+                autoComplete="new-password"
               placeholder="Repite tu contraseña"
               value={confirmPassword}
               onChange={(e) =>

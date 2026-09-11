@@ -10,7 +10,6 @@ import { useState, useRef, useEffect } from "react";
 
 // --- FIREBASE ---
 import {
-  signOut,
   updateProfile,
   deleteUser,
   sendPasswordResetEmail,
@@ -24,6 +23,8 @@ import {
   where,
 } from "firebase/firestore";
 import { auth, db } from "../services/firebase";
+import { logout } from "../services/authService";
+import { readUserJson, userStorageKey } from "../utils/storage";
 
 // --- ICONOS ---
 import {
@@ -148,18 +149,18 @@ function Profile() {
 
   // Notificaciones interactivas
   const [notifEmotions, setNotifEmotions] = useState(
-    () => localStorage.getItem("notif_emotions") !== "false"
+    true
   );
   const [notifMessages, setNotifMessages] = useState(
-    () => localStorage.getItem("notif_messages") !== "false"
+    true
   );
   const [notifDailyQuotes, setNotifDailyQuotes] = useState(
-    () => localStorage.getItem("notif_daily_quotes") !== "false"
+    true
   );
 
   // Privacidad interactiva
   const [shareEmotionsWithSpecialists, setShareEmotionsWithSpecialists] = useState(
-    () => localStorage.getItem("privacy_share_emotions") !== "false"
+    true
   );
   const [resetEmailSent, setResetEmailSent] = useState(false);
 
@@ -172,12 +173,31 @@ function Profile() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const savedImage = localStorage.getItem("profileImage");
     const currentPhoto =
-      user?.photoURL || user?.foto || user?.fotoPerfil || savedImage || "";
+      user?.photoURL || user?.foto || user?.fotoPerfil || "";
     setProfileImage(currentPhoto);
     setEditName(user?.displayName || user?.nombre || "");
     setEditDescription(user?.description || user?.descripcion || "");
+
+    if (user?.uid) {
+      const notificationConfig = user.notificacionesConfig || {};
+      setNotifEmotions(
+        localStorage.getItem(userStorageKey(user.uid, "notif_emotions")) !== "false"
+          && notificationConfig.registroEmocional !== false
+      );
+      setNotifMessages(
+        localStorage.getItem(userStorageKey(user.uid, "notif_messages")) !== "false"
+          && notificationConfig.mensajesEspecialista !== false
+      );
+      setNotifDailyQuotes(
+        localStorage.getItem(userStorageKey(user.uid, "notif_daily_quotes")) !== "false"
+          && notificationConfig.fraseDiaria !== false
+      );
+      setShareEmotionsWithSpecialists(
+        user.privacidad?.compartirEmociones !== false
+          && localStorage.getItem(userStorageKey(user.uid, "privacy_share_emotions")) !== "false"
+      );
+    }
   }, [user]);
 
   /**
@@ -215,15 +235,11 @@ function Profile() {
       const base64 = await compressImage(file, 400, 0.75);
 
       setProfileImage(base64);
-      localStorage.setItem("profileImage", base64);
 
       await updateUserProfile({
         foto: base64,
         fotoPerfil: base64,
-        photoURL: base64,
       });
-      if (auth.currentUser)
-        await updateProfile(auth.currentUser, { photoURL: base64 });
 
       await syncPhotoInConversations(
         base64,
@@ -251,7 +267,6 @@ function Profile() {
     try {
       setSaving(true);
       setProfileImage("");
-      localStorage.removeItem("profileImage");
 
       await updateUserProfile({ foto: "", fotoPerfil: "", photoURL: "" });
       if (auth.currentUser)
@@ -324,15 +339,15 @@ function Profile() {
     if (type === "emotions") {
       nextEmotions = !notifEmotions;
       setNotifEmotions(nextEmotions);
-      localStorage.setItem("notif_emotions", String(nextEmotions));
+      localStorage.setItem(userStorageKey(user.uid, "notif_emotions"), String(nextEmotions));
     } else if (type === "messages") {
       nextMessages = !notifMessages;
       setNotifMessages(nextMessages);
-      localStorage.setItem("notif_messages", String(nextMessages));
+      localStorage.setItem(userStorageKey(user.uid, "notif_messages"), String(nextMessages));
     } else if (type === "quotes") {
       nextQuotes = !notifDailyQuotes;
       setNotifDailyQuotes(nextQuotes);
-      localStorage.setItem("notif_daily_quotes", String(nextQuotes));
+      localStorage.setItem(userStorageKey(user.uid, "notif_daily_quotes"), String(nextQuotes));
     }
 
     try {
@@ -402,7 +417,7 @@ function Profile() {
         fechaExportacion: new Date().toISOString(),
         emocionesRegistradas: user?.emotions || [],
         notas: user?.notes || [],
-        retos: JSON.parse(localStorage.getItem("feelsafe_challenges") || "[]"),
+         retos: readUserJson(user?.uid, "feelsafe_challenges", []),
       };
 
       const dataStr =
@@ -445,7 +460,7 @@ function Profile() {
         : "Are you sure you want to log out?";
     if (!window.confirm(confirmMsg)) return;
     try {
-      await signOut(auth);
+       await logout();
       navigate("/login");
     } catch {
       alert(
@@ -1102,9 +1117,18 @@ function Profile() {
                 <div
                   className="toggle-setting-row"
                   onClick={() => {
-                    const next = !shareEmotionsWithSpecialists;
-                    setShareEmotionsWithSpecialists(next);
-                    localStorage.setItem("privacy_share_emotions", String(next));
+                     const next = !shareEmotionsWithSpecialists;
+                     setShareEmotionsWithSpecialists(next);
+                     localStorage.setItem(userStorageKey(user.uid, "privacy_share_emotions"), String(next));
+                     void updateUserProfile({
+                       privacidad: { compartirEmociones: next },
+                     }).catch(() => {
+                       setStatusMessage(
+                         language === "es"
+                           ? "No se pudo guardar la preferencia de privacidad."
+                           : "Could not save the privacy preference."
+                       );
+                     });
                     setStatusMessage(
                       language === "es"
                         ? "Preferencia de privacidad actualizada."

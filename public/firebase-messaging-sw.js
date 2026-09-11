@@ -23,6 +23,9 @@ self.addEventListener("message", (event) => {
         firebase.initializeApp(firebaseConfig);
       }
       messaging = firebase.messaging();
+      messaging.onBackgroundMessage((payload) => {
+        handleBackgroundMessage(payload);
+      });
       console.log("[SW] Firebase Messaging initialized successfully");
     } catch (error) {
       console.error("[SW] Error initializing Firebase:", error);
@@ -30,17 +33,9 @@ self.addEventListener("message", (event) => {
   }
 });
 
-// Manejar mensajes en segundo plano
-if (messaging === null) {
-  // Firebase no ha sido inicializado aún, esperar a que se inicialice
-  self.addEventListener("install", () => {
-    self.skipWaiting();
-  });
-} else {
-  messaging.onBackgroundMessage((payload) => {
-    handleBackgroundMessage(payload);
-  });
-}
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
 
 function handleBackgroundMessage(payload) {
   const title =

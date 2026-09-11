@@ -4,6 +4,7 @@ import { useApp } from "../context/AppContext";
 import { FaTrophy, FaFire, FaStar, FaCheckCircle, FaLock, FaBolt } from "react-icons/fa";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { readUserJson, readUserNumber, userStorageKey } from "../utils/storage";
 
 function Goals() {
   const { user, updateUserProfile, language, triggerNotification } = useApp();
@@ -16,31 +17,27 @@ function Goals() {
   const wellbeing = user?.wellbeing ?? 72;
 
   const [breathingCount, setBreathingCount] = useState(() => {
-    return parseInt(localStorage.getItem("feelsafe_breathing_count") || "0", 10);
+    return readUserNumber(user?.uid, "feelsafe_breathing_count");
   });
   const [meditationCount, setMeditationCount] = useState(() => {
-    return parseInt(localStorage.getItem("feelsafe_meditation_count") || "0", 10);
+    return readUserNumber(user?.uid, "feelsafe_meditation_count");
   });
   const [challengesCount, setChallengesCount] = useState(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem("feelsafe_challenges") || "[]");
-      const directCount = parseInt(localStorage.getItem("feelsafe_challenge_count") || "0", 10);
-      return Math.max(stored.length, directCount);
-    } catch {
-      return 0;
-    }
+    const storedValue = readUserJson(user?.uid, "feelsafe_challenges", []);
+    const stored = Array.isArray(storedValue) ? storedValue : [];
+    const directCount = readUserNumber(user?.uid, "feelsafe_challenge_count");
+    return Math.max(stored.length, directCount);
   });
 
   // Escuchar eventos de actualización de metas (disparados por modales)
   useEffect(() => {
     const handleSync = () => {
-      setBreathingCount(parseInt(localStorage.getItem("feelsafe_breathing_count") || "0", 10));
-      setMeditationCount(parseInt(localStorage.getItem("feelsafe_meditation_count") || "0", 10));
-      try {
-        const stored = JSON.parse(localStorage.getItem("feelsafe_challenges") || "[]");
-        const directCount = parseInt(localStorage.getItem("feelsafe_challenge_count") || "0", 10);
-        setChallengesCount(Math.max(stored.length, directCount));
-      } catch {}
+       setBreathingCount(readUserNumber(user?.uid, "feelsafe_breathing_count"));
+       setMeditationCount(readUserNumber(user?.uid, "feelsafe_meditation_count"));
+       const storedValue = readUserJson(user?.uid, "feelsafe_challenges", []);
+       const stored = Array.isArray(storedValue) ? storedValue : [];
+       const directCount = readUserNumber(user?.uid, "feelsafe_challenge_count");
+       setChallengesCount(Math.max(stored.length, directCount));
     };
 
     window.addEventListener("feelsafe_goals_updated", handleSync);
@@ -49,7 +46,7 @@ function Goals() {
       window.removeEventListener("feelsafe_goals_updated", handleSync);
       window.removeEventListener("storage", handleSync);
     };
-  }, []);
+  }, [user?.uid]);
 
   // Objetivos calculados automáticamente según actividad real
   const goals = useMemo(() => [
@@ -226,11 +223,11 @@ function Goals() {
   useEffect(() => {
     if (!updateUserProfile) return;
     try {
-      localStorage.setItem("user_goals_progress", JSON.stringify(goals));
-      const unlockedIds = badges.filter((b) => b.unlocked).map((b) => b.id);
-      localStorage.setItem("feelsafe_unlocked_badges", JSON.stringify(unlockedIds));
+       localStorage.setItem(userStorageKey(user?.uid, "user_goals_progress"), JSON.stringify(goals));
+       const unlockedIds = badges.filter((b) => b.unlocked).map((b) => b.id);
+       localStorage.setItem(userStorageKey(user?.uid, "feelsafe_unlocked_badges"), JSON.stringify(unlockedIds));
     } catch {}
-  }, [goals, badges, updateUserProfile]);
+  }, [goals, badges, updateUserProfile, user?.uid]);
 
   const totalGoals = goals.length;
   const completedGoalsCount = goals.filter((g) => g.progress >= g.total).length;

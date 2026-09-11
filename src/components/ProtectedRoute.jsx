@@ -39,6 +39,10 @@ function ProtectedRoute() {
     return <Navigate to="/login" replace />;
   }
 
+  if (!user.correoVerificado && !user.emailVerified) {
+    return <Navigate to="/verify-email" replace state={{ email: user.email }} />;
+  }
+
   // Si la cuenta autenticada es de un especialista, redirigir a su panel profesional
   if (user.tipoCuenta === "especialista" || user.rol === "especialista") {
     return <Navigate to="/specialist/dashboard" replace />;

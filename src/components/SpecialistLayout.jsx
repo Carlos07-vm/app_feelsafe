@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, query, where, onSnapshot, doc, getDoc, setDoc } from "firebase/firestore";
 import {
   FaHome,
   FaComments,
@@ -17,6 +17,8 @@ import {
 } from "react-icons/fa";
 
 import { auth, db } from "../services/firebase";
+import { publicSpecialistData } from "../utils/specialist";
+import { logout } from "../services/authService";
 import logo from "../assets/logo.jpeg";
 import "../styles/SpecialistLayout.css";
 
@@ -48,8 +50,13 @@ function SpecialistLayout({ children }) {
         const specialistRef = doc(db, "specialists", user.uid);
         const specialistSnap = await getDoc(specialistRef);
         if (specialistSnap.exists()) {
-          const specData = specialistSnap.data();
-          setSpecialist({
+           const specData = specialistSnap.data();
+           setDoc(
+             doc(db, "specialists_public", user.uid),
+             publicSpecialistData(user.uid, specData, user),
+             { merge: true }
+           ).catch(() => {});
+           setSpecialist({
             uid: user.uid,
             email: user.email,
             ...specData,
@@ -116,7 +123,7 @@ function SpecialistLayout({ children }) {
     if (loggingOut) return;
     try {
       setLoggingOut(true);
-      await signOut(auth);
+       await logout();
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("Error cerrando sesión:", error);

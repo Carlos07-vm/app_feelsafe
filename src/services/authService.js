@@ -10,8 +10,11 @@ import { auth, db } from "./firebase";
 import {
   doc,
   setDoc,
+  writeBatch,
   serverTimestamp,
 } from "firebase/firestore";
+import { publicSpecialistData } from "../utils/specialist";
+import { retirarTokenFCM } from "./messaging";
 
 /**
  * =====================================================
@@ -59,6 +62,8 @@ export const register = async (
       fechaRegistro: serverTimestamp(),
       estado: "Pendiente",
       rol: rol,
+      tipoCuenta: rol,
+      accountType: rol,
     };
 
     // -----------------------------------------------
@@ -66,23 +71,22 @@ export const register = async (
     // -----------------------------------------------
 
     if (rol === "especialista") {
-
-      await setDoc(
-        doc(
-          db,
-          "specialists",
-          usuario.uid
-        ),
-        {
-          ...datosBase,
-
-          especialidad: "",
-          descripcion: "",
-          telefono: "",
-          ciudad: "",
-          fotoPerfil: "",
-        }
+      const specialistData = {
+        ...datosBase,
+        especialidad: "",
+        disponible: false,
+        descripcion: "",
+        telefono: "",
+        ciudad: "",
+        fotoPerfil: "",
+      };
+      const batch = writeBatch(db);
+      batch.set(doc(db, "specialists", usuario.uid), specialistData);
+      batch.set(
+        doc(db, "specialists_public", usuario.uid),
+        publicSpecialistData(usuario.uid, specialistData)
       );
+      await batch.commit();
 
     }
 
@@ -101,8 +105,10 @@ export const register = async (
         {
           ...datosBase,
 
-          foto: "",
-          telefono: "",
+           foto: "",
+           tipoCuenta: "usuario",
+           accountType: "usuario",
+           telefono: "",
           fechaNacimiento: "",
 
           edad: 0,
@@ -112,8 +118,13 @@ export const register = async (
           racha: 0,
           puntos: 0,
           nivel: 1,
-          esPremium: false,
-        }
+           esPremium: false,
+           wellbeing: 72,
+           streak: 0,
+           currentMood: "Neutral",
+           notes: [],
+           emotions: [],
+         }
       );
 
     }
@@ -196,7 +207,7 @@ export const logout = async () => {
 
   try {
 
-    localStorage.removeItem("feelsafe_cached_user");
+    await retirarTokenFCM(auth.currentUser);
     await signOut(auth);
 
     return {

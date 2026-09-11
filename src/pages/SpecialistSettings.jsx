@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, writeBatch, updateDoc, onSnapshot } from "firebase/firestore";
 import {
   FaUserCog,
   FaUserShield,
@@ -17,6 +17,8 @@ import {
 } from "react-icons/fa";
 
 import { auth, db } from "../services/firebase";
+import { publicSpecialistData } from "../utils/specialist";
+import { logout } from "../services/authService";
 import SpecialistLayout from "../components/SpecialistLayout";
 import "../styles/SpecialistSettings.css";
 
@@ -90,7 +92,14 @@ function SpecialistSettings() {
 
     try {
       const specialistRef = doc(db, "specialists", user.uid);
-      await updateDoc(specialistRef, { disponible: newValue });
+      const batch = writeBatch(db);
+      batch.update(specialistRef, { disponible: newValue });
+      batch.set(
+        doc(db, "specialists_public", user.uid),
+        publicSpecialistData(user.uid, { ...specialist, disponible: newValue }, user),
+        { merge: true }
+      );
+      await batch.commit();
       setMessage(
         newValue
           ? "Tu estado ahora es: Disponible para atender pacientes."
@@ -139,7 +148,7 @@ function SpecialistSettings() {
   // =====================================================
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+       await logout();
       navigate("/login", { replace: true });
     } catch (err) {
       console.error("Error cerrando sesión:", err);

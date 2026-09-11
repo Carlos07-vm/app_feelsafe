@@ -1,0 +1,71 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "specialists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tipoCuenta", "order": "ASCENDING" },
+        { "fieldPath": "estado", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "specialists_public",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tipoCuenta", "order": "ASCENDING" },
+        { "fieldPath": "estado", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "conversaciones_especialistas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "usuarioId", "order": "ASCENDING" },
+        { "fieldPath": "especialistaId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "registros_emocionales",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uidUsuario", "order": "ASCENDING" },
+        { "fieldPath": "fechaCreacion", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "recursos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "estado", "order": "ASCENDING" },
+        { "fieldPath": "fechaCreacion", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "recursos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "categoria", "order": "ASCENDING" },
+        { "fieldPath": "estado", "order": "ASCENDING" },
+        { "fieldPath": "fechaCreacion", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sesiones_respiracion",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "uidUsuario", "order": "ASCENDING" },
+        { "fieldPath": "fecha", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "mensajes_chat",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "idConversacion", "order": "ASCENDING" },
+        { "fieldPath": "uidUsuario", "order": "ASCENDING" },
+        { "fieldPath": "fecha", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -17,6 +17,7 @@ import {
   crearMensajeChat,
   obtenerMensajesChat,
   eliminarMensajesChat,
+  limpiarMensajesChatAntiguos,
 } from "../services/mensajeChatService";
 
 const MENSAJE_BIENVENIDA =
@@ -362,6 +363,7 @@ function Chatbot() {
       await actualizarUltimoMensaje(
         conversationId
       );
+      await limpiarMensajesChatAntiguos(conversationId);
     } catch (err) {
       console.error(
         "Error al procesar mensaje:",

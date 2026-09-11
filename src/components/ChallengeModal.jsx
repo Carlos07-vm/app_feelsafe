@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaTimes, FaBullseye, FaCheckCircle, FaHeart, FaStar, FaAward } from "react-icons/fa";
 import "../styles/ChallengeModal.css";
+import { readUserJson, readUserNumber, userStorageKey } from "../utils/storage";
+import { localDateKey } from "../utils/date";
 
 const CHALLENGE_PROMPTS = [
   {
@@ -25,13 +27,36 @@ const CHALLENGE_PROMPTS = [
   },
 ];
 
-function ChallengeModal({ close, onComplete }) {
+function ChallengeModal({ close, onComplete, uid }) {
   const [activePromptIndex, setActivePromptIndex] = useState(0);
   const [answers, setAnswers] = useState(["", "", ""]);
   const [completed, setCompleted] = useState(false);
   const [error, setError] = useState("");
 
   const prompt = CHALLENGE_PROMPTS[activePromptIndex];
+
+  useEffect(() => {
+    const today = localDateKey();
+    const storedValue = readUserJson(uid, "feelsafe_challenges", []);
+    const stored = Array.isArray(storedValue) ? storedValue : [];
+    const latest = stored.find((entry) => entry.date === today);
+
+    if (latest) {
+      const savedPromptIndex = CHALLENGE_PROMPTS.findIndex(
+        (item) => item.title === latest.promptTitle
+      );
+      if (savedPromptIndex >= 0) setActivePromptIndex(savedPromptIndex);
+      const savedAnswers = Array.isArray(latest.answers)
+        ? latest.answers.slice(0, 3)
+        : [];
+      setAnswers([
+        ...savedAnswers,
+        "",
+        "",
+        "",
+      ].slice(0, 3));
+    }
+  }, [uid]);
 
   const handleAnswerChange = (index, value) => {
     const next = [...answers];
@@ -49,19 +74,27 @@ function ChallengeModal({ close, onComplete }) {
 
     // Save to localStorage
     try {
-      const today = new Date().toISOString().split("T")[0];
-      const stored = JSON.parse(localStorage.getItem("feelsafe_challenges") || "[]");
+       const today = localDateKey();
+       const stored = readUserJson(uid, "feelsafe_challenges", []);
       const newEntry = {
         date: today,
         promptTitle: prompt.title,
         answers: answers.filter((a) => a.trim().length > 0),
         timestamp: Date.now(),
       };
-      stored.unshift(newEntry);
-      localStorage.setItem("feelsafe_challenges", JSON.stringify(stored.slice(0, 30)));
+       const existingToday = stored.some(
+         (entry) => entry.date === today && entry.promptTitle === prompt.title
+       );
+       const updated = [
+         newEntry,
+         ...stored.filter(
+           (entry) => !(entry.date === today && entry.promptTitle === prompt.title)
+         ),
+       ];
+       localStorage.setItem(userStorageKey(uid, "feelsafe_challenges"), JSON.stringify(updated.slice(0, 30)));
 
-      const challengeCount = parseInt(localStorage.getItem("feelsafe_challenge_count") || "0", 10) + 1;
-      localStorage.setItem("feelsafe_challenge_count", String(challengeCount));
+       const challengeCount = readUserNumber(uid, "feelsafe_challenge_count") + (existingToday ? 0 : 1);
+       localStorage.setItem(userStorageKey(uid, "feelsafe_challenge_count"), String(challengeCount));
       window.dispatchEvent(new Event("feelsafe_goals_updated"));
     } catch {
       // LocalStorage fallback

@@ -11,6 +11,7 @@ import {
 import MainLayout from "../layouts/MainLayout";
 
 import { db } from "../services/firebase";
+import { publicSpecialistData } from "../utils/specialist";
 
 import "../styles/Specialists.css";
 
@@ -40,7 +41,7 @@ function Specialists() {
     const specialistsRef =
       collection(
         db,
-        "specialists"
+        "specialists_public"
       );
 
 
@@ -90,7 +91,12 @@ function Specialists() {
                   document.id;
 
 
-                const specialist = {
+                  const publicData = publicSpecialistData(
+                    specialistUid,
+                    document.data()
+                  );
+
+                  const specialist = {
 
                   // ===============================================
                   // IDENTIFICADORES
@@ -107,31 +113,20 @@ function Specialists() {
                   // DATOS ORIGINALES DE FIRESTORE
                   // ===============================================
 
-                  ...data,
-
-
-                  // ===============================================
+                   // ===============================================
                   // CAMPOS NORMALIZADOS
                   // ===============================================
 
                   name:
-                    data.nombre ||
-                    data.name ||
-                    "Especialista",
+                     publicData.nombre,
 
 
                   specialty:
-                    data.especialidad ||
-                    data.specialty ||
-                    "Profesional de la salud",
+                     publicData.especialidad,
 
 
                   photo:
-                    data.fotoPerfil ||
-                    data.photoURL ||
-                    data.foto ||
-                    data.photo ||
-                    "",
+                     publicData.fotoPerfil,
 
 
                   /*
@@ -143,23 +138,20 @@ function Specialists() {
                    */
 
                   status:
-                    data.disponibilidad ||
+                     data.disponibilidad ||
                     (
-                      data.disponible === true
+                       publicData.disponible
                         ? "Disponible"
                         : "No disponible"
                     ),
 
 
                   rating:
-                    data.rating ||
-                    "5.0",
+                     publicData.rating,
 
 
                   description:
-                    data.descripcion ||
-                    data.description ||
-                    "Especialista disponible para acompañarte.",
+                     publicData.descripcion,
 
 
                   // ===============================================
@@ -170,16 +162,10 @@ function Specialists() {
                     specialistUid,
 
                   especialistaNombre:
-                    data.nombre ||
-                    data.name ||
-                    "Especialista",
+                     publicData.nombre,
 
                   especialistaFoto:
-                    data.fotoPerfil ||
-                    data.photoURL ||
-                    data.foto ||
-                    data.photo ||
-                    "",
+                     publicData.fotoPerfil,
 
                 };
 
@@ -243,37 +229,9 @@ function Specialists() {
 
       }
 
-
-      console.log(
-        "=========================================="
-      );
-
-      console.log(
-        "ESPECIALISTA SELECCIONADO"
-      );
-
-      console.log(
-        "=========================================="
-      );
-
-      console.log(
-        "UID:",
-        specialist.uid
-      );
-
-      console.log(
-        "Nombre:",
-        specialist.name
-      );
-
-      console.log(
-        "Especialidad:",
-        specialist.specialty
-      );
-
-      console.log(
-        "=========================================="
-      );
+      if (specialist.disponible === false) {
+        return;
+      }
 
 
       /*
@@ -648,14 +606,17 @@ function Specialists() {
 
                           <button
                             type="button"
-                            onClick={() =>
+                             onClick={() =>
                               handleStartChat(
                                 specialist
                               )
                             }
+                            disabled={specialist.disponible === false}
                           >
 
-                            💬 Iniciar conversación
+                             {specialist.disponible === false
+                               ? "No disponible ahora"
+                               : "💬 Iniciar conversación"}
 
                           </button>
 

@@ -34,6 +34,8 @@ import {
   mostrarNotificacionNativa,
   solicitarPermisoNotificaciones,
 } from "../services/messaging";
+import { userStorageKey } from "../utils/storage";
+import { localDateKey } from "../utils/date";
 
 import NotificationToast from "../components/NotificationToast";
 
@@ -119,14 +121,21 @@ const buildUser = (
 
     estado:
       data.estado ||
-      "Activo",
+      (firebaseUser.emailVerified ? "Activo" : "Pendiente"),
 
     disponible:
-      data.disponible ?? true,
+      data.disponible ?? tipoCuenta !== "especialista",
 
     correoVerificado:
-      data.correoVerificado ??
-      firebaseUser.emailVerified ??
+      firebaseUser.emailVerified ||
+      data.correoVerificado ||
+      data.emailVerificado ||
+      false,
+
+    emailVerified:
+      firebaseUser.emailVerified ||
+      data.emailVerificado ||
+      data.correoVerificado ||
       false,
 
     currentMood:
@@ -159,6 +168,18 @@ const buildUser = (
     // cambie estos valores
     uid: firebaseUser.uid,
 
+    correoVerificado:
+      firebaseUser.emailVerified ||
+      data.correoVerificado ||
+      data.emailVerificado ||
+      false,
+
+    emailVerified:
+      firebaseUser.emailVerified ||
+      data.emailVerificado ||
+      data.correoVerificado ||
+      false,
+
     tipoCuenta,
 
     accountType: tipoCuenta,
@@ -169,74 +190,14 @@ const buildUser = (
   };
 };
 
-// =========================================
-// REGISTRAR DISPOSITIVO PARA NOTIFICACIONES (ÁMBITO DE MÓDULO)
-// =========================================
-const registrarNotificaciones = async (
-  firebaseUser,
-  tipoCuenta
-) => {
-  try {
-    if (!firebaseUser?.uid) {
-      return;
-    }
-
-    const token = await obtenerTokenFCM();
-    if (!token) {
-      console.warn("⚠️ No se pudo obtener token FCM.");
-      return;
-    }
-
-    const collectionName =
-      tipoCuenta === "especialista"
-        ? "specialists"
-        : "usuarios";
-
-    const userRef = doc(
-      db,
-      collectionName,
-      firebaseUser.uid
-    );
-
-    await setDoc(
-      userRef,
-      {
-        fcmTokens: arrayUnion(token),
-        notificacionesPush: true,
-      },
-      {
-        merge: true,
-      }
-    );
-  } catch (error) {
-    // Token FCM no pudo registrarse
-  }
-};
-
 export function AppProvider({ children }) {
-  const [user, setUserState] = useState(() => {
-    try {
-      const cached = localStorage.getItem("feelsafe_cached_user");
-      return cached ? JSON.parse(cached) : null;
-    } catch (e) {
-      return null;
-    }
-  });
+  const [user, setUserState] = useState(null);
 
   const setUser = useCallback((newUser) => {
     setUserState(newUser);
-    try {
-      if (newUser) {
-        localStorage.setItem("feelsafe_cached_user", JSON.stringify(newUser));
-      } else {
-        localStorage.removeItem("feelsafe_cached_user");
-      }
-    } catch (e) {}
   }, []);
 
-  const [loading, setLoading] = useState(() => {
-    return !localStorage.getItem("feelsafe_cached_user");
-  });
+  const [loading, setLoading] = useState(true);
 
   // =========================================
   // ESTADOS DE TEMA E IDIOMA (INICIALIZACIÓN PEREZOSA)
@@ -282,27 +243,10 @@ export function AppProvider({ children }) {
         auth,
         async (firebaseUser) => {
 
-          console.log(
-            "================================="
-          );
-
-          console.log(
-            "AUTH STATE"
-          );
-
-          console.log(
-            "UID:",
-            firebaseUser?.uid
-          );
-
-          console.log(
-            "EMAIL:",
-            firebaseUser?.email
-          );
-
-          console.log(
-            "================================="
-          );
+          if (unsubscribeProfile) {
+            unsubscribeProfile();
+            unsubscribeProfile = null;
+          }
 
           // =========================================
           // NO HAY SESIÓN
@@ -347,14 +291,6 @@ export function AppProvider({ children }) {
               const specialistData =
                 specialistSnap.data();
 
-              console.log(
-                "🩺 CUENTA ESPECIALISTA"
-              );
-
-              console.log(
-                specialistData
-              );
-
               const specialistUser =
                 buildUser(
                   firebaseUser,
@@ -367,11 +303,6 @@ export function AppProvider({ children }) {
               );
 
               setLoading(false);
-              registrarNotificaciones(
-              firebaseUser,
-              "especialista"
-            );
-
               unsubscribeProfile =
                 onSnapshot(
                   specialistRef,
@@ -428,14 +359,6 @@ export function AppProvider({ children }) {
               const userData =
                 userSnap.data();
 
-              console.log(
-                "👤 CUENTA USUARIO"
-              );
-
-              console.log(
-                userData
-              );
-
               const normalUser =
                 buildUser(
                   firebaseUser,
@@ -448,11 +371,6 @@ export function AppProvider({ children }) {
               );
 
               setLoading(false);
-
-              registrarNotificaciones(
-              firebaseUser,
-              "usuario"
-            );
 
               unsubscribeProfile =
                 onSnapshot(
@@ -490,10 +408,6 @@ export function AppProvider({ children }) {
             // =========================================
             // CREAR PERFIL DE USUARIO SI NO EXISTE
             // =========================================
-
-            console.log(
-              "⚠️ No existe perfil. Creando usuario..."
-            );
 
             const newUser =
               buildUser(
@@ -539,7 +453,10 @@ export function AppProvider({ children }) {
                   "usuario",
 
                 estado:
-                  "Activo",
+                  firebaseUser.emailVerified ? "Activo" : "Pendiente",
+
+                correoVerificado:
+                  firebaseUser.emailVerified,
 
                 createdAt:
                   new Date().toISOString(),
@@ -556,11 +473,6 @@ export function AppProvider({ children }) {
             );
 
             setLoading(false);
-
-            registrarNotificaciones(
-            firebaseUser,
-            "usuario"
-          );
 
           } catch (error) {
 
@@ -610,13 +522,13 @@ export function AppProvider({ children }) {
     }) => {
       // 1. Validar preferencias de usuario
       if (!force) {
-        if (type === "message" && localStorage.getItem("notif_messages") === "false") {
+        if (type === "message" && localStorage.getItem(userStorageKey(user?.uid, "notif_messages")) === "false") {
           return;
         }
-        if (type === "reminder" && localStorage.getItem("notif_emotions") === "false") {
+        if (type === "reminder" && localStorage.getItem(userStorageKey(user?.uid, "notif_emotions")) === "false") {
           return;
         }
-        if (type === "quote" && localStorage.getItem("notif_daily_quotes") === "false") {
+        if (type === "quote" && localStorage.getItem(userStorageKey(user?.uid, "notif_daily_quotes")) === "false") {
           return;
         }
       }
@@ -647,12 +559,31 @@ export function AppProvider({ children }) {
 
       setToasts((prev) => [newToast, ...prev.slice(0, 3)]); // Máximo 4 en pantalla
     },
-    []
+    [user?.uid]
   );
 
   // Probar sistema de notificaciones
   const testNotificationSystem = async () => {
     const perm = await solicitarPermisoNotificaciones();
+
+    if (perm === "granted" && user?.uid) {
+      try {
+        const token = await obtenerTokenFCM();
+        if (token) {
+          const collectionName = user.tipoCuenta === "especialista"
+            ? "specialists"
+            : "usuarios";
+          await setDoc(
+            doc(db, collectionName, user.uid),
+            { fcmTokens: arrayUnion(token), notificacionesPush: true },
+            { merge: true }
+          );
+        }
+      } catch (error) {
+        console.warn("No se pudo registrar el dispositivo para notificaciones.", error);
+      }
+    }
+
     triggerNotification({
       type: "reminder",
       title: language === "es" ? "🔔 ¡Sistema de Notificaciones Activo!" : "🔔 Notification System Active!",
@@ -806,12 +737,12 @@ export function AppProvider({ children }) {
     }, 60 * 60 * 1000);
 
     function ejecutarRecordatorios() {
-      const todayStr = new Date().toISOString().split("T")[0];
+       const todayStr = localDateKey();
       const nowHour = new Date().getHours();
 
       // 1. Recordatorio de Registro Diario de Emociones
-      const notifEmotions = localStorage.getItem("notif_emotions") !== "false";
-      const lastCheckinReminder = localStorage.getItem("last_notif_checkin");
+       const notifEmotions = localStorage.getItem(userStorageKey(user.uid, "notif_emotions")) !== "false";
+       const lastCheckinReminder = localStorage.getItem(userStorageKey(user.uid, "last_notif_checkin"));
 
       if (notifEmotions && lastCheckinReminder !== todayStr) {
         // Verificar si el usuario ya registró alguna emoción hoy
@@ -824,7 +755,7 @@ export function AppProvider({ children }) {
           );
 
         if (!hasLoggedToday) {
-          localStorage.setItem("last_notif_checkin", todayStr);
+           localStorage.setItem(userStorageKey(user.uid, "last_notif_checkin"), todayStr);
           triggerNotification({
             type: "reminder",
             title:
@@ -843,12 +774,12 @@ export function AppProvider({ children }) {
       }
 
       // 2. Frase y Reto Matutino
-      const notifQuotes =
-        localStorage.getItem("notif_daily_quotes") !== "false";
-      const lastQuoteReminder = localStorage.getItem("last_notif_quote");
+       const notifQuotes =
+         localStorage.getItem(userStorageKey(user.uid, "notif_daily_quotes")) !== "false";
+       const lastQuoteReminder = localStorage.getItem(userStorageKey(user.uid, "last_notif_quote"));
 
       if (notifQuotes && lastQuoteReminder !== todayStr && nowHour >= 6) {
-        localStorage.setItem("last_notif_quote", todayStr);
+         localStorage.setItem(userStorageKey(user.uid, "last_notif_quote"), todayStr);
         triggerNotification({
           type: "quote",
           title:
@@ -867,9 +798,9 @@ export function AppProvider({ children }) {
 
       // 3. Pausa de respiración / autocuidado si el bienestar es bajo
       const wellbeing = user.wellbeing ?? 72;
-      const lastWellnessReminder = localStorage.getItem("last_notif_wellness");
+       const lastWellnessReminder = localStorage.getItem(userStorageKey(user.uid, "last_notif_wellness"));
       if (wellbeing < 50 && lastWellnessReminder !== todayStr) {
-        localStorage.setItem("last_notif_wellness", todayStr);
+         localStorage.setItem(userStorageKey(user.uid, "last_notif_wellness"), todayStr);
         triggerNotification({
           type: "wellness",
           title:
@@ -902,17 +833,50 @@ export function AppProvider({ children }) {
     }
 
     // Filtrar estrictamente campos inmutables por seguridad
-    const {
-      uid: _uid,
-      tipoCuenta: _tipoCuenta,
-      accountType: _accountType,
-      rol: _rol,
-      email: _email,
-      correo: _correo,
-      createdAt: _createdAt,
-      fechaRegistro: _fechaRegistro,
-      ...safeUpdates
-    } = updates || {};
+    const allowedFields = new Set([
+      "nombre", "displayName", "description", "descripcion", "foto",
+      "fotoPerfil", "photoURL", "telefono", "fechaNacimiento", "edad",
+      "genero", "pais", "ciudad", "biografia", "wellbeing", "streak",
+      "lastRecordDate", "currentMood", "notes", "emotions",
+      "notificacionesConfig", "correoVerificado", "emailVerificado", "estado",
+      "privacidad",
+    ]);
+    const safeUpdates = Object.fromEntries(
+      Object.entries(updates || {}).filter(([key]) => allowedFields.has(key))
+    );
+
+    if ("wellbeing" in safeUpdates) {
+      safeUpdates.wellbeing = Math.max(0, Math.min(100, Number(safeUpdates.wellbeing) || 0));
+    }
+    if ("streak" in safeUpdates) {
+      safeUpdates.streak = Math.max(0, Math.floor(Number(safeUpdates.streak) || 0));
+    }
+    if ("notes" in safeUpdates && Array.isArray(safeUpdates.notes)) {
+      safeUpdates.notes = safeUpdates.notes.slice(-365).map((note) => ({
+        mood: String(note?.mood || "").slice(0, 80),
+        text: String(note?.text || "").slice(0, 2000),
+        date: String(note?.date || "").slice(0, 40),
+        timestamp: String(note?.timestamp || "").slice(0, 40),
+      }));
+    }
+    if ("emotions" in safeUpdates && Array.isArray(safeUpdates.emotions)) {
+      safeUpdates.emotions = safeUpdates.emotions
+        .slice(-365)
+        .map((emotion) => String(emotion || "").slice(0, 80));
+    }
+    if ("notificacionesConfig" in safeUpdates) {
+      const config = safeUpdates.notificacionesConfig || {};
+      safeUpdates.notificacionesConfig = {
+        registroEmocional: config.registroEmocional !== false,
+        mensajesEspecialista: config.mensajesEspecialista !== false,
+        fraseDiaria: config.fraseDiaria !== false,
+      };
+    }
+    if ("privacidad" in safeUpdates) {
+      safeUpdates.privacidad = {
+        compartirEmociones: safeUpdates.privacidad?.compartirEmociones !== false,
+      };
+    }
 
     const collectionName =
       user.tipoCuenta === "especialista"
@@ -925,6 +889,7 @@ export function AppProvider({ children }) {
       user.uid
     );
 
+    const previousUser = user;
     const nextUser = {
       ...user,
       ...safeUpdates,
@@ -945,10 +910,12 @@ export function AppProvider({ children }) {
         }
       );
     } catch (error) {
+      setUser(previousUser);
       console.error(
         "Error actualizando perfil:",
         error
       );
+      throw error;
     }
   };
 

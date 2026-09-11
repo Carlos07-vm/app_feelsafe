@@ -4,6 +4,7 @@ import { useApp } from "../context/AppContext";
 import { translations } from "../constants/translations";
 import { useState, useEffect } from "react";
 import { db } from "../services/firebase";
+import { localDateKey } from "../utils/date";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import {
   LineChart,
@@ -77,7 +78,7 @@ const buildWeekTrend = (records = [], notes = [], lang) => {
 
   // 5. Mapear y calcular promedios
   return days.map((date) => {
-    const key = date.toISOString().split("T")[0];
+    const key = localDateKey(date);
     const dayEntries = grouped[key] || [];
 
     let averageMood = 0;

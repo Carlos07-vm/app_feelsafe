@@ -17,6 +17,8 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   FacebookAuthProvider,
+  signInWithCredential,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 
 import {
@@ -30,6 +32,7 @@ import {
   auth,
   db,
 } from "../services/firebase";
+import { publicSpecialistData } from "../utils/specialist";
 
 import logo from "../assets/logo.jpeg";
 
@@ -44,6 +47,14 @@ googleProvider.setCustomParameters({
 });
 
 const facebookProvider = new FacebookAuthProvider();
+
+const syncPublicSpecialist = async (user, data) => {
+  await setDoc(
+    doc(db, "specialists_public", user.uid),
+    publicSpecialistData(user.uid, data, user),
+    { merge: true }
+  );
+};
 
 // =====================================================
 // REDIRECCIÓN SEGÚN ROL
@@ -87,6 +98,7 @@ const redirectByRole = async (
 
     if (specialistSnap.exists()) {
       console.log("✅ Cuenta especialista");
+      await syncPublicSpecialist(user, specialistSnap.data());
 
       navigate(
         "/specialist/dashboard",
@@ -201,6 +213,8 @@ function Login() {
 
   const [error, setError] =
     useState("");
+  const [resetMessage, setResetMessage] = useState("");
+  const [resetting, setResetting] = useState(false);
 
   const [failedAttempts, setFailedAttempts] =
     useState(0);
@@ -320,13 +334,24 @@ function Login() {
         // Use native Capacitor Firebase Authentication plugin
         const { FirebaseAuthentication } = await import('@capacitor-firebase/authentication');
         const result = await FirebaseAuthentication.signIn({ provider: 'google.com' });
-        if (!result || !result.user) throw new Error('Firebase native sign‑in did not return a user');
-        const user = result.user;
+        const nativeCredential = result?.credential;
+        if (!nativeCredential?.idToken && !nativeCredential?.accessToken) {
+          throw new Error("Google nativo no devolvió credenciales válidas");
+        }
+        const credentialResult = await signInWithCredential(
+          auth,
+          GoogleAuthProvider.credential(
+            nativeCredential.idToken || null,
+            nativeCredential.accessToken || null
+          )
+        );
+        const user = credentialResult.user;
         console.log('✅ Google nativo autenticado:', user.uid, user.email);
         // Continue with same Firestore profile logic using the native user object
         const specialistRef = doc(db, "specialists", user.uid);
         const specialistSnap = await getDoc(specialistRef);
         if (specialistSnap.exists()) {
+          await syncPublicSpecialist(user, specialistSnap.data());
           await setDoc(specialistRef, { ultimoAcceso: serverTimestamp() }, { merge: true });
           navigate("/specialist/dashboard", { replace: true });
           return;
@@ -338,12 +363,15 @@ function Login() {
             uid: user.uid,
             nombre: user.displayName || "",
             correo: user.email || "",
-            foto: user.photoURL || "",
-            proveedor: "Google",
-            rol: "usuario",
-            fechaRegistro: serverTimestamp(),
+             foto: user.photoURL || "",
+             proveedor: "Google",
+             rol: "usuario",
+             tipoCuenta: "usuario",
+             accountType: "usuario",
+             correoVerificado: user.emailVerified,
+             fechaRegistro: serverTimestamp(),
             ultimoAcceso: serverTimestamp(),
-            estado: "Activo",
+             estado: user.emailVerified ? "Activo" : "Pendiente",
           });
         } else {
           await setDoc(userRef, {
@@ -365,6 +393,7 @@ function Login() {
       const specialistRef = doc(db, "specialists", user.uid);
       const specialistSnap = await getDoc(specialistRef);
       if (specialistSnap.exists()) {
+        await syncPublicSpecialist(user, specialistSnap.data());
         await setDoc(specialistRef, { ultimoAcceso: serverTimestamp() }, { merge: true });
         navigate("/specialist/dashboard", { replace: true });
         return;
@@ -376,12 +405,15 @@ function Login() {
           uid: user.uid,
           nombre: user.displayName || "",
           correo: user.email || "",
-          foto: user.photoURL || "",
-          proveedor: "Google",
-          rol: "usuario",
-          fechaRegistro: serverTimestamp(),
+           foto: user.photoURL || "",
+           proveedor: "Google",
+           rol: "usuario",
+           tipoCuenta: "usuario",
+           accountType: "usuario",
+           correoVerificado: user.emailVerified,
+           fechaRegistro: serverTimestamp(),
           ultimoAcceso: serverTimestamp(),
-          estado: "Activo",
+           estado: user.emailVerified ? "Activo" : "Pendiente",
         });
         console.log('✅ Perfil Google creado');
       } else {
@@ -441,13 +473,21 @@ function Login() {
         // Use native Capacitor Firebase Authentication plugin
         const { FirebaseAuthentication } = await import("@capacitor-firebase/authentication");
         const result = await FirebaseAuthentication.signIn({ provider: "facebook.com" });
-        if (!result || !result.user) throw new Error("Firebase native sign‑in no devolvió un usuario");
-        const user = result.user;
+        const nativeCredential = result?.credential;
+        if (!nativeCredential?.accessToken) {
+          throw new Error("Facebook nativo no devolvió credenciales válidas");
+        }
+        const credentialResult = await signInWithCredential(
+          auth,
+          FacebookAuthProvider.credential(nativeCredential.accessToken)
+        );
+        const user = credentialResult.user;
         console.log("✅ Facebook nativo autenticado:", user.uid, user.email);
         // Same Firestore profile handling as Google
         const specialistRef = doc(db, "specialists", user.uid);
         const specialistSnap = await getDoc(specialistRef);
         if (specialistSnap.exists()) {
+          await syncPublicSpecialist(user, specialistSnap.data());
           await setDoc(specialistRef, { ultimoAcceso: serverTimestamp() }, { merge: true });
           navigate("/specialist/dashboard", { replace: true });
           return;
@@ -459,12 +499,15 @@ function Login() {
             uid: user.uid,
             nombre: user.displayName || "",
             correo: user.email || "",
-            foto: user.photoURL || "",
-            proveedor: "Facebook",
-            rol: "usuario",
-            fechaRegistro: serverTimestamp(),
+             foto: user.photoURL || "",
+             proveedor: "Facebook",
+             rol: "usuario",
+             tipoCuenta: "usuario",
+             accountType: "usuario",
+             correoVerificado: user.emailVerified,
+             fechaRegistro: serverTimestamp(),
             ultimoAcceso: serverTimestamp(),
-            estado: "Activo",
+             estado: user.emailVerified ? "Activo" : "Pendiente",
           });
         } else {
           await setDoc(
@@ -490,6 +533,7 @@ function Login() {
       const specialistRef = doc(db, "specialists", user.uid);
       const specialistSnap = await getDoc(specialistRef);
       if (specialistSnap.exists()) {
+        await syncPublicSpecialist(user, specialistSnap.data());
         await setDoc(specialistRef, { ultimoAcceso: serverTimestamp() }, { merge: true });
         navigate("/specialist/dashboard", { replace: true });
         return;
@@ -501,12 +545,15 @@ function Login() {
           uid: user.uid,
           nombre: user.displayName || "",
           correo: user.email || "",
-          foto: user.photoURL || "",
-          proveedor: "Facebook",
-          rol: "usuario",
-          fechaRegistro: serverTimestamp(),
+           foto: user.photoURL || "",
+           proveedor: "Facebook",
+           rol: "usuario",
+           tipoCuenta: "usuario",
+           accountType: "usuario",
+           correoVerificado: user.emailVerified,
+           fechaRegistro: serverTimestamp(),
           ultimoAcceso: serverTimestamp(),
-          estado: "Activo",
+           estado: user.emailVerified ? "Activo" : "Pendiente",
         });
       } else {
         await setDoc(
@@ -555,6 +602,28 @@ function Login() {
   // =====================================================
   // CORREO + CONTRASEÑA
   // =====================================================
+
+  const handlePasswordReset = async () => {
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail) {
+      setResetMessage("Escribe tu correo para recibir un enlace de recuperación.");
+      return;
+    }
+
+    setResetting(true);
+    setResetMessage("");
+
+    try {
+      await sendPasswordResetEmail(auth, cleanEmail);
+      setResetMessage("Si existe una cuenta con ese correo, recibirás un enlace de recuperación.");
+    } catch {
+      // Mensaje genérico para no revelar si un correo está registrado.
+      setResetMessage("Si existe una cuenta con ese correo, recibirás un enlace de recuperación.");
+    } finally {
+      setResetting(false);
+    }
+  };
 
   const handleSubmit =
     async (event) => {
@@ -757,6 +826,7 @@ function Login() {
           <input
             type="email"
             placeholder="Correo electrónico"
+            autoComplete="email"
             value={email}
             onChange={(e) =>
               setEmail(
@@ -773,6 +843,7 @@ function Login() {
           <input
             type="password"
             placeholder="Contraseña"
+            autoComplete="current-password"
             value={password}
             onChange={(e) =>
               setPassword(
@@ -785,6 +856,21 @@ function Login() {
             }
             required
           />
+
+          <button
+            type="button"
+            className="auth-forgot-link"
+            onClick={handlePasswordReset}
+            disabled={loading || resetting}
+          >
+            {resetting ? "Enviando enlace..." : "¿Olvidaste tu contraseña?"}
+          </button>
+
+          {resetMessage && (
+            <p className="auth-reset-message" role="status">
+              {resetMessage}
+            </p>
+          )}
 
           <button
             type="submit"

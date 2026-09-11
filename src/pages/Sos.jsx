@@ -1,6 +1,7 @@
 import "../styles/Sos.css";
 import MainLayout from "../layouts/MainLayout"; 
 import { useState, useEffect } from "react"; 
+import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext"; 
 
 import {
@@ -16,21 +17,23 @@ import {
 
 // Métodos específicos de Firestore para operar con la base de datos
 import { 
-  collection,   
-  addDoc,       
-  getDocs,      
+  collection,
+  addDoc,
   deleteDoc,    
   doc,
   onSnapshot
 } from "firebase/firestore";
 import { db } from "../services/firebase";
+import BreathingModal from "../components/BreathingModal";
 
 function SOS() {
   const { user } = useApp(); 
+  const navigate = useNavigate();
   const [status, setStatus] = useState("Selecciona una opción para recibir ayuda inmediata.");
 
   // Estados para manejar el comportamiento del modal y los datos de Firebase
   const [showContactModal, setShowContactModal] = useState(false); 
+  const [showBreathing, setShowBreathing] = useState(false);
   const [contacts, setContacts] = useState([]); 
   const [loadingContacts, setLoadingContacts] = useState(false); 
   
@@ -58,7 +61,7 @@ function SOS() {
       },
       (error) => {
         console.error("Error escuchando contactos en tiempo real:", error);
-        setStatus(`Error de Firebase: ${error.message}`);
+        setStatus("No se pudieron cargar los contactos de emergencia.");
         setLoadingContacts(false);
       }
     );
@@ -68,7 +71,9 @@ function SOS() {
 
   const handleAddContact = async (e) => {
     e.preventDefault(); 
-    if (!newName.trim() || !newPhone.trim() || !user?.uid) return; 
+    const cleanName = newName.trim().slice(0, 100);
+    const cleanPhone = newPhone.trim().slice(0, 40);
+    if (!cleanName || !cleanPhone || !user?.uid) return; 
     
     try {
       setLoadingContacts(true);
@@ -76,8 +81,8 @@ function SOS() {
       
       // addDoc genera automáticamente un ID único para este nuevo contacto
       await addDoc(contactsRef, { 
-        nombre: newName, 
-        telefono: newPhone, 
+         nombre: cleanName, 
+         telefono: cleanPhone, 
         fechaCreacion: new Date().toISOString() 
       });
       
@@ -88,7 +93,7 @@ function SOS() {
       setStatus("Contacto guardado correctamente.");
     } catch (error) {
       console.error("Error al guardar el contacto:", error);
-      setStatus(`Error al guardar: ${error.message}`);
+      setStatus("No se pudo guardar el contacto. Inténtalo de nuevo.");
     } finally {
       setLoadingContacts(false);
     }
@@ -105,7 +110,7 @@ function SOS() {
       setStatus("Contacto eliminado.");
     } catch (error) {
       console.error("Error al eliminar:", error);
-      setStatus(`Error al eliminar: ${error.message}`);
+      setStatus("No se pudo eliminar el contacto. Inténtalo de nuevo.");
     } finally {
       setLoadingContacts(false);
     }
@@ -137,10 +142,11 @@ function SOS() {
         setStatus("Abriendo lista de contactos de emergencia...");
         break;
       case "breath":
-        setStatus("Inicia una respiración profunda: inhala 4s, mantén 4s, exhala 4s.");
+        setShowBreathing(true);
+        setStatus("Sigue el ritmo de la respiración guiada.");
         break;
       case "talk":
-        setStatus("Buscando recursos y líneas de apoyo para conversar con alguien de confianza.");
+        navigate("/specialists");
         break;
       default:
         setStatus("Sigue los consejos y cuida tu ritmo.");
@@ -201,10 +207,16 @@ function SOS() {
             onClick={() => { setShowContactModal(false); setIsAddingContact(false); }}
           >
             {/* e.stopPropagation() evita que el clic en el contenido cierre el modal (evento del overlay superior) */}
-            <div className="sos-modal-content" onClick={(e) => e.stopPropagation()}>
-              <div className="sos-modal-header">
-                <h2>Contactos SOS 🚨</h2>
-                <button className="sos-close-btn" onClick={() => setShowContactModal(false)}>
+             <div
+               className="sos-modal-content"
+               role="dialog"
+               aria-modal="true"
+               aria-labelledby="sos-modal-title"
+               onClick={(e) => e.stopPropagation()}
+             >
+               <div className="sos-modal-header">
+                 <h2 id="sos-modal-title">Contactos SOS 🚨</h2>
+                 <button className="sos-close-btn" type="button" aria-label="Cerrar contactos SOS" onClick={() => setShowContactModal(false)}>
                   <FaTimes />
                 </button>
               </div>
@@ -216,11 +228,11 @@ function SOS() {
                 <form className="sos-modal-form" onSubmit={handleAddContact}>
                   <p>Agrega a un familiar, amigo o especialista. (Ej. +505 8888 8888)</p>
                   <input 
-                    type="text" placeholder="Nombre (ej. Mamá)" 
+                     type="text" placeholder="Nombre (ej. Mamá)" maxLength={100}
                     value={newName} onChange={(e) => setNewName(e.target.value)} required 
                   />
                   <input 
-                    type="tel" placeholder="Número con código de país" 
+                     type="tel" placeholder="Número con código de país" maxLength={40}
                     value={newPhone} onChange={(e) => setNewPhone(e.target.value)} required 
                   />
                   <div className="sos-modal-actions">
@@ -240,7 +252,7 @@ function SOS() {
                         <div key={contact.id} className="sos-contact-item">
                           <div className="sos-contact-header">
                             <strong>{contact.nombre}</strong>
-                            <button className="sos-delete-btn" onClick={() => handleDeleteContact(contact.id)}><FaTrash /></button>
+                             <button className="sos-delete-btn" type="button" aria-label={`Eliminar a ${contact.nombre || "este contacto"}`} onClick={() => handleDeleteContact(contact.id)}><FaTrash /></button>
                           </div>
                           <div className="sos-contact-buttons">
                             <button className="sos-call-btn" onClick={() => handleNormalCall(contact.telefono)}>
@@ -255,13 +267,20 @@ function SOS() {
                     </div>
                   )}
 
-                  <button className="sos-add-btn" onClick={() => setIsAddingContact(true)}>
-                    <FaPlus /> Añadir nuevo contacto
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+                   <button className="sos-add-btn" type="button" onClick={() => setIsAddingContact(true)}>
+                     <FaPlus /> Añadir nuevo contacto
+                   </button>
+                 </div>
+               )}
+             </div>
+           </div>
+         )}
+
+        {showBreathing && (
+          <BreathingModal
+            uid={user?.uid}
+            close={() => setShowBreathing(false)}
+          />
         )}
       </div>
     </MainLayout>

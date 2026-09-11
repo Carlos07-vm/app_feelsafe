@@ -4,13 +4,13 @@
 import "../styles/Auth.css"; // Estilos de autenticación
 import "../styles/MeditationModal.css"; 
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useApp } from "../context/AppContext"; // Contexto global (idioma y tema)
 
 // --- FIREBASE ---
 import { auth, db } from "../services/firebase";
 import { reload, sendEmailVerification } from "firebase/auth";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 // --- ICONOS ---
 import { FaEnvelope, FaCheckCircle, FaRedo, FaExclamationCircle } from "react-icons/fa";
@@ -98,12 +98,25 @@ function VerifyEmail() {
       const refreshedUser = auth.currentUser;
 
       if (refreshedUser?.emailVerified) {
-        // Si ya está verificado, actualiza Firestore y redirige
-        await updateDoc(doc(db, "usuarios", refreshedUser.uid), {
+        let collectionName = location.state?.accountType === "especialista"
+          ? "specialists"
+          : "usuarios";
+
+        if (!location.state?.accountType) {
+          const specialistSnap = await getDoc(doc(db, "specialists", refreshedUser.uid));
+          collectionName = specialistSnap.exists() ? "specialists" : "usuarios";
+        }
+        const profileUpdates = {
           emailVerificado: true,
-          estado: "Activo",
-        });
-        navigate("/dashboard");
+          correoVerificado: true,
+        };
+
+        if (collectionName === "usuarios") {
+          profileUpdates.estado = "Activo";
+        }
+
+        await updateDoc(doc(db, collectionName, refreshedUser.uid), profileUpdates);
+        navigate(collectionName === "specialists" ? "/specialist/dashboard" : "/dashboard");
       } else {
         setMessageType("error");
         setMessage(t.errNotVerified);

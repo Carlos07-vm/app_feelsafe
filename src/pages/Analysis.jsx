@@ -14,11 +14,10 @@ import {
 } from "react-icons/fa";
 
 function Analysis() {
-  const { user, language } = useApp();
+  const { language } = useApp();
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
-  const [recentRecords, setRecentRecords] = useState([]);
 
   // Bienestar en tiempo real
   const wellbeing = user?.wellbeing ?? 72;
@@ -64,10 +63,12 @@ function Analysis() {
             },
           ]);
         }
+        setError("");
         setCargando(false);
       },
       (err) => {
         console.error("Error escuchando recomendaciones:", err);
+        setError("No se pudieron cargar las recomendaciones en este momento.");
         // Fallback enriquecido
         setRecomendaciones([
           {
@@ -83,38 +84,6 @@ function Analysis() {
 
     return () => unsubscribe();
   }, []);
-
-  // 2. Escuchar registros emocionales del usuario en tiempo real
-  useEffect(() => {
-    if (!user?.uid) return;
-
-    const recordsRef = collection(db, "registros_emocionales");
-    // Query sin orderBy/limit para evitar requerir índices compuestos
-    // Filtraremos y ordenaremos en el cliente
-    const recordsQuery = query(
-      recordsRef,
-      where("uidUsuario", "==", user.uid)
-    );
-
-    const unsubscribe = onSnapshot(
-      recordsQuery,
-      (snapshot) => {
-        const list = snapshot.docs.map((docSnap) => docSnap.data());
-        list.sort((a, b) => {
-          const timeA = a.fecha?.toDate ? a.fecha.toDate().getTime() : new Date(a.fecha || 0).getTime();
-          const timeB = b.fecha?.toDate ? b.fecha.toDate().getTime() : new Date(b.fecha || 0).getTime();
-          return timeB - timeA;
-        });
-        // Limitar a 7 en el cliente
-        setRecentRecords(list.slice(0, 7));
-      },
-      (err) => {
-        // Error manejado silenciosamente - Firestore puede necesitar índices
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user?.uid]);
 
   // Cálculo dinámico del estado general
   const getGeneralStatus = () => {

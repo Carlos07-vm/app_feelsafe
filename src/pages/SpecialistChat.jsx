@@ -233,7 +233,7 @@ function SpecialistChat() {
   const handleSendMessage = async (e) => {
     if (e) e.preventDefault();
 
-    const text = message.trim();
+    const text = message.trim().slice(0, 2000);
     if (!text || sending || !currentUser?.uid || !conversation?.id) {
       return;
     }
@@ -430,6 +430,8 @@ function SpecialistChat() {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={sending || conversationLoading}
+              maxLength={2000}
+              aria-label="Escribir mensaje al paciente"
             />
 
             <button

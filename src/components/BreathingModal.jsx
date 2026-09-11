@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { FaTimes, FaPlay, FaPause, FaRedo, FaCheck, FaHeartbeat } from "react-icons/fa";
 import "../styles/BreathingModal.css";
+import { readUserNumber, userStorageKey } from "../utils/storage";
 
 const TECHNIQUES = [
   {
@@ -32,7 +33,7 @@ const TECHNIQUES = [
   },
 ];
 
-function BreathingModal({ close }) {
+function BreathingModal({ close, uid }) {
   const [selectedTech, setSelectedTech] = useState(TECHNIQUES[0]);
   const [phase, setPhase] = useState("ready"); // "ready", "inhale", "hold1", "exhale", "hold2", "done"
   const [counter, setCounter] = useState(4);
@@ -75,6 +76,14 @@ function BreathingModal({ close }) {
   useEffect(() => {
     if (!isActive || counter > 0) return;
 
+    const markCompleted = () => {
+      try {
+        const count = readUserNumber(uid, "feelsafe_breathing_count") + 1;
+        localStorage.setItem(userStorageKey(uid, "feelsafe_breathing_count"), String(count));
+        window.dispatchEvent(new Event("feelsafe_goals_updated"));
+      } catch {}
+    };
+
     // Counter reached 0, transition to next phase
     if (phase === "inhale") {
       if (selectedTech.hold1 > 0) {
@@ -95,6 +104,7 @@ function BreathingModal({ close }) {
         if (cycle >= totalCycles) {
           setPhase("done");
           setIsActive(false);
+          markCompleted();
         } else {
           setCycle((c) => c + 1);
           setPhase("inhale");
@@ -105,6 +115,7 @@ function BreathingModal({ close }) {
       if (cycle >= totalCycles) {
         setPhase("done");
         setIsActive(false);
+        markCompleted();
       } else {
         setCycle((c) => c + 1);
         setPhase("inhale");
@@ -112,14 +123,7 @@ function BreathingModal({ close }) {
       }
     }
 
-    if (phase === "done") {
-      try {
-        const count = parseInt(localStorage.getItem("feelsafe_breathing_count") || "0", 10) + 1;
-        localStorage.setItem("feelsafe_breathing_count", String(count));
-        window.dispatchEvent(new Event("feelsafe_goals_updated"));
-      } catch {}
-    }
-  }, [counter, phase, isActive, cycle, selectedTech, totalCycles]);
+  }, [counter, phase, isActive, cycle, selectedTech, totalCycles, uid]);
 
   const getPhaseInstruction = () => {
     switch (phase) {

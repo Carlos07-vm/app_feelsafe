@@ -4,8 +4,9 @@ import {
   onMessage,
   isSupported,
 } from "firebase/messaging";
+import { arrayRemove, doc, updateDoc } from "firebase/firestore";
 
-import app from "./firebase";
+import app, { db } from "./firebase";
 import { firebaseConfig, vapidKey } from "./firebaseConfig";
 
 const VAPID_KEY = vapidKey || import.meta.env.VITE_FIREBASE_VAPID_KEY;
@@ -220,6 +221,36 @@ export const obtenerTokenFCM = async () => {
   } catch (error) {
     console.error("❌ Error obteniendo token FCM:", error);
     return null;
+  }
+};
+
+export const retirarTokenFCM = async (user) => {
+  try {
+    if (!user?.uid || typeof Notification === "undefined" || Notification.permission !== "granted") {
+      return;
+    }
+
+    const soportado = await messagingSoportado();
+    if (!soportado) return;
+
+    const registration = await registrarServiceWorker();
+    if (!registration) return;
+
+    const token = await getToken(getMessaging(app), {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: registration,
+    });
+    if (!token) return;
+
+    await Promise.allSettled(
+      ["usuarios", "specialists"].map((collectionName) =>
+        updateDoc(doc(db, collectionName, user.uid), {
+          fcmTokens: arrayRemove(token),
+        })
+      )
+    );
+  } catch (error) {
+    console.warn("No se pudo retirar el dispositivo de notificaciones.", error?.code || "unknown");
   }
 };
 

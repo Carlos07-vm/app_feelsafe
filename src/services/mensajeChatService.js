@@ -4,6 +4,8 @@ import {
   getDocs,
   query,
   where,
+  orderBy,
+  limit,
   serverTimestamp,
   deleteDoc,
   doc,
@@ -97,7 +99,9 @@ export const obtenerMensajesChat = async (
         "uidUsuario",
         "==",
         usuarioActual.uid
-      )
+      ),
+      orderBy("fecha", "desc"),
+      limit(100)
     );
 
     const resultado =
@@ -109,7 +113,7 @@ export const obtenerMensajesChat = async (
           id: documento.id,
           ...documento.data(),
         }))
-        .sort((a, b) => {
+         .sort((a, b) => {
           const fechaA =
             a.fecha?.toMillis
               ? a.fecha.toMillis()
@@ -121,7 +125,7 @@ export const obtenerMensajesChat = async (
               : 0;
 
           return fechaA - fechaB;
-        });
+         });
 
     console.log(
       "Mensajes encontrados:",
@@ -143,6 +147,33 @@ export const obtenerMensajesChat = async (
       error: error.message,
       data: [],
     };
+  }
+};
+
+export const limpiarMensajesChatAntiguos = async (
+  idConversacion,
+  maxMensajes = 100
+) => {
+  try {
+    const usuarioActual = auth.currentUser;
+    if (!usuarioActual) return { success: false };
+
+    const consulta = query(
+      collection(db, COLECCION),
+      where("idConversacion", "==", idConversacion),
+      where("uidUsuario", "==", usuarioActual.uid),
+      orderBy("fecha", "desc"),
+      limit(maxMensajes + 1)
+    );
+    const resultado = await getDocs(consulta);
+    const antiguos = resultado.docs.slice(maxMensajes);
+    await Promise.all(
+      antiguos.map((documento) => deleteDoc(doc(db, COLECCION, documento.id)))
+    );
+    return { success: true, deleted: antiguos.length };
+  } catch (error) {
+    console.warn("No se pudieron limpiar mensajes antiguos.", error?.code || "unknown");
+    return { success: false };
   }
 };
 
