@@ -137,13 +137,13 @@ function Specialists() {
                    * Por eso comprobamos ambos nombres.
                    */
 
-                  status:
-                     data.disponibilidad ||
-                    (
-                       publicData.disponible
-                        ? "Disponible"
-                        : "No disponible"
-                    ),
+                   status:
+                     publicData.disponible
+                       ? "Disponible"
+                       : "No disponible",
+
+                   disponible:
+                     publicData.disponible,
 
 
                   rating:

@@ -1,0 +1,261 @@
+.specialist-rooms-page {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px;
+}
+
+.specialist-rooms-header,
+.specialist-rooms-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.specialist-rooms-header {
+  margin-bottom: 28px;
+}
+
+.specialist-rooms-eyebrow {
+  display: block;
+  color: rgba(109, 76, 143, 0.8);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  margin-bottom: 8px;
+}
+
+.specialist-rooms-header h1,
+.specialist-rooms-section-heading h2 {
+  margin: 0;
+  color: #2d1b46;
+}
+
+.specialist-rooms-header h1 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+}
+
+.specialist-rooms-header p {
+  max-width: 700px;
+  margin: 10px 0 0;
+  color: #6b7280;
+  line-height: 1.65;
+}
+
+.specialist-rooms-header-icon,
+.specialist-room-create-icon,
+.specialist-room-card-icon {
+  display: grid;
+  place-items: center;
+  color: #6d4c8f;
+  background: #eee8ff;
+}
+
+.specialist-rooms-header-icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 20px;
+  font-size: 2rem;
+}
+
+.specialist-room-create-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 18px;
+  padding: 22px;
+  margin-bottom: 26px;
+  background: linear-gradient(135deg, #f8f5ff, #fff);
+  border: 1px solid #e6def5;
+  border-radius: 22px;
+  box-shadow: 0 12px 30px rgba(91, 60, 196, 0.08);
+}
+
+.specialist-room-create-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  font-size: 1.3rem;
+}
+
+.specialist-room-create-card h2 {
+  margin: 0;
+  color: #34234e;
+  font-size: 1.1rem;
+}
+
+.specialist-room-create-card p {
+  margin: 5px 0 0;
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+.specialist-room-create-card > button,
+.specialist-room-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #6d4c8f, #7b61ff);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.specialist-room-create-card > button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.specialist-rooms-error {
+  padding: 12px 16px;
+  border-radius: 12px;
+  color: #9f1239;
+  background: #fff1f2;
+}
+
+.specialist-rooms-list {
+  padding: 26px;
+  background: #fff;
+  border: 1px solid #ebe5f2;
+  border-radius: 22px;
+  box-shadow: 0 12px 28px rgba(45, 27, 70, 0.06);
+}
+
+.specialist-rooms-section-heading {
+  margin-bottom: 20px;
+}
+
+.specialist-room-count {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: #6d4c8f;
+  background: #f0ebff;
+  font-weight: 800;
+}
+
+.specialist-room-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.specialist-room-card {
+  padding: 18px;
+  border: 1px solid #eee8f5;
+  border-radius: 16px;
+  background: #fcfbfe;
+}
+
+.specialist-room-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.specialist-room-card-icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 12px;
+}
+
+.specialist-room-card-label {
+  display: block;
+  color: #8b8195;
+  font-size: 0.75rem;
+}
+
+.specialist-room-card-top strong {
+  display: block;
+  margin-top: 2px;
+  color: #34234e;
+  font-size: 1.35rem;
+  letter-spacing: 0.16em;
+}
+
+.specialist-room-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  border: 0;
+  color: #6d4c8f;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.specialist-room-card-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  margin: 18px 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #6b7280;
+  background: #f7f4fb;
+  font-size: 0.86rem;
+}
+
+.specialist-room-card-status svg {
+  color: #7b61ff;
+}
+
+.specialist-room-open {
+  width: 100%;
+}
+
+.specialist-rooms-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 50px 20px 35px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.specialist-rooms-empty > svg {
+  color: #a08bd4;
+  font-size: 2.2rem;
+}
+
+.specialist-rooms-empty h3 {
+  margin: 4px 0 0;
+  color: #34234e;
+}
+
+.specialist-rooms-empty p {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .specialist-rooms-page {
+    padding: 24px 18px;
+  }
+
+  .specialist-rooms-header-icon {
+    display: none;
+  }
+
+  .specialist-room-create-card {
+    grid-template-columns: auto 1fr;
+  }
+
+  .specialist-room-create-card > button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .specialist-rooms-list {
+    padding: 18px;
+  }
+}

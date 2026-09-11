@@ -4,6 +4,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -13,7 +14,7 @@ import {
   where,
 } from "firebase/firestore";
 
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import MainLayout from "../layouts/MainLayout";
 
@@ -29,13 +30,14 @@ import "../styles/ChatRoom.css";
 function ChatRoom() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { conversationId: routeConversationId } = useParams();
 
   const { user } = useApp();
 
-  const specialist = location.state?.specialist;
+  const [loadedSpecialist, setLoadedSpecialist] = useState(null);
+  const specialist = location.state?.specialist || loadedSpecialist;
 
   const [conversationId, setConversationId] = useState(null);
-  const [conversationData, setConversationData] = useState(null);
 
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
@@ -52,7 +54,7 @@ function ChatRoom() {
       return;
     }
 
-    if (!specialist?.uid) {
+    if (!specialist?.uid && !routeConversationId) {
       console.error("❌ No se recibió especialista.");
 
       setLoading(false);
@@ -76,7 +78,7 @@ function ChatRoom() {
 
       return;
     }
-  }, [user?.uid, specialist?.uid]);
+  }, [routeConversationId, user?.uid, specialist?.uid]);
 
   // =====================================================
   // BUSCAR / CREAR CONVERSACIÓN
@@ -86,7 +88,41 @@ function ChatRoom() {
     let isMounted = true;
 
     const loadConversation = async () => {
-      if (!user?.uid || !specialist?.uid) {
+      if (!user?.uid) {
+        return;
+      }
+
+      if (routeConversationId) {
+        try {
+          const conversationSnap = await getDoc(
+            doc(db, "conversaciones_especialistas", routeConversationId)
+          );
+
+          if (!conversationSnap.exists() || conversationSnap.data().usuarioId !== user.uid) {
+            setLoading(false);
+            return;
+          }
+
+          const data = conversationSnap.data();
+          setLoadedSpecialist({
+            uid: data.especialistaId,
+            especialistaId: data.especialistaId,
+            nombre: data.especialistaNombre || "Especialista",
+            name: data.especialistaNombre || "Especialista",
+            fotoPerfil: data.especialistaFoto || "",
+            photo: data.especialistaFoto || "",
+            status: "Conversación privada",
+          });
+          setConversationId(conversationSnap.id);
+          setLoading(false);
+        } catch (routeError) {
+          console.error("❌ ERROR CARGANDO CONVERSACIÓN:", routeError);
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (!specialist?.uid) {
         return;
       }
 
@@ -131,12 +167,6 @@ function ChatRoom() {
           }
 
           setConversationId(existingDoc.id);
-          setConversationData({
-            id: existingDoc.id,
-            ...data,
-            usuarioFoto: currentPhoto || data.usuarioFoto || "",
-          });
-
           setLoading(false);
           return;
         }
@@ -207,12 +237,7 @@ function ChatRoom() {
           conversationRef.id
         );
 
-        setConversationData({
-          id: conversationRef.id,
-          ...newConversation,
-        });
-
-        if (isMounted) setLoading(false);
+         if (isMounted) setLoading(false);
       } catch (error) {
         console.error(
           "❌ ERROR BUSCANDO CONVERSACIÓN:",
@@ -230,6 +255,7 @@ function ChatRoom() {
   }, [
     user?.uid,
     specialist?.uid,
+    routeConversationId,
   ]);
 
   // =====================================================

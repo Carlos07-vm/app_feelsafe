@@ -14,6 +14,7 @@ import {
   FaTimes,
   FaUserCircle,
   FaCircle,
+  FaKey,
 } from "react-icons/fa";
 
 import { auth, db } from "../services/firebase";
@@ -147,6 +148,11 @@ function SpecialistLayout({ children }) {
       to: "/specialist/users",
       icon: <FaUsers />,
       label: "Pacientes",
+    },
+    {
+      to: "/specialist/rooms",
+      icon: <FaKey />,
+      label: "Salas privadas",
     },
     {
       to: "/specialist/agenda",

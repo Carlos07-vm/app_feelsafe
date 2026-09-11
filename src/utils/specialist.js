@@ -1,5 +1,10 @@
 export const publicSpecialistData = (uid, data = {}, authUser = {}) => {
   const photo = data.fotoPerfil || data.photoURL || data.foto || authUser.photoURL || "";
+  const available = typeof data.disponible === "boolean"
+    ? data.disponible
+    : ["disponible", "online", "activo"].includes(
+        String(data.disponibilidad || data.estadoDisponibilidad || "").toLowerCase()
+      );
 
   return {
     uid,
@@ -11,7 +16,7 @@ export const publicSpecialistData = (uid, data = {}, authUser = {}) => {
     fotoPerfil: photo,
     foto: photo,
     photoURL: photo,
-    disponible: data.disponible === true,
+    disponible: available,
     rating: data.rating || "5.0",
     estado: data.estado || "Pendiente",
     tipoCuenta: "especialista",

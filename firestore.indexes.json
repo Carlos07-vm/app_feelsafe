@@ -25,6 +25,22 @@
       ]
     },
     {
+      "collectionGroup": "conversaciones_especialistas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "usuarioId", "order": "ASCENDING" },
+        { "fieldPath": "fechaUltimoMensaje", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "salas_especialistas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "especialistaId", "order": "ASCENDING" },
+        { "fieldPath": "fechaCreacion", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "registros_emocionales",
       "queryScope": "COLLECTION",
       "fields": [

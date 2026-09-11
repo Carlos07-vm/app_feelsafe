@@ -46,6 +46,19 @@ service cloud.firestore {
         );
     }
 
+    function roomPath(roomId) {
+      return /databases/$(database)/documents/salas_especialistas/$(roomId);
+    }
+
+    function canAccessRoom(roomId) {
+      return signedIn()
+        && exists(roomPath(roomId))
+        && (
+          get(roomPath(roomId)).data.especialistaId == request.auth.uid
+          || get(roomPath(roomId)).data.usuarioId == request.auth.uid
+        );
+    }
+
     function isVerifiedEmail() {
       return signedIn() && request.auth.token.email_verified == true;
     }
@@ -252,6 +265,80 @@ service cloud.firestore {
       allow create: if owner(request.resource.data.uidUsuario);
       allow update: if owner(resource.data.uidUsuario)
         && request.resource.data.uidUsuario == resource.data.uidUsuario;
+    }
+
+    match /salas_especialistas/{roomId} {
+      allow create: if signedIn()
+        && activeSpecialist(request.auth.uid)
+        && roomId.size() == 6
+        && request.resource.data.keys().hasOnly([
+          'codigo', 'titulo', 'estado', 'especialistaId', 'especialistaNombre',
+          'especialistaFoto', 'usuarioId', 'usuarioNombre', 'usuarioFoto',
+          'ultimoMensaje', 'ultimoEmisorId', 'mensajesNoLeidos',
+          'mensajesNoLeidosUsuario', 'fechaUltimoMensaje', 'fechaCreacion',
+          'fechaActualizacion'
+        ])
+        && request.resource.data.codigo == roomId
+        && request.resource.data.estado == 'Activa'
+        && request.resource.data.especialistaId == request.auth.uid
+        && request.resource.data.usuarioId == '';
+
+      allow read: if canAccessRoom(roomId)
+        || (
+          signedIn()
+          && resource.data.codigo == roomId
+          && resource.data.usuarioId == ''
+        );
+
+      allow update: if (
+          signedIn()
+          && resource.data.codigo == roomId
+          && resource.data.usuarioId == ''
+          && request.resource.data.usuarioId == request.auth.uid
+          && request.resource.data.especialistaId == resource.data.especialistaId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'usuarioId', 'usuarioNombre', 'usuarioFoto', 'fechaActualizacion'
+          ])
+        ) || (
+          canAccessRoom(roomId)
+          && request.resource.data.codigo == resource.data.codigo
+          && request.resource.data.especialistaId == resource.data.especialistaId
+          && request.resource.data.usuarioId == resource.data.usuarioId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'ultimoMensaje', 'ultimoEmisorId', 'fechaUltimoMensaje',
+            'mensajesNoLeidos', 'mensajesNoLeidosUsuario', 'fechaActualizacion'
+          ])
+        );
+
+      allow delete: if canAccessRoom(roomId)
+        && resource.data.especialistaId == request.auth.uid;
+
+      match /mensajes/{messageId} {
+        allow read: if canAccessRoom(roomId);
+        allow create: if canAccessRoom(roomId)
+          && request.resource.data.keys().hasOnly([
+            'texto', 'remitenteId', 'remitenteTipo', 'destinatarioId', 'fecha', 'leido'
+          ])
+          && request.resource.data.remitenteId == request.auth.uid
+          && request.resource.data.texto is string
+          && request.resource.data.texto.size() > 0
+          && request.resource.data.texto.size() <= 2000
+          && (
+            (
+              get(roomPath(roomId)).data.especialistaId == request.auth.uid
+              && request.resource.data.remitenteTipo == 'especialista'
+            )
+            || (
+              get(roomPath(roomId)).data.usuarioId == request.auth.uid
+              && request.resource.data.remitenteTipo == 'usuario'
+            )
+          );
+        allow update: if canAccessRoom(roomId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leido'])
+          && request.resource.data.leido == true;
+        allow delete: if canAccessRoom(roomId)
+          && resource.data.remitenteId == request.auth.uid;
+      }
     }
 
     match /mensajes_chat/{messageId} {

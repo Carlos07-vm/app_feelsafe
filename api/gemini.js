@@ -203,7 +203,12 @@ export default async function handler(req, res) {
     );
 
     if (!response.ok) {
-      return res.status(502).json({ error: "No se pudo obtener una respuesta de la IA." });
+      const providerError = await response.json().catch(() => ({}));
+      console.error("Gemini provider error:", response.status, providerError?.error?.message || "unknown");
+      const error = response.status === 400 || response.status === 401 || response.status === 403
+        ? "La clave de Gemini no es válida o la API Generative Language no está habilitada."
+        : "No se pudo obtener una respuesta de la IA.";
+      return res.status(502).json({ error });
     }
 
     const data = await response.json();

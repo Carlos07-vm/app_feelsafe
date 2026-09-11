@@ -28,8 +28,11 @@ import Goals from "./pages/Goals";
 import Chatbot from "./pages/Chatbot";
 import Specialists from "./pages/Specialists";
 import ChatRoom from "./pages/ChatRoom";
+import UserConversations from "./pages/UserConversations";
+import RoomChat from "./pages/RoomChat";
 import SpecialistConversations from "./pages/SpecialistConversations";
 import SpecialistChat from "./pages/SpecialistChat";
+import SpecialistRooms from "./pages/SpecialistRooms";
 
 // ================= Recursos =================
 import Resources from "./pages/Resources";
@@ -76,9 +79,11 @@ function App() {
             <Route path="/specialist/profile" element={<SpecialistProfile />} />
             <Route path="/specialist/users" element={<SpecialistUsers />} />
             <Route path="/specialist-conversations" element={<SpecialistConversations />} />
+            <Route path="/specialist/rooms" element={<SpecialistRooms />} />
             <Route path="/specialist/agenda" element={<SpecialistAgenda />} />
             <Route path="/specialist/settings" element={<SpecialistSettings />} />
             <Route path="/specialist-chat/:conversationId" element={<SpecialistChat />} />
+            <Route path="/specialist-room/:roomId" element={<RoomChat />} />
           </Route>
 
           {/* =================================================
@@ -99,7 +104,10 @@ function App() {
             {/* ================= Chat ================= */}
             <Route path="/chat" element={<Chatbot />} />
             <Route path="/specialists" element={<Specialists />} />
+            <Route path="/conversations" element={<UserConversations />} />
             <Route path="/chat-room" element={<ChatRoom />} />
+            <Route path="/chat-room/:conversationId" element={<ChatRoom />} />
+            <Route path="/room/:roomId" element={<RoomChat />} />
 
             {/* ================= Recursos ================= */}
             <Route path="/resources" element={<Resources />} />

@@ -17,6 +17,7 @@ import {
   FaBullseye,
   FaLifeRing,
   FaUserMd,
+  FaComments,
 } from "react-icons/fa";
 
 import logo from "../assets/logo.jpeg";
@@ -146,6 +147,17 @@ function Sidebar({ sidebarOpen, onClose }) {
         >
           <FaUserMd />
           <span>{t.menuSpecialists}</span>
+        </NavLink>
+
+        <NavLink
+          to="/conversations"
+          onClick={onClose}
+          className={({ isActive }) =>
+            isActive ? "active" : ""
+          }
+        >
+          <FaComments />
+          <span>{language === 'es' ? "Mis conversaciones" : "My conversations"}</span>
         </NavLink>
 
         <hr />

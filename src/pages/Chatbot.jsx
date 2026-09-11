@@ -366,9 +366,10 @@ function Chatbot() {
         err
       );
 
-      setError(
-        "No pude conectar con FeelSafe AI. Intenta de nuevo."
-      );
+      const errorMessage = err?.message === "Failed to fetch"
+        ? "No se pudo acceder al servidor de IA. Comprueba la URL del endpoint y vuelve a intentarlo."
+        : err?.message || "No pude conectar con FeelSafe AI. Intenta de nuevo.";
+      setError(errorMessage);
 
       setMessages((prev) => [
         ...prev,
