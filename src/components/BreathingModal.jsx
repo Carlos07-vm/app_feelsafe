@@ -150,16 +150,16 @@ function BreathingModal({ close, uid }) {
 
   return (
     <div className="breathing-modal-overlay" onClick={close}>
-      <div className="breathing-modal-box" onClick={(e) => e.stopPropagation()}>
-        <button className="breathing-close-btn" onClick={close} type="button">
-          <FaTimes />
+      <div className="breathing-modal-box" role="dialog" aria-modal="true" aria-labelledby="breathing-modal-title" onClick={(e) => e.stopPropagation()}>
+        <button className="breathing-close-btn" onClick={close} type="button" aria-label="Cerrar respiración guiada">
+          <FaTimes aria-hidden="true" />
         </button>
 
         <div className="breathing-header">
           <div className="breathing-icon-bubble">
             <FaHeartbeat />
           </div>
-          <h2>Respiración Consciente</h2>
+          <h2 id="breathing-modal-title">Respiración Consciente</h2>
           <p>Sigue el ritmo visual del círculo para sincronizar tu respiración y calmar tu mente.</p>
         </div>
 
@@ -205,7 +205,7 @@ function BreathingModal({ close, uid }) {
         </div>
 
         {/* Dynamic Instruction */}
-        <p className="breathing-instruction-text">{getPhaseInstruction()}</p>
+        <p className="breathing-instruction-text" aria-live="polite">{getPhaseInstruction()}</p>
 
         {/* Cycle indicator */}
         {phase !== "ready" && phase !== "done" && (

@@ -108,6 +108,14 @@
   transition: color 0.3s ease;
 }
 
+.mood-field-label {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-light, #79688e);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
 .mood-note p {
   margin-top: 10px;
   color: #585f7a;
@@ -300,4 +308,4 @@ body.dark-mode .mood-page .mood-status,
   .emotion-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-}
+}

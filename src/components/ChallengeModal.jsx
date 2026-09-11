@@ -109,8 +109,8 @@ function ChallengeModal({ close, onComplete, uid }) {
   return (
     <div className="challenge-modal-overlay" onClick={close}>
       <div className="challenge-modal-box" onClick={(e) => e.stopPropagation()}>
-        <button className="challenge-close-btn" onClick={close} type="button">
-          <FaTimes />
+         <button className="challenge-close-btn" onClick={close} type="button" aria-label="Cerrar reto">
+           <FaTimes aria-hidden="true" />
         </button>
 
         {!completed ? (
@@ -147,16 +147,17 @@ function ChallengeModal({ close, onComplete, uid }) {
 
             {/* Inputs */}
             <div className="challenge-inputs-list">
-              {prompt.placeholders.map((ph, index) => (
-                <div key={index} className="challenge-input-row">
+               {prompt.placeholders.map((ph, index) => (
+                 <div key={ph} className="challenge-input-row">
                   <span className="input-number-badge">{index + 1}</span>
                   <input
                     type="text"
                     className="challenge-text-input"
                     placeholder={ph}
-                    value={answers[index]}
-                    onChange={(e) => handleAnswerChange(index, e.target.value)}
-                    maxLength={150}
+                   value={answers[index]}
+                   onChange={(e) => handleAnswerChange(index, e.target.value)}
+                   maxLength={150}
+                   aria-label={ph}
                   />
                 </div>
               ))}

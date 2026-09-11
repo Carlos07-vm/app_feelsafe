@@ -116,6 +116,25 @@ const parseModelResponse = (text) => {
 };
 
 export default async function handler(req, res) {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    process.env.CORS_ORIGIN,
+    "capacitor://localhost",
+    "http://localhost",
+    "https://localhost",
+  ].filter(Boolean);
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Vary", "Origin");
+  }
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Método no permitido." });

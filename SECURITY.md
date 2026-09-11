@@ -5,7 +5,8 @@
 1. Revoca y reemplaza cualquier clave Gemini que haya estado en un archivo `.env` expuesto.
 2. Configura `GEMINI_API_KEY` y `FIREBASE_WEB_API_KEY` únicamente como variables de entorno del servidor en Vercel.
 3. Configura las variables `VITE_FIREBASE_*` y `VITE_FIREBASE_VAPID_KEY` en el proyecto de Vercel.
-4. No agregues `.env` al repositorio. `.gitignore` ya lo excluye.
+4. Para APK, configura `VITE_GEMINI_API_URL` con la URL pública de `/api/gemini` y permite el origen Capacitor.
+5. No agregues `.env` al repositorio. `.gitignore` ya lo excluye.
 
 ## Gemini
 

@@ -14,7 +14,7 @@ import {
 } from "react-icons/fa";
 
 function Analysis() {
-  const { language } = useApp();
+  const { language, user } = useApp();
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");

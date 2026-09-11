@@ -44,7 +44,7 @@ function Sidebar({ sidebarOpen, onClose }) {
 
       {/* ================= Botón cerrar en móvil ================= */}
       <div className="sidebar-close-mobile">
-        <button onClick={onClose} aria-label="Cerrar menú">
+         <button type="button" onClick={onClose} aria-label="Cerrar menú">
           ✕
         </button>
       </div>
@@ -85,7 +85,7 @@ function Sidebar({ sidebarOpen, onClose }) {
       </div>
 
       {/* ================= Navegación ================= */}
-      <nav className="sidebar-menu" ref={navRef}> 
+      <nav className="sidebar-menu" id="primary-navigation" aria-label={language === 'es' ? "Navegación principal" : "Main navigation"} ref={navRef}> 
 
         {/* ================= PRINCIPAL ================= */}
         <p className="sidebar-title">

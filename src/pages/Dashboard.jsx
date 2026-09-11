@@ -3,7 +3,8 @@ import MainLayout from "../layouts/MainLayout";
 import { useApp } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { translations } from "../constants/translations"; 
-import { useState, useEffect } from "react"; // <-- IMPORTAMOS HOOKS
+import { localDateKey } from "../utils/date";
+import { useState, useEffect } from "react";
 
 // --- FIREBASE (TIEMPO REAL) ---
 import { db } from "../services/firebase";
@@ -16,9 +17,10 @@ import {
 } from "react-icons/fa";
 
 function Dashboard() {
-  const { user, loading, language } = useApp(); 
+  const { user, loading, language } = useApp();
   const navigate = useNavigate();
   const t = translations[language] || translations.es;
+  const userId = user?.uid;
 
   // ==================== ESTADOS EN TIEMPO REAL ====================
   // Guardamos las métricas que cambiarán en vivo
@@ -30,11 +32,11 @@ function Dashboard() {
   const [lastRecord, setLastRecord] = useState(null); // Guarda el último registro emocional
 
   useEffect(() => {
-    if (!user?.uid) return;
+     if (!userId) return;
 
     // 1. ESCUCHADOR DEL PERFIL (Racha y Bienestar)
     // Se dispara automáticamente si cambian los datos del usuario en Firebase
-    const userRef = doc(db, "usuarios", user.uid);
+     const userRef = doc(db, "usuarios", userId);
     const unsubUser = onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -51,7 +53,7 @@ function Dashboard() {
     // Luego ordenamos en el cliente
     const recordsQuery = query(
       collection(db, "registros_emocionales"),
-      where("uidUsuario", "==", user.uid)
+       where("uidUsuario", "==", userId)
     );
 
     const unsubRecords = onSnapshot(recordsQuery, (snapshot) => {
@@ -74,14 +76,15 @@ function Dashboard() {
       unsubUser();
       unsubRecords();
     };
-  }, [user]);
+  }, [userId]);
 
   // ==================== LÓGICA DE SALUDO ====================
   const hour = new Date().getHours();
-  let greeting = "Hola";
-  if (hour >= 5 && hour < 12) greeting = t.morning;
-  else if (hour >= 12 && hour < 18) greeting = t.afternoon;
-  else greeting = t.evening;
+  const greeting = hour >= 5 && hour < 12
+    ? t.morning
+    : hour >= 12 && hour < 18
+      ? t.afternoon
+      : t.evening;
 
   if (loading) {
     return (
@@ -98,19 +101,25 @@ function Dashboard() {
   // Extraemos la emoción y nota del último registro (si existe)
   const currentEmotion = lastRecord?.emocion || "Neutro";
   const currentNote = lastRecord?.nota || "Aún no has registrado notas hoy.";
+  const hasTodayRecord = lastRecord?.fecha === localDateKey();
 
   return (
     <MainLayout>
       <div className="dashboard-wrapper">
         
         <div className="dashboard-topbar">
-          <div className="topbar-profile" onClick={() => navigate("/profile")}>
-            <div className="topbar-avatar">
-              {profilePhoto ? <img src={profilePhoto} alt="Perfil" /> : <FaUserCircle />}
-            </div>
-            <span className="topbar-name">{userName}</span>
-            <FaChevronDown className="topbar-arrow" />
-          </div>
+           <button
+             className="topbar-profile"
+             type="button"
+             onClick={() => navigate("/profile")}
+             aria-label={language === "es" ? "Abrir perfil" : "Open profile"}
+           >
+             <div className="topbar-avatar">
+               {profilePhoto ? <img src={profilePhoto} alt="Perfil" /> : <FaUserCircle aria-hidden="true" />}
+             </div>
+             <span className="topbar-name">{userName}</span>
+             <FaChevronDown className="topbar-arrow" aria-hidden="true" />
+           </button>
         </div>
 
         <section className="dashboard-hero-solid">
@@ -219,13 +228,29 @@ function Dashboard() {
         <section className="bottom-2col">
           
           <div className="last-record-card">
-            <div className="record-header">
-              <div className="record-title-area">
-                <FaCalendarAlt className="record-title-icon" />
-                <h3>{t.lastRecord}</h3>
-              </div>
-            </div>
-            <p className="record-desc">{t.lastRecordDesc}</p>
+             <div className="record-header">
+               <div className="record-title-area">
+                 <FaCalendarAlt className="record-title-icon" />
+                 <h3>{t.lastRecord}</h3>
+               </div>
+               <button
+                 type="button"
+                 className="record-link-btn"
+                 onClick={() => navigate("/mood")}
+               >
+                 {hasTodayRecord
+                   ? (language === "es" ? "Actualizar" : "Update")
+                   : (language === "es" ? "Registrar hoy" : "Log today")}
+                 <FaArrowRight aria-hidden="true" />
+               </button>
+             </div>
+             <p className="record-desc">{t.lastRecordDesc}</p>
+             <p className={`record-checkin-status ${hasTodayRecord ? "is-complete" : "is-pending"}`}>
+               <span aria-hidden="true" />
+               {hasTodayRecord
+                 ? (language === "es" ? "Tu check-in de hoy está guardado." : "Today's check-in is saved.")
+                 : (language === "es" ? "Un minuto para registrar cómo te sientes." : "Take a minute to log how you feel.")}
+             </p>
             
             <div className="record-mini-cards">
               <div className="mini-card">

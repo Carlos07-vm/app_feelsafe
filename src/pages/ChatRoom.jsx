@@ -44,14 +44,6 @@ function ChatRoom() {
   const [sending, setSending] = useState(false);
 
   // =====================================================
-  // INFORMACIÓN
-  // =====================================================
-
-  useEffect(() => {
-    // Component initialized with user, specialist and conversation context
-  }, [user?.uid, specialist, conversationId]);
-
-  // =====================================================
   // VALIDAR
   // =====================================================
 
@@ -91,6 +83,8 @@ function ChatRoom() {
   // =====================================================
 
   useEffect(() => {
+    let isMounted = true;
+
     const loadConversation = async () => {
       if (!user?.uid || !specialist?.uid) {
         return;
@@ -120,6 +114,7 @@ function ChatRoom() {
         );
 
         const snapshot = await getDocs(q);
+        if (!isMounted) return;
 
         if (!snapshot.empty) {
           const existingDoc = snapshot.docs[0];
@@ -201,6 +196,7 @@ function ChatRoom() {
           conversationRef,
           newConversation
         );
+        if (!isMounted) return;
 
         console.log(
           "✅ NUEVA CONVERSACIÓN:",
@@ -216,18 +212,21 @@ function ChatRoom() {
           ...newConversation,
         });
 
-        setLoading(false);
+        if (isMounted) setLoading(false);
       } catch (error) {
         console.error(
           "❌ ERROR BUSCANDO CONVERSACIÓN:",
           error
         );
 
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     loadConversation();
+    return () => {
+      isMounted = false;
+    };
   }, [
     user?.uid,
     specialist?.uid,

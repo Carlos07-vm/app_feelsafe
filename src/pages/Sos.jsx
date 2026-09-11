@@ -198,7 +198,7 @@ function SOS() {
         </div>
 
         <div className="sos-status-banner">
-          <p>{status}</p>
+           <p role="status" aria-live="polite">{status}</p>
         </div>
 
         {showContactModal && (
@@ -227,12 +227,16 @@ function SOS() {
                 
                 <form className="sos-modal-form" onSubmit={handleAddContact}>
                   <p>Agrega a un familiar, amigo o especialista. (Ej. +505 8888 8888)</p>
-                  <input 
-                     type="text" placeholder="Nombre (ej. Mamá)" maxLength={100}
+                   <label htmlFor="sos-contact-name">Nombre</label>
+                   <input
+                      id="sos-contact-name"
+                      type="text" placeholder="Ej. Mamá" maxLength={100}
                     value={newName} onChange={(e) => setNewName(e.target.value)} required 
                   />
-                  <input 
-                     type="tel" placeholder="Número con código de país" maxLength={40}
+                   <label htmlFor="sos-contact-phone">Teléfono</label>
+                   <input
+                      id="sos-contact-phone"
+                      type="tel" placeholder="Ej. +505 8888 8888" maxLength={40}
                     value={newPhone} onChange={(e) => setNewPhone(e.target.value)} required 
                   />
                   <div className="sos-modal-actions">
@@ -255,11 +259,11 @@ function SOS() {
                              <button className="sos-delete-btn" type="button" aria-label={`Eliminar a ${contact.nombre || "este contacto"}`} onClick={() => handleDeleteContact(contact.id)}><FaTrash /></button>
                           </div>
                           <div className="sos-contact-buttons">
-                            <button className="sos-call-btn" onClick={() => handleNormalCall(contact.telefono)}>
-                              <FaPhoneAlt /> Llamar
-                            </button>
-                            <button className="sos-wa-btn" onClick={() => handleWhatsAppCall(contact.telefono)}>
-                              <FaWhatsapp /> WhatsApp
+                             <button className="sos-call-btn" type="button" onClick={() => handleNormalCall(contact.telefono)}>
+                               <FaPhoneAlt aria-hidden="true" /> Llamar
+                             </button>
+                             <button className="sos-wa-btn" type="button" onClick={() => handleWhatsAppCall(contact.telefono)}>
+                               <FaWhatsapp aria-hidden="true" /> WhatsApp
                             </button>
                           </div>
                         </div>

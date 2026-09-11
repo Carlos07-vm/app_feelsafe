@@ -119,16 +119,16 @@ function MeditationModal({ close, uid }) {
 
   return (
     <div className="meditation-modal-overlay" onClick={close}>
-      <div className="meditation-modal-box" onClick={(e) => e.stopPropagation()}>
-        <button className="meditation-close-btn" onClick={close} type="button">
-          <FaTimes />
+      <div className="meditation-modal-box" role="dialog" aria-modal="true" aria-labelledby="meditation-modal-title" onClick={(e) => e.stopPropagation()}>
+        <button className="meditation-close-btn" onClick={close} type="button" aria-label="Cerrar meditación">
+          <FaTimes aria-hidden="true" />
         </button>
 
         <div className="meditation-header">
           <div className="meditation-icon-bubble">
             <FaLeaf />
           </div>
-          <h2>Meditación Guiada</h2>
+          <h2 id="meditation-modal-title">Meditación Guiada</h2>
           <p>Tómate un momento de pausa consciente para aquietar el ruido exterior y conectar contigo.</p>
         </div>
 

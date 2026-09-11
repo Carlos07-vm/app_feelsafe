@@ -265,6 +265,14 @@
   margin: 0 0 15px 0;
 }
 
+.sos-modal-form label {
+  display: block;
+  margin: 10px 0 6px;
+  color: var(--text, #2D1B46);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
 .sos-modal-form input {
   width: 100%;
   padding: 14px;
@@ -438,4 +446,4 @@
     border-radius: 20px;
     max-height: 90vh;
   }
-}
+}

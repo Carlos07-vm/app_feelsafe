@@ -217,16 +217,16 @@ function SoundRelaxModal({ close }) {
 
   return (
     <div className="sound-modal-overlay" onClick={close}>
-      <div className="sound-modal-box" onClick={(e) => e.stopPropagation()}>
-        <button className="sound-close-btn" onClick={close} type="button">
-          <FaTimes />
+      <div className="sound-modal-box" role="dialog" aria-modal="true" aria-labelledby="sound-modal-title" onClick={(e) => e.stopPropagation()}>
+        <button className="sound-close-btn" onClick={close} type="button" aria-label="Cerrar sonidos relajantes">
+          <FaTimes aria-hidden="true" />
         </button>
 
         <div className="sound-modal-header">
           <div className="sound-icon-bubble">
             <FaMusic />
           </div>
-          <h2>Espacio de Relajación Sonora</h2>
+          <h2 id="sound-modal-title">Espacio de Relajación Sonora</h2>
           <p>Reproduce ambientes sonoros relajantes directamente o explora sesiones guiadas externas.</p>
         </div>
 
@@ -240,7 +240,6 @@ function SoundRelaxModal({ close }) {
                 <div
                   key={s.id}
                   className={`ambient-card ${active ? "playing" : ""}`}
-                  onClick={() => handleToggleSound(s)}
                 >
                   <div className="ambient-card-left">
                     <span className="ambient-icon">{s.icon}</span>
@@ -253,6 +252,8 @@ function SoundRelaxModal({ close }) {
                     type="button"
                     className={`ambient-play-btn ${active ? "active" : ""}`}
                     aria-label={active ? "Pausar sonido" : "Reproducir sonido"}
+                    aria-pressed={active}
+                    onClick={() => handleToggleSound(s)}
                   >
                     {active ? <FaPause /> : <FaPlay />}
                   </button>
@@ -264,8 +265,9 @@ function SoundRelaxModal({ close }) {
           {/* Volume Slider (shown when sound is active) */}
           {isPlaying && (
             <div className="sound-volume-bar">
-              <span>Volumen:</span>
+              <label htmlFor="sound-volume">Volumen:</label>
               <input
+                id="sound-volume"
                 type="range"
                 min="0.05"
                 max="1"
@@ -283,9 +285,9 @@ function SoundRelaxModal({ close }) {
         <div className="external-playlists-section">
           <h3 className="section-mini-title">Sesiones Musicales y Listas Recomendadas</h3>
           <div className="playlists-list">
-            {EXTERNAL_PLAYLISTS.map((pl, idx) => (
+            {EXTERNAL_PLAYLISTS.map((pl) => (
               <a
-                key={idx}
+                key={pl.url}
                 href={pl.url}
                 target="_blank"
                 rel="noopener noreferrer"

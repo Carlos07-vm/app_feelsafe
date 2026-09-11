@@ -1,6 +1,6 @@
 import "../styles/Emotions.css";
 import MainLayout from "../layouts/MainLayout";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useApp } from "../context/AppContext";
 import emotions from "../constants/emotions";
 import { crearRegistroEmocional } from "../services/registroEmocionalService";
@@ -17,10 +17,6 @@ function Emotions() {
   const [note, setNote] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    setSelectedMood(user?.currentMood || "");
-  }, [user?.currentMood]);
 
   const calculateWellbeingChange = (moodName) => {
     const mood = moodName.toLowerCase();
@@ -168,8 +164,13 @@ function Emotions() {
 
         <section className="mood-note">
           <h2>{t.emotionIntensity || "Intensidad de la emoción"}</h2>
-          <input
-            type="range"
+           <label htmlFor="emotion-intensity" className="mood-field-label">
+             {t.intensityLabel || "Elige el nivel"}
+           </label>
+           <input
+             id="emotion-intensity"
+             aria-label={t.intensity || "Intensidad de 1 a 10"}
+             type="range"
             min="1"
             max="10"
             value={intensity}
@@ -182,7 +183,11 @@ function Emotions() {
 
         <section className="mood-note">
           <h2>{t.tellUsAboutYourDay || "Cuéntanos cómo estuvo tu día"}</h2>
-          <textarea
+           <label htmlFor="emotion-note" className="mood-field-label">
+             {t.noteLabel || "Nota opcional"}
+           </label>
+           <textarea
+             id="emotion-note"
             placeholder={t.moodPlaceholder || "Escribe aquí cómo te sentiste hoy..."}
             value={note}
             onChange={(e) => setNote(e.target.value)}
@@ -198,7 +203,7 @@ function Emotions() {
         </button>
 
         {status && (
-          <p className="mood-status">
+           <p className="mood-status" role="status" aria-live="polite">
             {status}
           </p>
         )}

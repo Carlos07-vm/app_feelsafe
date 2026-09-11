@@ -1,6 +1,5 @@
 ﻿import { NavLink, useLocation } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { translations } from '../constants/translations';
 import {
   FaHome,
   FaSmile,
@@ -13,7 +12,6 @@ import '../styles/BottomNav.css';
 function BottomNav() {
   const { language } = useApp();
   const location = useLocation();
-  const t = translations[language] || translations.es;
 
   const hideOnRoutes = ['/', '/login', '/register', '/verify-email', '/specialist/register'];
   if (hideOnRoutes.includes(location.pathname) || location.pathname.startsWith('/specialist')) {

@@ -3,7 +3,6 @@ import MainLayout from "../layouts/MainLayout";
 import { FaPaperPlane, FaTrash } from "react-icons/fa";
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useApp } from "../context/AppContext";
 import { auth } from "../services/firebase";
 import { queryGemini } from "../services/geminiService";
 
@@ -25,7 +24,6 @@ const MENSAJE_BIENVENIDA =
 
 function Chatbot() {
   const navigate = useNavigate();
-  const { user } = useApp();
 
   const [conversationId, setConversationId] =
     useState(null);
@@ -213,9 +211,7 @@ function Chatbot() {
       } finally {
         if (isMounted) {
           setLoadingChat(false);
-          setTimeout(() => {
-            inputRef.current?.focus();
-          }, 100);
+          inputRef.current?.focus();
         }
       }
     };
@@ -259,6 +255,7 @@ function Chatbot() {
     setError(null);
 
     const mensajeUsuario = {
+      id: `user-${Date.now()}`,
       sender: "user",
       text: trimmed,
     };
@@ -274,9 +271,7 @@ function Chatbot() {
 
     setLoading(true);
 
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 50);
+    inputRef.current?.focus();
 
     try {
       // ========================================================
@@ -314,6 +309,7 @@ function Chatbot() {
         );
 
       const mensajeBot = {
+        id: `bot-${Date.now()}`,
         sender: "bot",
         text: aiResult.response,
       };
@@ -377,6 +373,7 @@ function Chatbot() {
       setMessages((prev) => [
         ...prev,
         {
+          id: `error-${Date.now()}`,
           sender: "bot",
           text:
             "Lo siento, no pude procesar tu mensaje en este momento. Por favor inténtalo de nuevo.",
@@ -385,9 +382,7 @@ function Chatbot() {
     } finally {
       setLoading(false);
 
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
+      inputRef.current?.focus();
     }
   };
 
@@ -414,6 +409,7 @@ function Chatbot() {
     if (!conversationId) {
       setMessages([
         {
+          id: `welcome-${Date.now()}`,
           sender: "bot",
           text: MENSAJE_BIENVENIDA,
         },
@@ -447,6 +443,7 @@ function Chatbot() {
 
       setMessages([
         {
+          id: `welcome-${Date.now()}`,
           sender: "bot",
           text: MENSAJE_BIENVENIDA,
         },
@@ -493,9 +490,7 @@ function Chatbot() {
     } finally {
       setLoadingChat(false);
 
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
+      inputRef.current?.focus();
     }
   };
 
@@ -551,12 +546,9 @@ function Chatbot() {
           <div className="chat-messages">
 
             {messages.map(
-              (msg, index) => (
+              (msg) => (
                 <div
-                  key={
-                    msg.id ||
-                    `${msg.sender}-${index}`
-                  }
+                  key={msg.id}
                   className={`message-wrapper ${
                     msg.sender === "user"
                       ? "wrapper-user"
@@ -666,8 +658,9 @@ function Chatbot() {
 
             <input
               ref={inputRef}
-              type="text"
-              className="chat-input-field"
+               type="text"
+               className="chat-input-field"
+               aria-label="Escribe tu mensaje"
               placeholder={
                 loading
                   ? "FeelSafe AI está respondiendo..."
@@ -696,11 +689,12 @@ function Chatbot() {
                 loadingChat ||
                 !message.trim()
               }
-              title={
+               title={
                 loading
                   ? "FeelSafe AI está respondiendo..."
-                  : "Enviar mensaje"
-              }
+                 : "Enviar mensaje"
+               }
+               aria-label={loading ? "FeelSafe AI está respondiendo" : "Enviar mensaje"}
             >
               <FaPaperPlane />
             </button>
